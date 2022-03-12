@@ -1,6 +1,6 @@
-#include "tablewidget.h"
+#include "gnuplottable.h"
 
-TableWidget::TableWidget(QWidget *parent)
+GnuplotTable::GnuplotTable(QWidget *parent)
     : QTableWidget(parent)
 {
     {//プロセスの初期化
@@ -10,31 +10,31 @@ TableWidget::TableWidget(QWidget *parent)
         scCtrC = new QShortcut(QKeySequence("Ctrl+C"), this);
         scCtrV = new QShortcut(QKeySequence("Ctrl+V"), this);
         scCtrX = new QShortcut(QKeySequence("Ctrl+X"), this);
-        connect(scCtrC, &QShortcut::activated, this, &TableWidget::copyCell);
-        connect(scCtrV, &QShortcut::activated, this, &TableWidget::pasteCell);
-        connect(scCtrX, &QShortcut::activated, this, &TableWidget::cutCell);
+        connect(scCtrC, &QShortcut::activated, this, &GnuplotTable::copyCell);
+        connect(scCtrV, &QShortcut::activated, this, &GnuplotTable::pasteCell);
+        connect(scCtrX, &QShortcut::activated, this, &GnuplotTable::cutCell);
     }
     {//contextMenuの設定
         setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(this, &TableWidget::customContextMenuRequested,
-                this, &TableWidget::onCustomContextMenu);
+        connect(this, &GnuplotTable::customContextMenuRequested,
+                this, &GnuplotTable::onCustomContextMenu);
         normalMenu = new QMenu(this);
         /* copy */
         QAction *actCopy = new QAction("copy", normalMenu);
         normalMenu->addAction(actCopy);
-        connect(actCopy, &QAction::triggered, this, &TableWidget::copyCell);
+        connect(actCopy, &QAction::triggered, this, &GnuplotTable::copyCell);
         /* cut */
         QAction *actCut = new QAction("cut", normalMenu);
         normalMenu->addAction(actCut);
-        connect(actCut, &QAction::triggered, this, &TableWidget::cutCell);
+        connect(actCut, &QAction::triggered, this, &GnuplotTable::cutCell);
         /* paste */
         QAction *actPaste = new QAction("paste", normalMenu);
         normalMenu->addAction(actPaste);
-        connect(actPaste, &QAction::triggered, this, &TableWidget::pasteCell);
+        connect(actPaste, &QAction::triggered, this, &GnuplotTable::pasteCell);
         /* delete */
         QAction *actDelete = new QAction("delete", normalMenu);
         normalMenu->addAction(actDelete);
-        connect(actDelete, &QAction::triggered, this, &TableWidget::deleteCell);
+        connect(actDelete, &QAction::triggered, this, &GnuplotTable::deleteCell);
         /* insert */
         QMenu *insertMenu = new QMenu(normalMenu);
         insertMenu->setTitle("insert");
@@ -46,10 +46,10 @@ TableWidget::TableWidget(QWidget *parent)
         insertMenu->addAction(actInsertRowDw);
         insertMenu->addAction(actInsertColLf);
         insertMenu->addAction(actInsertColRg);
-        connect(actInsertRowUp, &QAction::triggered, this, &TableWidget::insertRowUp);
-        connect(actInsertRowDw, &QAction::triggered, this, &TableWidget::insertRowDown);
-        connect(actInsertColLf, &QAction::triggered, this, &TableWidget::insertColLeft);
-        connect(actInsertColRg, &QAction::triggered, this, &TableWidget::insertColRight);
+        connect(actInsertRowUp, &QAction::triggered, this, &GnuplotTable::insertRowUp);
+        connect(actInsertRowDw, &QAction::triggered, this, &GnuplotTable::insertRowDown);
+        connect(actInsertColLf, &QAction::triggered, this, &GnuplotTable::insertColLeft);
+        connect(actInsertColRg, &QAction::triggered, this, &GnuplotTable::insertColRight);
         normalMenu->addMenu(insertMenu);
         /* placement */
         QMenu *placementMenu = new QMenu(normalMenu);
@@ -58,8 +58,8 @@ TableWidget::TableWidget(QWidget *parent)
         QAction *actReverseCol = new QAction("reverse col", placementMenu);
         placementMenu->addAction(actReverseRow);
         placementMenu->addAction(actReverseCol);
-        connect(actReverseRow, &QAction::triggered, this, &TableWidget::reverseRow);
-        connect(actReverseCol, &QAction::triggered, this, &TableWidget::reverseCol);
+        connect(actReverseRow, &QAction::triggered, this, &GnuplotTable::reverseRow);
+        connect(actReverseCol, &QAction::triggered, this, &GnuplotTable::reverseCol);
         normalMenu->addMenu(placementMenu);
         /* gnuplot */
         QMenu *gnuplotMenu = new QMenu(normalMenu);
@@ -68,8 +68,8 @@ TableWidget::TableWidget(QWidget *parent)
         QAction *actPlotClip = new QAction("clipboard", gnuplotMenu);
         gnuplotMenu->addAction(actPlot);
         gnuplotMenu->addAction(actPlotClip);
-        connect(actPlot, &QAction::triggered, this, &TableWidget::plot);
-        connect(actPlotClip, &QAction::triggered, this, &TableWidget::gnuplotClip);
+        connect(actPlot, &QAction::triggered, this, &GnuplotTable::plot);
+        connect(actPlotClip, &QAction::triggered, this, &GnuplotTable::gnuplotClip);
         normalMenu->addMenu(gnuplotMenu);
         /* visualize */
         QMenu *visualizeMenu = new QMenu(normalMenu);
@@ -78,19 +78,19 @@ TableWidget::TableWidget(QWidget *parent)
         QAction *act3DScatter = new QAction("3Dscatter");
         visualizeMenu->addAction(act3DBar);
         visualizeMenu->addAction(act3DScatter);
-        connect(act3DBar, &QAction::triggered, this, &TableWidget::visualize3DBar);
-        connect(act3DScatter, &QAction::triggered, this, &TableWidget::visualize3DScatter);
+        connect(act3DBar, &QAction::triggered, this, &GnuplotTable::visualize3DBar);
+        connect(act3DScatter, &QAction::triggered, this, &GnuplotTable::visualize3DScatter);
         /* export */
         QMenu *exportMenu = new QMenu(normalMenu);
         exportMenu->setTitle("export");
         QAction *actLatexCode = new QAction("latex code", exportMenu);
         exportMenu->addAction(actLatexCode);
-        connect(actLatexCode, &QAction::triggered, this, &TableWidget::toLatexCode);
+        connect(actLatexCode, &QAction::triggered, this, &GnuplotTable::toLatexCode);
         normalMenu->addMenu(exportMenu);
     }
 }
 
-TableWidget::~TableWidget()
+GnuplotTable::~GnuplotTable()
 {
     delete process;
     delete normalMenu;
@@ -106,7 +106,7 @@ TableWidget::~TableWidget()
 //######################
 /* tableにデータをセット */
 template <>
-void TableWidget::setData(const QList<QList<QString> >& data)
+void GnuplotTable::setData(const QList<QList<QString> >& data)
 {
     this->clear();                                                               //セットされていた*itemはdeleteされる
     for(int row = 0; row < data.size(); ++row)
@@ -123,7 +123,7 @@ void TableWidget::setData(const QList<QList<QString> >& data)
 
 /* table全体のデータを取得 */
 template <>
-QList<QList<QString> > TableWidget::getData() const
+QList<QList<QString> > GnuplotTable::getData() const
 {
     const int rows = rowCount();
     const int cols = columnCount();
@@ -141,7 +141,7 @@ QList<QList<QString> > TableWidget::getData() const
 
 /* tableの選択されているデータを取得 */
 template<>
-QList<QList<QList<float> > > TableWidget::selectedData() const
+QList<QList<QList<float> > > GnuplotTable::selectedData() const
 {
     /* 選択されれるセルの範囲を取得 */
     const QList<QTableWidgetSelectionRange> selectedRangeList = selectedRanges();
@@ -178,13 +178,13 @@ QList<QList<QList<float> > > TableWidget::selectedData() const
 // スロット関数
 //####################
 /* 右クリックによるcontextMenuの表示 */
-void TableWidget::onCustomContextMenu(const QPoint& point)
+void GnuplotTable::onCustomContextMenu(const QPoint& point)
 {
     normalMenu->exec(viewport()->mapToGlobal(point));
 }
 
 /* コピー */
-void TableWidget::copyCell()
+void GnuplotTable::copyCell()
 {
     /* tableの情報を取得 */
     const QAbstractItemModel *model = this->model();                //table全体の値の情報
@@ -216,14 +216,14 @@ void TableWidget::copyCell()
 }
 
 /* カット */
-void TableWidget::cutCell()
+void GnuplotTable::cutCell()
 {
     this->copyCell();
     this->deleteCell();
 }
 
 /* ペースト */
-void TableWidget::pasteCell()
+void GnuplotTable::pasteCell()
 {
     /* 選択された行と列のインデックスを取得 */
     const QList<QTableWidgetSelectionRange> selectedRangeList = selectedRanges();
@@ -257,7 +257,7 @@ void TableWidget::pasteCell()
 }
 
 /* 選択されたセルの削除 */
-void TableWidget::deleteCell()
+void GnuplotTable::deleteCell()
 {
     /* 選択された範囲を取得 */
     const QList<QTableWidgetSelectionRange> selectedRangeList = selectedRanges();
@@ -281,31 +281,31 @@ void TableWidget::deleteCell()
 }
 
 /* 選択されたセルの上に行を追加 */
-void TableWidget::insertRowUp()
+void GnuplotTable::insertRowUp()
 {
     insertRow(currentIndex().row());
 }
 
 /* 選択されたセルの下に行を追加 */
-void TableWidget::insertRowDown()
+void GnuplotTable::insertRowDown()
 {
     insertRow(currentIndex().row() + 1);
 }
 
 /* 選択されたセルの左に列を追加 */
-void TableWidget::insertColLeft()
+void GnuplotTable::insertColLeft()
 {
     insertColumn(currentIndex().column());
 }
 
 /* 選択されたセルの右に列を追加 */
-void TableWidget::insertColRight()
+void GnuplotTable::insertColRight()
 {
     insertColumn(currentIndex().column() + 1);
 }
 
 /* 選択された範囲の行を上下対称に入れ替える */
-void TableWidget::reverseRow()
+void GnuplotTable::reverseRow()
 {
     /* 選択された範囲を取得 */
     const QList<QTableWidgetSelectionRange> selectedRangeList = selectedRanges();
@@ -344,7 +344,7 @@ void TableWidget::reverseRow()
 }
 
 /* 選択された範囲のセルを左右対称に入れ替える */
-void TableWidget::reverseCol()
+void GnuplotTable::reverseCol()
 {
     /* 選択された範囲を取得 */
     const QList<QTableWidgetSelectionRange> selectedRangeList = selectedRanges();
@@ -383,7 +383,7 @@ void TableWidget::reverseCol()
 }
 
 /* gnuplotでplot */
-void TableWidget::plot()
+void GnuplotTable::plot()
 {
     /* gnuplotが初期化されていなかったら(=nullptr)無効 */
     if(gnuplot == nullptr) return;
@@ -433,7 +433,7 @@ void TableWidget::plot()
 }
 
 /* 選択された範囲を表すgnuplotコマンドをクリップボードに貼り付ける */
-void TableWidget::gnuplotClip()
+void GnuplotTable::gnuplotClip()
 {
     /* 選択された範囲 */
     const QList<QTableWidgetSelectionRange> selectedRangeList = selectedRanges();
@@ -464,19 +464,19 @@ void TableWidget::gnuplotClip()
 }
 
 
-void TableWidget::visualize3DBar()
+void GnuplotTable::visualize3DBar()
 {
 
 }
 
 
-void TableWidget::visualize3DScatter()
+void GnuplotTable::visualize3DScatter()
 {
 
 }
 
 /* 選択された範囲のセルを表として描画するlatexコードをクリップボードに貼り付け */
-void TableWidget::toLatexCode()
+void GnuplotTable::toLatexCode()
 {
     /* 選択された範囲を取得 */
     const QList<QTableWidgetSelectionRange> selectedRangeList = selectedRanges();

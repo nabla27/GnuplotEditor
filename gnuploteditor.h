@@ -11,7 +11,7 @@
 #include "utility.h"
 #include "filetree.h"
 #include "texteditor.h"
-#include "tablewidget.h"
+#include "gnuplottable.h"
 #include "browserwidget.h"
 #include "windowmenubar.h"
 #include "layoutparts.h"

@@ -15,7 +15,7 @@
 #include <QDir>
 #include "utility.h"
 #include "texteditor.h"
-#include "tablewidget.h"
+#include "gnuplottable.h"
 #include "iofile.h"
 #include "browserwidget.h"
 
@@ -47,7 +47,7 @@ public:
 struct SheetInfo
 {
 public:
-    SheetInfo(TableWidget *table = nullptr) : table(table) {}
+    SheetInfo(GnuplotTable *table = nullptr) : table(table) {}
     ~SheetInfo() { delete table; table = nullptr; }
 
     static bool isValidFormat(const QString& fileName){
@@ -55,7 +55,7 @@ public:
         return false;
     }
 
-    TableWidget *table;
+    GnuplotTable *table;
     static QStringList formatList;
 };
 
