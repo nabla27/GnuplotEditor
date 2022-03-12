@@ -9,11 +9,11 @@
 #include <QClipboard>
 #include "gnuplot.h"
 
-class TableWidget : public QTableWidget
+class GnuplotTable : public QTableWidget
 {
 public:
-    TableWidget(QWidget *parent = nullptr);
-    ~TableWidget();
+    GnuplotTable(QWidget *parent = nullptr);
+    ~GnuplotTable();
 
 public:
     template <class T> void setData(const QList<QList<T> >& data);

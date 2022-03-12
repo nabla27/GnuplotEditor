@@ -166,7 +166,7 @@ void FileTree::addSheet(const QString& fileName)
     item->setText(0, fileName);
 
     /* リストへの追加 */
-    sheetList.insert(fileName, new SheetInfo(new TableWidget()));
+    sheetList.insert(fileName, new SheetInfo(new GnuplotTable()));
 }
 
 void FileTree::addOther(const QString& fileName)

@@ -19,9 +19,9 @@ SOURCES += \
     gnuplot.cpp \
     gnuplotcpl.cpp \
     gnuploteditor.cpp \
-    main_ge.cpp \
+    gnuplottable.cpp \
+    main.cpp \
     menubar.cpp \
-    tablewidget.cpp \
     texteditor.cpp \
     windowmenubar.cpp
 
@@ -37,8 +37,8 @@ HEADERS += \
     gnuplot.h \
     gnuplotcpl.h \
     gnuploteditor.h \
+    gnuplottable.h \
     menubar.h \
-    tablewidget.h \
     texteditor.h \
     windowmenubar.h
 
