@@ -30,6 +30,7 @@ public:
     ScriptInfo(QProcess *process = nullptr, TextEdit *editor = nullptr)
         : process(process), editor(editor) {}
     ~ScriptInfo() {
+        process->close();
         delete process; process = nullptr;
         delete editor; editor = nullptr;
     }
