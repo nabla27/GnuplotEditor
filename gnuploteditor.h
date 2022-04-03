@@ -35,7 +35,7 @@ private slots:
     void setSheetWidget(const QString& fileName, const SheetInfo* info);
     void setOtherWidget(const QString& fileName, const OtherInfo* info);
     void setMenuBarTitle(const QString& oldName, const QString& newName);
-    void setFolderPath(const QString& folderPath);
+    void setWorkingDirectory(const QString& path);
     void executeGnuplot();
     void receiveGnuplotStdOut(const QString& text);
     void receiveGnuplotStdErr(const QString& text, const int line);

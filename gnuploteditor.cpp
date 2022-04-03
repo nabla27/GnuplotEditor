@@ -15,6 +15,9 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     //メニュバーの生成
     initializeMenuBar();
 
+    //workingDirectoryの設定
+    setWorkingDirectory(QDir::currentPath() + "/gnuplot-project");  //後に起動時のデフォルトフォルダーのパスを変更可能にする
+
     connect(fileTree, &FileTree::scriptSelected, this, &GnuplotEditor::setEditorWidget);
     connect(fileTree, &FileTree::sheetSelected, this, &GnuplotEditor::setSheetWidget);
     connect(fileTree, &FileTree::otherSelected, this, &GnuplotEditor::setOtherWidget);
@@ -204,11 +207,14 @@ void GnuplotEditor::setMenuBarTitle(const QString& oldName, const QString& newNa
     else if(sheetMenu->title() == oldName) sheetMenu->setTitle(newName);
 }
 
-void GnuplotEditor::setFolderPath(const QString& folderPath)
+void GnuplotEditor::setWorkingDirectory(const QString& path)
 {
-    fileTree->setFolderPath(folderPath);
+    /* フォルダーが存在しなければ作成 */
+    QDir workingDir(path);
+    if(!workingDir.exists()) workingDir.mkpath(path);
 
-    gnuplot->setWorkingPath(folderPath);
+    fileTree->setFolderPath(path);
+    gnuplot->setWorkingDirectory(path);
 }
 
 void GnuplotEditor::executeGnuplot()
