@@ -15,14 +15,12 @@ FileTree::FileTree(QWidget *parent)
     initializeContextMenu();
 
     /* ファイルの変更があれば更新するようにする */
-    //dirWatcher = new QFileSystemWatcher(QStringList() << folderPath);
     dirWatcher = new QFileSystemWatcher;
     connect(dirWatcher, &QFileSystemWatcher::directoryChanged, this, &FileTree::updateFileTree);
 
-    /* ファイルツリーを更新 */
-    //loadFileTree();
-
     connect(this, &FileTree::itemDoubleClicked, this, &FileTree::pushClickedItem);
+
+    /* インスタンス化後、GnuplotEditorでsetFolderPath()が呼ばれる */
 }
 
 FileTree::~FileTree()

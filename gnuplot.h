@@ -23,7 +23,6 @@ public:
     void exc(QProcess *process, const QList<QString>& cmdlist);
     void setExePath(const QString& path) { this->path = path; }
     void setPreCmd(const QString& preCmd) { this->preCmdList = preCmd.split('\n'); }
-    //void setWorkingPath(const QString& workingPath) { this->workingPath = workingPath; }
     void setWorkingDirectory(const QString& path) { this->workingDirectory = path; }
 
 private:
@@ -35,7 +34,6 @@ private slots:
 
 private:
     QString path = "gnuplot.exe";
-    //QString workingPath = QDir::currentPath() + "/" + BasicSet::tmpDirectory;
     QString workingDirectory;
     QList<QString> initCmdList;
     QList<QString> preCmdList;
