@@ -122,7 +122,7 @@ private slots:
     void onCustomContextMenu(const QPoint& point);
 
 private:
-    QString folderPath = QDir::currentPath() + "/" + BasicSet::tmpDirectory;
+    QString folderPath;/* = QDir::currentPath() + "/" + BasicSet::tmpDirectory;*/
     QTreeWidgetItem *scriptTree;
     QTreeWidgetItem *sheetTree;
     QTreeWidgetItem *otherTree;

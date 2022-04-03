@@ -7,7 +7,7 @@ QStringList ScriptInfo::formatList = QStringList() << ".txt";
 QStringList SheetInfo::formatList = QStringList() << ".csv";
 
 FileTree::FileTree(QWidget *parent)
-    : QTreeWidget(parent)/*, scriptList(parent), sheetList(parent), otherList(parent)*/
+    : QTreeWidget(parent)
 {
     /* 右クリックメニューの設定 */
     setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
@@ -15,11 +15,12 @@ FileTree::FileTree(QWidget *parent)
     initializeContextMenu();
 
     /* ファイルの変更があれば更新するようにする */
-    dirWatcher = new QFileSystemWatcher(QStringList() << folderPath);
+    //dirWatcher = new QFileSystemWatcher(QStringList() << folderPath);
+    dirWatcher = new QFileSystemWatcher;
     connect(dirWatcher, &QFileSystemWatcher::directoryChanged, this, &FileTree::updateFileTree);
 
     /* ファイルツリーを更新 */
-    loadFileTree();
+    //loadFileTree();
 
     connect(this, &FileTree::itemDoubleClicked, this, &FileTree::pushClickedItem);
 }
@@ -116,9 +117,9 @@ void FileTree::updateFileTree()
 
 void FileTree::setFolderPath(const QString &folderPath)
 {
+    this->folderPath = folderPath;
     dirWatcher->removePath(this->folderPath);
     dirWatcher->addPath(folderPath);
-    this->folderPath = folderPath;
     loadFileTree();
 }
 

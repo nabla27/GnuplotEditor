@@ -3,7 +3,7 @@
 Gnuplot::Gnuplot(QObject *parent)
     : QObject(parent)
 {
-    initCmdList << "cd '" + workingPath + "'";
+    //initCmdList << "cd '" + workingDirectory + "'";
     initCmdList << "set datafile separator ','";
 }
 
@@ -28,6 +28,9 @@ void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist)
             emit errorCaused("failed to start the gnuplot process.", BrowserWidget::MessageType::ProcessErr);
         }
     }
+
+    /* workingDirectoryに移動 */
+    process->write(QString("cd '" + workingDirectory + "'\n").toUtf8().constData());
 
     /* 初期コマンドの実行 */
     for(const QString& initCmd : initCmdList)
