@@ -3,7 +3,6 @@
 Gnuplot::Gnuplot(QObject *parent)
     : QObject(parent)
 {
-    //initCmdList << "cd '" + workingDirectory + "'";
     initCmdList << "set datafile separator ','";
 }
 
