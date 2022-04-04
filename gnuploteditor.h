@@ -47,6 +47,7 @@ private:
     SheetMenu *sheetMenu;
 
     Gnuplot *gnuplot;
+    QProcess *gnuplotProcess;
 
     EditorSettingWidget *editorSetting;
 
@@ -57,7 +58,6 @@ private:
     QStackedWidget *sheetWidget;
     ConsoleWidget *consoleWidget;
     BrowserWidget *browserWidget;
-    QProcess *gnuplotProcess;
 
 signals:
 
