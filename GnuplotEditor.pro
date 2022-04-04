@@ -10,6 +10,7 @@ CONFIG += c++11
 
 SOURCES += \
     ../LabQHome/layoutparts.cpp \
+    ../LabQHome/tablewidget.cpp \
     ../LabQHome/utility.cpp \
     browserwidget.cpp \
     consolewidget.cpp \
@@ -28,6 +29,7 @@ SOURCES += \
 HEADERS += \
     ../LabQHome/iofile.h \
     ../LabQHome/layoutparts.h \
+    ../LabQHome/tablewidget.h \
     ../LabQHome/utility.h \
     browserwidget.h \
     consolewidget.h \

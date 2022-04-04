@@ -8,7 +8,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include "gnuplot.h"
-
+#if 0
 class GnuplotTable : public QTableWidget
 {
 public:
@@ -54,6 +54,42 @@ private slots:
     void visualize3DBar();
     void visualize3DScatter();
     void toLatexCode();
+};
+#endif
+
+#include "tablewidget.h"
+
+class GnuplotTable : public TableWidget
+{
+public:
+    GnuplotTable(QWidget *parent = nullptr);
+    ~GnuplotTable();
+
+public slots:
+    void appendLineRow() { insertRow(rowCount()); }
+    void removeLineRow() { removeRow(rowCount() - 1); }
+    void appendLineCol() { insertColumn(columnCount()); }
+    void removeLineCol() { removeColumn(columnCount() - 1); }
+    void setGnuplot(Gnuplot *gnuplot) { this->gnuplot = gnuplot; }
+
+private slots:
+    void onCustomContextMenu(const QPoint& point);
+    void plot();
+    void gnuplotClip();
+    void toLatexCode();
+
+private:
+    void initializeContextMenu();
+
+private:
+    QMenu *normalMenu = nullptr;
+    QShortcut *scCtrC = nullptr;
+    QShortcut *scCtrV = nullptr;
+    QShortcut *scCtrX = nullptr;
+
+    Gnuplot *gnuplot = nullptr;
+    QProcess *process = nullptr;
+    QString optionCmd;
 };
 
 #endif // TableWidget_H
