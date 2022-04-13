@@ -55,6 +55,7 @@ void GnuplotTable::initializeContextMenu()
     QAction *actPaste = new QAction("paste", normalMenu);
     normalMenu->addAction(actPaste);
     connect(actPaste, &QAction::triggered, this, &GnuplotTable::pasteCell);
+
     /* claer */
     QAction *actDelete = new QAction("delete", normalMenu);
     normalMenu->addAction(actDelete);
