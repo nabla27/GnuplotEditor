@@ -40,7 +40,7 @@ private slots:
 
 private:
     void initializeContextMenu();
-    QPoint startDragPoint;
+    QPoint startDragPoint = QPoint(-1, -1); //mouseEvent関係の関数内の無効値(-1,-1)と合わせる。初期化しなければ(0,0)に戻って特定の操作でクラッシュする
     QPoint startDragTableSize;
     QPoint startDragCellSize;
 
