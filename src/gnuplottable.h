@@ -46,9 +46,6 @@ private:
 
 private:
     QMenu *normalMenu = nullptr;
-    QShortcut *scCtrC = nullptr;
-    QShortcut *scCtrV = nullptr;
-    QShortcut *scCtrX = nullptr;
 
     Gnuplot *gnuplot = nullptr;
     QProcess *process = nullptr;
