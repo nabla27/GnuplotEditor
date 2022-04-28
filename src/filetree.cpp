@@ -238,7 +238,7 @@ void FileTree::saveSheet(const QString& fileName)
     bool ok = false;
     toFileCsv(folderPath + "/" + fileName, sheetList.value(fileName)->table->getData<QString>(), &ok);
 
-    if(ok)
+    if(!ok)
         emit errorCaused("failed to save the file \"" + fileName + "\"", BrowserWidget::MessageType::FileSystemErr);
 }
 
