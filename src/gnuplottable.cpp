@@ -49,6 +49,7 @@ void GnuplotTable::mousePressEvent(QMouseEvent *event)
     const int tableWidth = columnViewportPosition(colLastIndex) + columnWidth(colLastIndex);
     const int tableHeight = rowViewportPosition(rowLastIndex) + rowHeight(rowLastIndex);
 
+    /* セル右下角とカーソル位置が4ピクセル以下 */
     if(std::abs(cursorX - tableWidth) < 4 && std::abs(cursorY - tableHeight) < 4)
     {
         startDragPoint = event->pos();
@@ -77,7 +78,7 @@ void GnuplotTable::mouseMoveEvent(QMouseEvent *event)
     if(nextCol > 0)
         setColumnCount(startDragTableSize.x() + dx);
     if(nextRow > 0)
-    setRowCount(startDragTableSize.y() + dy);
+        setRowCount(startDragTableSize.y() + dy);
 }
 
 void GnuplotTable::mouseReleaseEvent(QMouseEvent *event)
