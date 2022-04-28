@@ -6,13 +6,6 @@ GnuplotTable::GnuplotTable(QWidget *parent)
 {
     process = new QProcess(this);
 
-    scCtrC = new QShortcut(QKeySequence("Ctrl+C"), this);
-    scCtrV = new QShortcut(QKeySequence("Ctrl+V"), this);
-    scCtrX = new QShortcut(QKeySequence("Ctrl+X"), this);
-    connect(scCtrC, &QShortcut::activated, this, &GnuplotTable::copyCell);
-    connect(scCtrV, &QShortcut::activated, this, &GnuplotTable::pasteCell);
-    connect(scCtrX, &QShortcut::activated, this, &GnuplotTable::cutCell);
-
     /* contextMenu初期化 */
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &GnuplotTable::customContextMenuRequested, this, &GnuplotTable::onCustomContextMenu);
