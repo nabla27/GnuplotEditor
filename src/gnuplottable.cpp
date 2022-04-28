@@ -14,13 +14,7 @@ GnuplotTable::GnuplotTable(QWidget *parent)
 
 GnuplotTable::~GnuplotTable()
 {
-    delete normalMenu;
-    delete scCtrC;
-    delete scCtrV;
-    delete scCtrX;
-
     process->close();
-    delete process;
 }
 
 
