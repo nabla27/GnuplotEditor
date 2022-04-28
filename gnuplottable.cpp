@@ -30,6 +30,69 @@ GnuplotTable::~GnuplotTable()
     delete process;
 }
 
+
+
+
+/* 以下のマウスイベントでドラッグでセル数を変更できるようにする。
+ * ドラッグ開始時のカーソル位置とセル数、セル幅を記憶しておき、カーソル位置の差分に応じて変更する。*/
+void GnuplotTable::mousePressEvent(QMouseEvent *event)
+{
+    const int cursorX = event->pos().x();
+    const int cursorY = event->pos().y();
+
+    const int rowLastIndex = rowCount() - 1;
+    const int colLastIndex = columnCount() - 1;
+
+    /* 一番右下のセルの右下隅の座標(tableWidgetのローカル座標) */
+    const int tableWidth = columnViewportPosition(colLastIndex) + columnWidth(colLastIndex);
+    const int tableHeight = rowViewportPosition(rowLastIndex) + rowHeight(rowLastIndex);
+
+    if(std::abs(cursorX - tableWidth) < 4 && std::abs(cursorY - tableHeight) < 4)
+    {
+        startDragPoint = event->pos();
+        startDragTableSize = QPoint(columnCount(), rowCount());
+        startDragCellSize = QPoint(columnWidth(colLastIndex), rowHeight(rowLastIndex));
+    }
+
+    TableWidget::mousePressEvent(event);
+}
+
+void GnuplotTable::mouseMoveEvent(QMouseEvent *event)
+{
+    if(startDragPoint == QPoint(-1, -1)) return;
+
+    setCursor(Qt::ClosedHandCursor);
+
+    /* 追加・削除分のセル数 */
+    const int dx = (event->pos().x() - startDragPoint.x()) / startDragCellSize.x();
+    const int dy = (event->pos().y() - startDragPoint.y()) / startDragCellSize.y();
+
+    /* 変更後のセル数 */
+    const int nextCol = startDragTableSize.x() + dx;
+    const int nextRow = startDragTableSize.y() + dy;
+
+    /* セルが1x1以下に減らないようにする */
+    if(nextCol > 0)
+        setColumnCount(startDragTableSize.x() + dx);
+    if(nextRow > 0)
+    setRowCount(startDragTableSize.y() + dy);
+
+    TableWidget::mouseMoveEvent(event);
+}
+
+void GnuplotTable::mouseReleaseEvent(QMouseEvent *event)
+{
+    startDragPoint = QPoint(-1, -1);
+
+    TableWidget::mouseReleaseEvent(event);
+    setCursor(Qt::ArrowCursor);
+}
+
+
+
+
+
+
 void GnuplotTable::onCustomContextMenu(const QPoint& point)
 {
     normalMenu->exec(mapToGlobal(point));
