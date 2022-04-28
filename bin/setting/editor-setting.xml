@@ -11,7 +11,7 @@
         <b>255</b>
     </textColor>
     <textSize>18</textSize>
-    <tabSpace>20</tabSpace>
+    <tabSpace>20.0</tabSpace>
     <wrap>true</wrap>
     <itaric>false</itaric>
     <bold>false</bold>
