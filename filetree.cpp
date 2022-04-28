@@ -180,11 +180,14 @@ void FileTree::addOther(const QString& fileName)
 
 void FileTree::loadScript(const QString& fileName)
 {
-    const QString text = readFileTxt(folderPath + "/" + fileName);
+    bool ok = false;
 
-    if(text == "\0") emit errorCaused("failed to load the file \"" + fileName + "\"", BrowserWidget::MessageType::FileSystemErr);
+    const QString text = readFileTxt(folderPath + "/" + fileName, &ok);
 
-    scriptList.value(fileName)->editor->setPlainText(text);
+    if(!ok)
+        emit errorCaused("failed to load the file \"" + fileName + "\"", BrowserWidget::MessageType::FileSystemErr);
+    else
+        scriptList.value(fileName)->editor->setPlainText(text);
 }
 
 void FileTree::loadAllScript()
@@ -197,9 +200,12 @@ void FileTree::saveScript(const QString& fileName)
 {
     if(!scriptList.contains(fileName)) return;
 
-    const bool success =  toFileTxt(folderPath + "/" + fileName, scriptList.value(fileName)->editor->toPlainText());
+    bool ok = false;
 
-    if(!success) emit errorCaused("failed to save the file \"" + fileName + "\"", BrowserWidget::MessageType::FileSystemErr);
+    toFileTxt(folderPath + "/" + fileName, scriptList.value(fileName)->editor->toPlainText(), &ok);
+
+    if(!ok)
+        emit errorCaused("failed to save the file \"" + fileName + "\"", BrowserWidget::MessageType::FileSystemErr);
 }
 
 void FileTree::saveAllScript()
@@ -210,7 +216,13 @@ void FileTree::saveAllScript()
 
 void FileTree::loadSheet(const QString& fileName)
 {
-    sheetList.value(fileName)->table->setData<QString>(readFileCsv(folderPath + "/" + fileName));
+    bool ok = false;
+    const QList<QList<QString> > data = readFileCsv(folderPath + "/" + fileName, &ok);
+
+    if(ok)
+        sheetList.value(fileName)->table->setData<QString>(readFileCsv(folderPath + "/" + fileName));
+    else
+        emit errorCaused("failed to load the sheet \"" + fileName + "\"", BrowserWidget::MessageType::FileSystemErr);
 }
 
 void FileTree::loadAllSheet()
@@ -223,9 +235,11 @@ void FileTree::saveSheet(const QString& fileName)
 {
     if(!sheetList.contains(fileName)) return;
 
-    const bool success = toFileCsv(folderPath + "/" + fileName, sheetList.value(fileName)->table->getData<QString>());
+    bool ok = false;
+    toFileCsv(folderPath + "/" + fileName, sheetList.value(fileName)->table->getData<QString>(), &ok);
 
-    if(!success) emit errorCaused("failed to save the file \"" + fileName + "\"", BrowserWidget::MessageType::FileSystemErr);
+    if(!ok)
+        emit errorCaused("failed to save the file \"" + fileName + "\"", BrowserWidget::MessageType::FileSystemErr);
 }
 
 void FileTree::saveAllSheet()
