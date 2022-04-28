@@ -12,40 +12,42 @@ SOURCES += \
     ../LabQHome/layoutparts.cpp \
     ../LabQHome/tablewidget.cpp \
     ../LabQHome/utility.cpp \
-    browserwidget.cpp \
-    consolewidget.cpp \
-    editorsettingwidget.cpp \
-    editorsyntaxhighlighter.cpp \
-    filetree.cpp \
-    gnuplot.cpp \
-    gnuplotcpl.cpp \
-    gnuploteditor.cpp \
-    gnuplottable.cpp \
-    main.cpp \
-    menubar.cpp \
-    texteditor.cpp \
-    windowmenubar.cpp
+    #browserwidget.cpp \
+    #consolewidget.cpp \
+    #editorsettingwidget.cpp \
+    #editorsyntaxhighlighter.cpp \
+    #filetree.cpp \
+    #gnuplot.cpp \
+    #gnuplotcpl.cpp \
+    #gnuploteditor.cpp \
+    #gnuplottable.cpp \
+    #main.cpp \
+    #menubar.cpp \
+    #texteditor.cpp \
+    #windowmenubar.cpp
 
 HEADERS += \
     ../LabQHome/iofile.h \
     ../LabQHome/layoutparts.h \
     ../LabQHome/tablewidget.h \
     ../LabQHome/utility.h \
-    browserwidget.h \
-    consolewidget.h \
-    editorsettingwidget.h \
-    editorsyntaxhighlighter.h \
-    filetree.h \
-    gnuplot.h \
-    gnuplotcpl.h \
-    gnuploteditor.h \
-    gnuplottable.h \
-    menubar.h \
-    texteditor.h \
-    windowmenubar.h
+    #browserwidget.h \
+    #consolewidget.h \
+    #editorsettingwidget.h \
+    #editorsyntaxhighlighter.h \
+    #filetree.h \
+    #gnuplot.h \
+    #gnuplotcpl.h \
+    #gnuploteditor.h \
+    #gnuplottable.h \
+    #menubar.h \
+    #texteditor.h \
+    #windowmenubar.h
 
 INCLUDEPATH += E:/boost_1_76_0/boost_1_76_0 \
                E:/repos/qt_project/LabQ/LabQHome \
+
+include(src/src.pri)
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
