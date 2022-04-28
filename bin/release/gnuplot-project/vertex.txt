@@ -1,0 +1,7 @@
+set xrange [-1.5:1.5]
+set yrange [-1.5:1.5]
+set zrange [-1.5:1.5]
+
+splot "vertex.csv" using 1:2:3 every 1:1:0:0:3:0 with points pointsize 2 pointtype 6 
+replot "2.csv" using 1:2:3 every 1:1:0:0:3:0 with points pointsize 2 pointtype 6 
+replot "3.csv" using 1:2:3 every 1:1:0:0:3:0 with points pointsize 2 pointtype 6 linecolor 'red'

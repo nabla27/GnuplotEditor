@@ -37,6 +37,8 @@ GnuplotTable::~GnuplotTable()
  * ドラッグ開始時のカーソル位置とセル数、セル幅を記憶しておき、カーソル位置の差分に応じて変更する。*/
 void GnuplotTable::mousePressEvent(QMouseEvent *event)
 {
+    TableWidget::mousePressEvent(event);
+
     const int cursorX = event->pos().x();
     const int cursorY = event->pos().y();
 
@@ -53,12 +55,12 @@ void GnuplotTable::mousePressEvent(QMouseEvent *event)
         startDragTableSize = QPoint(columnCount(), rowCount());
         startDragCellSize = QPoint(columnWidth(colLastIndex), rowHeight(rowLastIndex));
     }
-
-    TableWidget::mousePressEvent(event);
 }
 
 void GnuplotTable::mouseMoveEvent(QMouseEvent *event)
 {
+    TableWidget::mouseMoveEvent(event);
+
     if(startDragPoint == QPoint(-1, -1)) return;
 
     setCursor(Qt::ClosedHandCursor);
@@ -76,15 +78,14 @@ void GnuplotTable::mouseMoveEvent(QMouseEvent *event)
         setColumnCount(startDragTableSize.x() + dx);
     if(nextRow > 0)
     setRowCount(startDragTableSize.y() + dy);
-
-    TableWidget::mouseMoveEvent(event);
 }
 
 void GnuplotTable::mouseReleaseEvent(QMouseEvent *event)
 {
+    TableWidget::mouseReleaseEvent(event);
+
     startDragPoint = QPoint(-1, -1);
 
-    TableWidget::mouseReleaseEvent(event);
     setCursor(Qt::ArrowCursor);
 }
 
