@@ -31,6 +31,9 @@ public slots:
     void setCommentColor(const QColor& color) { textHighlight->setCommentColor(color); }
     void setStringColor(const QColor& color) { textHighlight->setStringColor(color); }
 
+protected:
+    void wheelEvent(QWheelEvent *event) override;
+
 private:
     EditorSyntaxHighlighter *textHighlight;
 
@@ -79,6 +82,9 @@ private:
     QWidget *lineNumberArea;
     int errorLineNumber = -1;
     QColor cursorLineColor = QColor(50, 50, 50);
+
+signals:
+    void fontSizeChanged(const int ps);
 };
 
 

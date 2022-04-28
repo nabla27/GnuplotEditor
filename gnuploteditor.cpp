@@ -146,6 +146,7 @@ void GnuplotEditor::connectEditorSetting(TextEdit *const editor)
     connect(editorSetting, &EditorSettingWidget::commentColorSet, editor, &TextEdit::setCommentColor);
     connect(editorSetting, &EditorSettingWidget::cursorLineColorSet, editor, &TextEdit::setCursorLineColor);
     connect(editorSetting, &EditorSettingWidget::stringColorSet, editor, &TextEdit::setStringColor);
+    connect(editor, &TextEdit::fontSizeChanged, editorSetting, &EditorSettingWidget::setTextSize);
     editorSetting->set(editor);
 }
 

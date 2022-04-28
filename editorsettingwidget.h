@@ -20,6 +20,7 @@ public:
     ~EditorSettingWidget();
     void loadXmlSetting();
     void saveXmlSetting();
+    void setTextSize(const int ps) { textSizeSpin->setSpinBoxValue(ps); }
     void set(TextEdit *const editor);
 
 private:

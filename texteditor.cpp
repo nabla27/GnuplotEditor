@@ -32,7 +32,20 @@ TextEdit::TextEdit(QWidget *parent)
 
 TextEdit::~TextEdit()
 {
+}
 
+/* ホイールで文字サイズ変更 */
+void TextEdit::wheelEvent(QWheelEvent *event)
+{
+    const int delta = event->angleDelta().y();
+    QFont font = this->font();
+    const int ps = (delta > 0) ? font.pointSize() + 1 : font.pointSize() - 1;
+
+    font.setPointSize(ps);
+    setFont(font);
+    emit fontSizeChanged(ps);  //settingWidgetに変更を知らせる
+
+    QPlainTextEdit::wheelEvent(event);
 }
 
 
