@@ -184,10 +184,10 @@ void FileTree::loadScript(const QString& fileName)
 
     const QString text = readFileTxt(folderPath + "/" + fileName, &ok);
 
-    if(!ok)
-        emit errorCaused("failed to load the file \"" + fileName + "\"", BrowserWidget::MessageType::FileSystemErr);
-    else
+    if(ok)
         scriptList.value(fileName)->editor->setPlainText(text);
+    else
+        emit errorCaused("failed to load the file \"" + fileName + "\"", BrowserWidget::MessageType::FileSystemErr);
 }
 
 void FileTree::loadAllScript()
@@ -220,7 +220,7 @@ void FileTree::loadSheet(const QString& fileName)
     const QList<QList<QString> > data = readFileCsv(folderPath + "/" + fileName, &ok);
 
     if(ok)
-        sheetList.value(fileName)->table->setData<QString>(readFileCsv(folderPath + "/" + fileName));
+        sheetList.value(fileName)->table->setData<QString>(data);
     else
         emit errorCaused("failed to load the sheet \"" + fileName + "\"", BrowserWidget::MessageType::FileSystemErr);
 }
@@ -238,7 +238,7 @@ void FileTree::saveSheet(const QString& fileName)
     bool ok = false;
     toFileCsv(folderPath + "/" + fileName, sheetList.value(fileName)->table->getData<QString>(), &ok);
 
-    if(!ok)
+    if(ok)
         emit errorCaused("failed to save the file \"" + fileName + "\"", BrowserWidget::MessageType::FileSystemErr);
 }
 
