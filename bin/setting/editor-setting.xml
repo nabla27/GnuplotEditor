@@ -10,8 +10,8 @@
         <g>255</g>
         <b>255</b>
     </textColor>
-    <textSize>18</textSize>
-    <tabSpace>20.0</tabSpace>
+    <textSize>9</textSize>
+    <tabSpace>20</tabSpace>
     <wrap>true</wrap>
     <itaric>false</itaric>
     <bold>false</bold>
