@@ -123,11 +123,13 @@ private slots:
     void onCustomContextMenu(const QPoint& point);
 
 private:
-    QString folderPath;
+    QString folderPath; //FileTreeは常に一つのディレクトリを対象とする
     QTreeWidgetItem *scriptTree;
     QTreeWidgetItem *sheetTree;
     QTreeWidgetItem *otherTree;
-    QFileSystemWatcher *dirWatcher;
+    QFileSystemWatcher *dirWatcher; //常に一つのディレクトリを対象とする
+
+    // <ファイル名, 情報>
     QHash<QString, ScriptInfo*> scriptList;
     QHash<QString, SheetInfo*> sheetList;
     QHash<QString, OtherInfo*> otherList;
