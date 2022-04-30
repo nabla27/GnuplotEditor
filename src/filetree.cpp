@@ -55,14 +55,13 @@ void FileTree::initializeContextMenu()
     connect(actExport, &QAction::triggered, this, &FileTree::exportFile);
 }
 
+
+/* セーブしないでload行うと保存されないよ
+   このload内でセーブを行うと、setFolderPath()との関係でバグができるよ */
 void FileTree::loadFileTree()
 {
     /* treeをクリア */
     clear();
-
-    /* セーブ */
-    saveAllScript();
-    saveAllSheet();
 
     /* リストをクリア */
     clearAllList();
@@ -115,6 +114,10 @@ void FileTree::updateFileTree()
 
 void FileTree::setFolderPath(const QString &folderPath)
 {
+    /* まずセーブしよう! しなかったら、loadFileTree()が呼ばれてエディタの変更はほぞんされないよ! */
+    saveAllScript();
+    saveAllSheet();
+
     this->folderPath = folderPath;
     dirWatcher->removePath(this->folderPath);
     dirWatcher->addPath(folderPath);
