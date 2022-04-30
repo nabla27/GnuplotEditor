@@ -91,6 +91,8 @@ public:
 public slots:
     void loadFileTree();
     void updateFileTree();
+    void saveAndLoad();
+    void saveAndUpdate();
     void setFolderPath(const QString& folderPath);
 
     void addScript(const QString& fileName);

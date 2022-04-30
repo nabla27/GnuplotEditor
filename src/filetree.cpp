@@ -16,7 +16,7 @@ FileTree::FileTree(QWidget *parent)
 
     /* ファイルの変更があれば更新するようにする */
     dirWatcher = new QFileSystemWatcher;
-    connect(dirWatcher, &QFileSystemWatcher::directoryChanged, this, &FileTree::updateFileTree);
+    connect(dirWatcher, &QFileSystemWatcher::directoryChanged, this, &FileTree::saveAndUpdate);
 
     connect(this, &FileTree::itemDoubleClicked, this, &FileTree::pushClickedItem);
 
@@ -110,6 +110,20 @@ void FileTree::updateFileTree()
         else
             continue;
     }
+}
+
+void FileTree::saveAndLoad()
+{
+    saveAllScript();
+    saveAllSheet();
+    loadFileTree();
+}
+
+void FileTree::saveAndUpdate()
+{
+    saveAllScript();
+    saveAllSheet();
+    updateFileTree();
 }
 
 void FileTree::setFolderPath(const QString &folderPath)

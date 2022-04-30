@@ -64,7 +64,7 @@ void GnuplotEditor::initializeMenuBar()
 
     setMenuBar(menuBar);
 
-    connect(fileMenu, &FileMenu::reloadFolderPushed, this, &GnuplotEditor::saveAndLoad);
+    connect(fileMenu, &FileMenu::reloadFolderPushed, fileTree, &FileTree::saveAndLoad);
     connect(fileMenu, &FileMenu::updateFolderPushed, fileTree, &FileTree::updateFileTree);
     connect(fileMenu, &FileMenu::openFolderPushed, this, &GnuplotEditor::setWorkingDirectory);
     connect(fileMenu, &FileMenu::addFolderPushed, fileTree, &FileTree::addFolder);
@@ -216,13 +216,6 @@ void GnuplotEditor::setWorkingDirectory(const QString& path)
 
     fileTree->setFolderPath(path);
     gnuplot->setWorkingDirectory(path);
-}
-
-void GnuplotEditor::saveAndLoad()
-{
-    fileTree->saveAllScript();
-    fileTree->saveAllSheet();
-    fileTree->loadFileTree();
 }
 
 void GnuplotEditor::executeGnuplot()
