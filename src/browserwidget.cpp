@@ -60,6 +60,11 @@ BrowserWidget::~BrowserWidget()
 
 void BrowserWidget::outputText(const QString &text, const MessageType messageType)
 {
+    /* スクロールされた状態などでメッセージを挿入すると、途中に挿入されるため、挿入位置を一番下にセットする*/
+    QTextCursor c = this->textCursor();
+    c.movePosition(QTextCursor::MoveOperation::End);
+    setTextCursor(c);
+
     insertPlainText("\n[ " + enumToString(messageType) + " ]");
     insertPlainText("\n" + text + "\n");
     verticalScrollBar()->setValue(verticalScrollBar()->maximum());  //最後(一番下)までスクロールする
