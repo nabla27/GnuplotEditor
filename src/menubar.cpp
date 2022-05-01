@@ -55,6 +55,10 @@ WidgetMenu::WidgetMenu(const QString& title, QWidget *parent)
     QAction *openEditorSetting = new QAction("Editor Setting", this);
     addAction(openEditorSetting);
     connect(openEditorSetting, &QAction::triggered, this, &WidgetMenu::editorSettingOpened);
+
+    QAction *openGnuplotSetting = new QAction("Gnuplot Setting", this);
+    addAction(openGnuplotSetting);
+    connect(openGnuplotSetting, &QAction::triggered, this, &WidgetMenu::gnuplotSettingOpened);
 }
 
 

@@ -3,7 +3,6 @@
 Gnuplot::Gnuplot(QObject *parent)
     : QObject(parent)
 {
-    initCmdList << "set datafile separator ','";
 }
 
 void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist)
@@ -11,6 +10,8 @@ void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist)
     if(!process)  return;
 
     currentProcess = process;
+
+    emit cmdPushed("\n[ " + QDateTime::currentDateTime().toString() + " ]     ProcessID(" + QString::number(process->processId()) + ")");
 
     /* 標準出力 */
     QObject::connect(process, &QProcess::readyReadStandardOutput, this, &Gnuplot::readStandardOutput);
@@ -29,19 +30,30 @@ void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist)
     }
 
     /* workingDirectoryに移動 */
-    process->write(QString("cd '" + workingDirectory + "'\n").toUtf8().constData());
+    const QString moveDirCmd = "cd '" + workingDirectory + "'";
+    process->write((moveDirCmd + "\n").toUtf8().constData());
+    emit cmdPushed(moveDirCmd);
 
     /* 初期コマンドの実行 */
     for(const QString& initCmd : initCmdList)
+    {
         process->write((initCmd + "\n").toUtf8().constData());
+        emit cmdPushed(initCmd);
+    }
 
     /* 事前コマンドの実行 */
     for(const QString& preCmd : preCmdList)
+    {
         process->write((preCmd + "\n").toUtf8().constData());
+        emit cmdPushed(preCmd);
+    }
 
     /* コマンドの実行 */
     for(const QString& cmd : cmdlist)
+    {
         process->write((cmd + "\n").toUtf8().constData());
+        emit cmdPushed(cmd);
+    }
 }
 
 int Gnuplot::getErrorLineNumber(const QString &err)

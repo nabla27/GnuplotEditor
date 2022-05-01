@@ -7,6 +7,7 @@ HEADERS += \
     $$PWD/gnuplot.h \
     $$PWD/gnuplotcpl.h \
     $$PWD/gnuploteditor.h \
+    $$PWD/gnuplotsettingwidget.h \
     $$PWD/gnuplottable.h \
     $$PWD/menubar.h \
     $$PWD/texteditor.h \
@@ -21,6 +22,7 @@ SOURCES += \
     $$PWD/gnuplot.cpp \
     $$PWD/gnuplotcpl.cpp \
     $$PWD/gnuploteditor.cpp \
+    $$PWD/gnuplotsettingwidget.cpp \
     $$PWD/gnuplottable.cpp \
     $$PWD/main.cpp \
     $$PWD/menubar.cpp \

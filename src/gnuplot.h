@@ -22,6 +22,7 @@ public:
 public:
     void exc(QProcess *process, const QList<QString>& cmdlist);
     void setExePath(const QString& path) { this->path = path; }
+    void setInitCmd(const QString& initCmd) { this->initCmdList = initCmd.split('\n'); }
     void setPreCmd(const QString& preCmd) { this->preCmdList = preCmd.split('\n'); }
     void setWorkingDirectory(const QString& path) { this->workingDirectory = path; }
 
@@ -43,5 +44,6 @@ signals:
     void standardOutputPassed(const QString& out);
     void standardErrorPassed(const QString& out, const int line);
     void errorCaused(const QString& err, const BrowserWidget::MessageType type);
+    void cmdPushed(const QString& cmd);
 };
 #endif // Gnuplot_H

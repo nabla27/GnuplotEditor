@@ -4,7 +4,7 @@ set yrange [0:10]
 a = 1
 b = 0
 f(x) = a * x + b
-#fit f(x) "5.csv" using 1:2 via a,b
+fit f(x) "5.csv" using 1:2 via a,b
 
 plot "5.csv"
 replot f(x)
