@@ -34,6 +34,7 @@ signals:
     void clearOutputWindowPushed();
     void clearConsoleWindowPushed();
     void editorSettingOpened();
+    void gnuplotSettingOpened();
 };
 
 

@@ -8,6 +8,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 
     gnuplot = new Gnuplot(this);
     editorSetting = new EditorSettingWidget(nullptr);
+    gnuplotSetting = new GnuplotSettingWidget(gnuplot, nullptr);
 
     //レイアウト生成
     initializeLayout();
@@ -35,7 +36,9 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 GnuplotEditor::~GnuplotEditor()
 {
     editorSetting->hide();
+    gnuplotSetting->hide();
     delete editorSetting;
+    delete gnuplotSetting;
 }
 
 void GnuplotEditor::initializeMenuBar()
@@ -72,6 +75,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(widgetMenu, &WidgetMenu::clearOutputWindowPushed, browserWidget, &BrowserWidget::clear);
     //connect(widgetMenu, &WidgetMenu::clearConsoleWindowPushed, consoleWidget, &);
     connect(widgetMenu, &WidgetMenu::editorSettingOpened, editorSetting, &EditorSettingWidget::show);
+    connect(widgetMenu, &WidgetMenu::gnuplotSettingOpened, gnuplotSetting, &GnuplotSettingWidget::show);
     connect(runAction, &QAction::triggered, this, &GnuplotEditor::executeGnuplot);
 }
 
