@@ -1,4 +1,5 @@
 #include "texteditor.h"
+#include <QScrollBar>
 
 TextEdit::TextEdit(QWidget *parent)
     : QPlainTextEdit(parent)
@@ -104,15 +105,17 @@ void TextEdit::changeCompleterModel()
     if((firstCmd == "plot" ||
         firstCmd == "splot" ||
         firstCmd == "load" ||
-        firstCmd == "cd") && currentCmd.size() >= 1 && currentCmd.front() == '\"'){         //currenCmdがダブルクォーテーションから始まるとき
-        QDir dir(BasicSet::tmpDirectory);
+        firstCmd == "cd") && currentCmd.size() >= 1 && currentCmd.front() == '\"')          //currenCmdがダブルクォーテーションから始まるとき
+    {
+        QDir dir(workingDirectory);
         dir.setNameFilters(QStringList() << "[a-zA-Z0-9]*");
-        QFileInfoList fileList = dir.entryInfoList();                                       //tmpPathディレクトリのファイル情報を取得
+        QFileInfoList fileList = dir.entryInfoList();                                       //workingDirectoryディレクトリのファイル情報を取得
         QStringList fileNameList;
         for(const QFileInfo& fileInfo : fileList){
-            fileNameList << fileInfo.fileName();                                            //tmpPath内のファイル名をリストに格納
+            fileNameList << fileInfo.fileName();                                            //workingDirectoryPath内のファイル名をリストに格納
         }
-        completer()->setModel(getCompleter(fileNameList));                                  //ファイル名一覧を予測変換候補に設定
+        c->setModel(getCompleter(fileNameList));                                            //ファイル名一覧を予測変換候補に設定
+
         cursorMoveCount = 1;                                                                //予測変換決定後のカーソル移動数を1にする(ダブルクォーテーションをまたぐ)
         return;
     }
@@ -267,7 +270,7 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
     if(!c || (ctr10rShift && e->text().isEmpty())) return;
 
     /* 予測変換候補を変更 */
-        changeCompleterModel();
+    changeCompleterModel();
 
     static QString eow("~!@#$%{}|:<>?,./;\\"); //入力された時に予測変換を非表示にする文字
     const bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctr10rShift;
@@ -285,9 +288,11 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
         c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
     }
 
-    /*　予測変換ボックスのサイズ設定 */
+    /* 予測変換ボックスのサイズ設定
+     * popup()->sizeHintForColumn(0)でpopupの0列目、つまり変換候補の
+     * 横幅(最大)を取得できる。+10しているのは、ぴったりであると、見えない場合があるため。*/
     QRect cr = cursorRect();
-    cr.setWidth(100);
+    cr.setWidth(c->popup()->sizeHintForColumn(0) + 10 + c->popup()->verticalScrollBar()->sizeHint().width());
     c->complete(cr);
 }
 

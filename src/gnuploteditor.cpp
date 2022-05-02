@@ -2,23 +2,33 @@
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
+    , gnuplot(new Gnuplot(this))
+    , editorSetting(new EditorSettingWidget(nullptr))
+    , gnuplotSetting(new GnuplotSettingWidget(gnuplot, nullptr))
 {
-    //ウィンドウをスクリーン画面に対して(0.4,0.5)の比率サイズに設定
+    /* ウィンドウをスクリーン画面に対して(0.4,0.5)の比率サイズに設定 */
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
 
-    gnuplot = new Gnuplot(this);
-    editorSetting = new EditorSettingWidget(nullptr);
-    gnuplotSetting = new GnuplotSettingWidget(gnuplot, nullptr);
-
-    //レイアウト生成
+    /* レイアウト生成 */
     initializeLayout();
 
-    //メニュバーの生成
+    /* メニュバーの生成 */
     initializeMenuBar();
 
-    //workingDirectoryの設定
-    setWorkingDirectory(QDir::currentPath() + "/gnuplot-project");  //後に起動時のデフォルトフォルダーのパスを変更可能にする
+    /* workingDirectoryの設定 */
+    const QString path = QDir::currentPath() + "/gnuplot-project";
+    //フォルダーが存在していなければ作成
+    QDir workingDir(path);
+    if(!workingDir.exists()) workingDir.mkpath(path);
+    //初期化
+    fileTree->setFolderPath(path);
+    gnuplot->setWorkingDirectory(path);
 
+
+
+
+    connect(this, &GnuplotEditor::workingDirectoryChanged, fileTree, &FileTree::setFolderPath);
+    connect(this, &GnuplotEditor::workingDirectoryChanged, gnuplot, &Gnuplot::setWorkingDirectory);
     connect(fileTree, &FileTree::scriptSelected, this, &GnuplotEditor::setEditorWidget);
     connect(fileTree, &FileTree::sheetSelected, this, &GnuplotEditor::setSheetWidget);
     connect(fileTree, &FileTree::otherSelected, this, &GnuplotEditor::setOtherWidget);
@@ -69,7 +79,7 @@ void GnuplotEditor::initializeMenuBar()
 
     connect(fileMenu, &FileMenu::reloadFolderPushed, fileTree, &FileTree::saveAndLoad);
     connect(fileMenu, &FileMenu::updateFolderPushed, fileTree, &FileTree::updateFileTree);
-    connect(fileMenu, &FileMenu::openFolderPushed, this, &GnuplotEditor::setWorkingDirectory);
+    connect(fileMenu, &FileMenu::openFolderPushed, this, &GnuplotEditor::workingDirectoryChanged);
     connect(fileMenu, &FileMenu::addFolderPushed, fileTree, &FileTree::addFolder);
     connect(fileMenu, &FileMenu::saveFolderPushed, fileTree, &FileTree::saveFolder);
     connect(widgetMenu, &WidgetMenu::clearOutputWindowPushed, browserWidget, &BrowserWidget::clear);
@@ -139,6 +149,7 @@ void GnuplotEditor::initializeLayout()
 
 void GnuplotEditor::connectEditorSetting(TextEdit *const editor)
 {
+    editor->setWorkingDirectory(fileTree->currentFolderPath());
     connect(editorSetting, &EditorSettingWidget::backgroundColorSet, editor, &TextEdit::setBackgroundColor);
     connect(editorSetting, &EditorSettingWidget::textColorSet, editor, &TextEdit::setTextColor);
     connect(editorSetting, &EditorSettingWidget::textSizeSet, editor, &TextEdit::setTextSize);
@@ -151,6 +162,7 @@ void GnuplotEditor::connectEditorSetting(TextEdit *const editor)
     connect(editorSetting, &EditorSettingWidget::cursorLineColorSet, editor, &TextEdit::setCursorLineColor);
     connect(editorSetting, &EditorSettingWidget::stringColorSet, editor, &TextEdit::setStringColor);
     connect(editor, &TextEdit::fontSizeChanged, editorSetting, &EditorSettingWidget::setTextSize);
+    connect(this, &GnuplotEditor::workingDirectoryChanged, editor, &TextEdit::setWorkingDirectory);
     editorSetting->set(editor);
 }
 
@@ -210,16 +222,6 @@ void GnuplotEditor::setMenuBarTitle(const QString& oldName, const QString& newNa
 {
     if(scriptMenu->title() == oldName) scriptMenu->setTitle(newName);
     else if(sheetMenu->title() == oldName) sheetMenu->setTitle(newName);
-}
-
-void GnuplotEditor::setWorkingDirectory(const QString& path)
-{
-    /* フォルダーが存在しなければ作成 */
-    QDir workingDir(path);
-    if(!workingDir.exists()) workingDir.mkpath(path);
-
-    fileTree->setFolderPath(path);
-    gnuplot->setWorkingDirectory(path);
 }
 
 void GnuplotEditor::executeGnuplot()
