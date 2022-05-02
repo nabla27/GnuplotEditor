@@ -12,7 +12,7 @@ class GnuplotSettingWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit GnuplotSettingWidget(Gnuplot *gnuplot, QWidget *parent = nullptr);
+    explicit GnuplotSettingWidget(Gnuplot *gnuplot, QWidget *parent);
     ~GnuplotSettingWidget();
 
 private slots:

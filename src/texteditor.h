@@ -30,6 +30,7 @@ public slots:
     void setMainCmdColor(const QColor& color) { textHighlight->setFirstCmdColor(color); }
     void setCommentColor(const QColor& color) { textHighlight->setCommentColor(color); }
     void setStringColor(const QColor& color) { textHighlight->setStringColor(color); }
+    void setWorkingDirectory(const QString& path) { workingDirectory = path; }
 
 protected:
     void wheelEvent(QWheelEvent *event) override;
@@ -59,6 +60,7 @@ private:
     QString firstCmd = "";
     QString beforeCmd = "";
     QString currentCmd = "";
+    QString workingDirectory;
 
 
     /* lineNumer */

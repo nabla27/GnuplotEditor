@@ -88,6 +88,8 @@ public:
     FileTree(QWidget *parent);
     ~FileTree();
 
+    QString currentFolderPath() const { return folderPath; }
+
 public slots:
     void loadFileTree();
     void updateFileTree();
