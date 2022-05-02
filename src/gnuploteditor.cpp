@@ -1,4 +1,5 @@
 #include "gnuploteditor.h"
+#include "imagedisplay.h"
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
@@ -215,7 +216,21 @@ void GnuplotEditor::setSheetWidget(const QString& fileName, const SheetInfo* inf
 
 void GnuplotEditor::setOtherWidget(const QString& fileName, const OtherInfo* info)
 {
+    const qsizetype extStartIndex = fileName.lastIndexOf('.');
 
+    if(extStartIndex == qsizetype(-1) &&    //ドットを含まない
+       fileName.size() <= extStartIndex + 1) //ドット以降に文字がない
+    { return; }
+
+    //拡張子
+    const QString extension = fileName.sliced(extStartIndex + 1);
+
+    if(ImageDisplay::isValidExtension(extension))
+    {   //画像の表示
+        ImageDisplay *imageDisplay = new ImageDisplay(nullptr);  //ウィンドウ閉じたら自動でdeleteされるよ!
+        imageDisplay->setImageFile(fileTree->currentFolderPath() + "/" + fileName);
+        imageDisplay->show();
+    }
 }
 
 void GnuplotEditor::setMenuBarTitle(const QString& oldName, const QString& newName)
