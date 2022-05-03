@@ -34,7 +34,7 @@ private slots:
     void readStandardError();
 
 private:
-    QString path = "gnuplot.exe";
+    QString path;
     QString workingDirectory;
     QList<QString> initCmdList;
     QList<QString> preCmdList;
