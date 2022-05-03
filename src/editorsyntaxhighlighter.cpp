@@ -11,61 +11,63 @@ EditorSyntaxHighlighter::EditorSyntaxHighlighter(QTextDocument *document)
 
     quotationFormat.setForeground(QColor(255, 200, 0));
 
-    firstOrderKeyWord << "\\bbreak\\b" <<
-                         "\\bcd\\b" <<
-                         "\\bcall\\b" <<
-                         "\\bclear\\b" <<
-                         "\\bcontinue\\b" <<
-                         "\\bdo\\b" <<
-                         "\\bevaluate\\b" <<
-                         "\\bexit\\b" <<
-                         "\\bfit\\b" <<
-                         "\\bhelp\\b" <<
-                         "\\bhistory\\b" <<
-                         "\\bif\\b" <<
-                         "\\bfor\\b" <<
-                         "\\bimport\\b" <<
-                         "\\bload\\b" <<
-                         "\\blower\\b" <<
-                         "\\bplot\\b" <<
-                         "\\bprint\\b" <<
-                         "\\bprinterr\\b" <<
-                         "\\bpwd\\b" <<
-                         "\\bquit\\b" <<
-                         "\\braise\\b" <<
-                         "\\brefresh\\b" <<
-                         "\\breplot\\b" <<
-                         "\\breread\\b" <<
-                         "\\breset\\b" <<
-                         "\\bsave\\b" <<
-                         "\\bset\\b" <<
-                         "\\bshow\\b" <<
-                         "\\bshell\\b" <<
-                         "\\bsplot\\b" <<
-                         "\\bstats\\b" <<
-                         "\\bsystem\\b" <<
-                         "\\btest\\b" <<
-                         "\\btoggle\\b" <<
-                         "\\bundefine\\b" <<
-                         "\\bunset\\b" <<
-                         "\\bupdate\\b" <<
-                         "\\bwhile\\b";
+    firstCmdList << "break" <<
+                    "cd" <<
+                    "call" <<
+                    "clear" <<
+                    "continue" <<
+                    "do" <<
+                    "evaluate" <<
+                    "exit" <<
+                    "fit" <<
+                    "help" <<
+                    "history" <<
+                    "if" <<
+                    "for" <<
+                    "import" <<
+                    "load" <<
+                    "lower" <<
+                    "plot" <<
+                    "print" <<
+                    "printerr" <<
+                    "pwdb" <<
+                    "quit" <<
+                    "raise" <<
+                    "refresh" <<
+                    "replot" <<
+                    "reread" <<
+                    "reset" <<
+                    "save" <<
+                    "set" <<
+                    "show" <<
+                    "shell" <<
+                    "splot" <<
+                    "stats" <<
+                    "system" <<
+                    "test" <<
+                    "toggle" <<
+                    "undefine" <<
+                    "unset" <<
+                    "update" <<
+                    "while";
 }
 
 /* カーソル行の文字列がtextとして自動で渡される */
 void EditorSyntaxHighlighter::highlightBlock(const QString &text)
 {
+    if(text.isEmpty()) return;
+
     /* firstCmdのハイライト */
-    foreach(const QString& pattern, firstOrderKeyWord)                         //ハイライト候補firstOrderKeyWordの中で一致するものがないのかループ
     {
-        const QRegularExpression regexp(pattern);                              //ハイライト候補(QString)を正規表現regexpに
-        QRegularExpressionMatchIterator i = regexp.globalMatch(text);          //text内で正規表現regexpと一致したイテレータ
-        while(i.hasNext())                                                     //一致したイテレータが終わるまで
+        /* firstCmdより空白スペースが前にあれば、ハイライトされない事に注意 */
+        const qsizetype index = text.indexOf(' '); //空白の最初のインデックス
+        if(index != qsizetype(-1))
         {
-            QRegularExpressionMatch match = i.next();                          //一致したイテレータの情報を順に進める
-            setFormat(match.capturedStart(),                                   //ハイライトする語句の初めのインデックス
-                      match.capturedLength(),                                  //ハイライトする語句の長さ
-                      firstOrderFormat);                                       //ハイライトする語句のフォーマット
+            const QString firstCmd = text.first(index);
+            if(firstCmdList.contains(firstCmd))
+            {
+                setFormat(0, index, firstOrderFormat);
+            }
         }
     }
 

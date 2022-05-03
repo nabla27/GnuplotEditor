@@ -25,9 +25,6 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     fileTree->setFolderPath(path);
     gnuplot->setWorkingDirectory(path);
 
-
-
-
     connect(this, &GnuplotEditor::workingDirectoryChanged, fileTree, &FileTree::setFolderPath);
     connect(this, &GnuplotEditor::workingDirectoryChanged, gnuplot, &Gnuplot::setWorkingDirectory);
     connect(fileTree, &FileTree::scriptSelected, this, &GnuplotEditor::setEditorWidget);
