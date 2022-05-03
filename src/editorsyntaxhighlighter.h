@@ -19,7 +19,7 @@ public:
 
 private:
     QTextCharFormat firstOrderFormat;
-    QStringList firstOrderKeyWord;
+    QStringList firstCmdList;
     QTextCharFormat commentsFormat;
     QTextCharFormat quotationFormat;
 };
