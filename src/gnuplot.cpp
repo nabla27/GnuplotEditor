@@ -21,7 +21,7 @@ void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist)
 
     /* プロセスの開始 */
     if(process->state() == QProcess::ProcessState::NotRunning)
-    {
+    { qDebug() << path;
         process->start(path, QStringList() << "-persist");
         if(process->error() == QProcess::ProcessError::FailedToStart){
             process->close();

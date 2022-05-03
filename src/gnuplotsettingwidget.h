@@ -17,6 +17,7 @@ public:
 
 private slots:
     void addLogToBrowser(const QString& text);
+    void selectGnuplotPath();
     void setGnuplotPath() { gnuplot->setExePath(pathEdit->text()); }
     void setGnuplotInitCmd() { gnuplot->setInitCmd(initializeCmd->toPlainText()); }
     void setGnuplotPreCmd() { gnuplot->setPreCmd(preCmd->toPlainText()); };
