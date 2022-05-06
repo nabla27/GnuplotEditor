@@ -18,6 +18,7 @@
 #include "editorsettingwidget.h"
 #include "consolewidget.h"
 #include "gnuplotsettingwidget.h"
+#include "updatemanager.h"
 
 class GnuplotEditor : public QMainWindow
 {
@@ -59,6 +60,7 @@ private:
     QStackedWidget *sheetWidget;
     ConsoleWidget *consoleWidget;
     BrowserWidget *browserWidget;
+    UpdateManager *updateManager;
 
 signals:
     void workingDirectoryChanged(const QString& path);

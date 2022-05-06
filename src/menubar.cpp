@@ -68,7 +68,9 @@ WidgetMenu::WidgetMenu(const QString& title, QWidget *parent)
 HelpMenu::HelpMenu(const QString& title, QWidget *parent)
     : QMenu(title, parent)
 {
-
+    QAction *openUpdateManager = new QAction("Update", this);
+    addAction(openUpdateManager);
+    connect(openUpdateManager, &QAction::triggered, this, &HelpMenu::updateManagerRequested);
 }
 
 
