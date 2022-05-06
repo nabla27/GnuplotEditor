@@ -12,6 +12,7 @@ HEADERS += \
     $$PWD/imagedisplay.h \
     $$PWD/menubar.h \
     $$PWD/texteditor.h \
+    $$PWD/updatemanager.h \
     $$PWD/windowmenubar.h
 
 SOURCES += \
@@ -29,4 +30,5 @@ SOURCES += \
     $$PWD/main.cpp \
     $$PWD/menubar.cpp \
     $$PWD/texteditor.cpp \
+    $$PWD/updatemanager.cpp \
     $$PWD/windowmenubar.cpp
