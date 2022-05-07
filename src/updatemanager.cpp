@@ -258,7 +258,6 @@ void UpdateManager::updateApp()
     unzipThread.wait();
 
     outNormalMessage("Finished unzipping all files");
-
 }
 
 void UpdateManager::cancelUpdate()
@@ -285,7 +284,7 @@ void UpdateManager::selectDirectory()
 void UpdateManager::outNormalMessage(const QString& message)
 {
     QPalette p = messageLabel->palette();
-    p.setColor(messageLabel->foregroundRole(), Qt::black);
+    p.setColor(messageLabel->foregroundRole(), Qt::blue);
     messageLabel->setPalette(p);
 
     outMessage(message);
