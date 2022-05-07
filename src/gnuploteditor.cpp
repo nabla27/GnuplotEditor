@@ -40,6 +40,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     connect(gnuplot, &Gnuplot::standardErrorPassed, this, &GnuplotEditor::receiveGnuplotStdErr);
     connect(gnuplot, &Gnuplot::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(browserWidget, &BrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
+    connect(updateManager, &UpdateManager::closeApplicationRequested, this, &GnuplotEditor::closeApplication);
 }
 
 GnuplotEditor::~GnuplotEditor()
@@ -289,6 +290,13 @@ void GnuplotEditor::setDisplayTabHeight(const int dy)
     const int nextHeight = displayTab->maximumHeight() + dy;
     if(nextHeight < 0 || nextHeight > 600) return;
     displayTab->setMaximumHeight(nextHeight);
+}
+
+void GnuplotEditor::closeApplication()
+{
+    fileTree->saveAllScript();
+    fileTree->saveAllSheet();
+    exit(0);
 }
 
 

@@ -43,6 +43,8 @@ private slots:
     void setFileTreeWidth(const int dx);
     void setDisplayTabHeight(const int dy);
 
+    void closeApplication();
+
 private:
     ScriptMenu *scriptMenu;
     SheetMenu *sheetMenu;

@@ -258,6 +258,11 @@ void UpdateManager::updateApp()
     unzipThread.wait();
 
     outNormalMessage("Finished unzipping all files");
+
+    if(QProcess::startDetached(newParentFolder + "/GnuplotEditor-master/bin/release/GnuplotEditor.exe"))
+        emit closeApplicationRequested();
+    else
+        outErrorMessage("Failed to start updated application");
 }
 
 void UpdateManager::cancelUpdate()
