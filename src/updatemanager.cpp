@@ -41,6 +41,59 @@ void ProgressDialog::replyProgress(qint64 bytesRead, qint64 totalBytes)
 
 
 
+
+
+
+Unzip::Unzip(QObject *parent)
+    : QObject(parent)
+    , unzipExePath("unzip.exe")
+    , process(new QProcess(this))
+{
+    /* unzipの実行ファイルのパスを取得 */
+    const QString currentDirectory = QDir::currentPath();
+    const qsizetype sp = currentDirectory.count('/');
+    for(qsizetype i = 0; i < sp; ++i)
+    {
+        const QString dir = currentDirectory.section('/', 0, -i); //'/'でセクションに区切る。一番左0から右からのセクションi番目を取り出す
+        if(QDir(dir).entryList().contains("unzip.exe"))
+        {
+            unzipExePath = dir + '/' + "unzip.exe";
+            break;
+        }
+    }
+
+    connect(process, &QProcess::readyReadStandardOutput, this, &Unzip::receiveStdOut);
+    connect(process, &QProcess::readyReadStandardError, this, &Unzip::receiveStdErr);
+}
+
+void Unzip::unzip(const QString& zipName, const QString& dir)
+{
+    const int exitCode = process->execute(unzipExePath,
+                                          QStringList() << "-o"     //上書き確認なし
+                                                        << zipName  //解凍するzipファイル名
+                                                        << "-d"     //ディレクトリ指定
+                                                        << dir);    //展開するディレクトリ
+
+    emit finished(exitCode);
+}
+
+void Unzip::receiveStdOut()
+{
+    emit stdOutReceived(QString::fromLatin1(process->readAllStandardOutput()));
+}
+
+void Unzip::receiveStdErr()
+{
+    emit stdErrReceived(QString::fromLatin1(process->readAllStandardError()));
+}
+
+
+
+
+
+
+
+
 UpdateManager::UpdateManager(QWidget *parent)
     : QDialog(parent)
     , urlLineEdit(new QLineEdit(downloadUrl, this))
@@ -49,7 +102,6 @@ UpdateManager::UpdateManager(QWidget *parent)
     , messageLabel(new QLabel("", this))
     , updateButton(new QPushButton("Update", this))
     , quitButton(new QPushButton("Quit", this))
-    , unzipProcess(new QProcess(this))
 {
     setMinimumWidth(500);
 
@@ -181,35 +233,29 @@ void UpdateManager::readData()
 
 void UpdateManager::updateFiles()
 {
-    const QString currentDir = QDir::currentPath();
-
     file->close();
+    unzipThread.start();
 
-    //unzipProcess->execute(currentDir + "/release/" + "unzip.exe",
-    //                      QStringList() << "E:/master.zip"
-    //                                    << "-d"
-    //                                    << appParentPath);
+    Unzip *unzip = new Unzip(nullptr);
+    unzip->moveToThread(&unzipThread);
 
-    //QDir dir(directoryLineEdit->text());
-    //dir.mkdir("GnuplotEditor-updated");
-
-    connect(unzipProcess, &QProcess::readyReadStandardOutput, [this](){
-        qDebug() <<  unzipProcess->readAllStandardError();
+    connect(unzip, &Unzip::stdOutReceived, [](const QString& out){
+        qDebug() << out;
     });
-    connect(unzipProcess, &QProcess::readyReadStandardError, [this](){
-        qDebug() << unzipProcess->readAllStandardError();
+    connect(unzip, &Unzip::finished, unzip, &Unzip::deleteLater);
+    connect(this, &UpdateManager::unzipRequested, unzip, &Unzip::unzip);
+    connect(unzip, &Unzip::finished, [this](){
+        qDebug() << "finished";
+        file->remove();
+        unzipThread.quit();
+        unzipThread.wait();
     });
 
-    qDebug() << file->fileName();
-    qDebug() << newParentFolder;
+    emit unzipRequested(file->fileName(), newParentFolder);
 
-    unzipProcess->execute(currentDir + "/release/" + "unzip.exe",
-                          QStringList() << "-o"               //上書き確認なし
-                                        << file->fileName()   //解凍するzipファイル名
-                                        << "-d"               //ディレクトリ指定
-                                        << newParentFolder);  //展開するディレクトリ
 
-    file->remove();
+
+    //file->remove();
 }
 
 void UpdateManager::cancelUpdate()
