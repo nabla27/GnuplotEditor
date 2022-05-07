@@ -64,17 +64,17 @@ Unzip::Unzip(QObject *parent)
 
     connect(process, &QProcess::readyReadStandardOutput, this, &Unzip::receiveStdOut);
     connect(process, &QProcess::readyReadStandardError, this, &Unzip::receiveStdErr);
+    connect(process, &QProcess::finished, this, &Unzip::finished);
 }
 
 void Unzip::unzip(const QString& zipName, const QString& dir)
 {
-    const int exitCode = process->execute(unzipExePath,
-                                          QStringList() << "-o"     //上書き確認なし
-                                                        << zipName  //解凍するzipファイル名
-                                                        << "-d"     //ディレクトリ指定
-                                                        << dir);    //展開するディレクトリ
+    process->start(unzipExePath,
+                   QStringList() << "-o"
+                                 << zipName
+                                 << "-d"
+                                 << dir);
 
-    emit finished(exitCode);
 }
 
 void Unzip::receiveStdOut()
@@ -99,7 +99,7 @@ UpdateManager::UpdateManager(QWidget *parent)
     , urlLineEdit(new QLineEdit(downloadUrl, this))
     , directoryLineEdit(new QLineEdit("", this))
     , versionLineEdit(new QLineEdit("", this))
-    , messageLabel(new QLabel("", this))
+    , messageLabel(new QLabel(this))
     , updateButton(new QPushButton("Update", this))
     , quitButton(new QPushButton("Quit", this))
 {
@@ -167,15 +167,6 @@ UpdateManager::~UpdateManager()
 
 }
 
-void UpdateManager::selectDirectory()
-{
-    const QString dir = QFileDialog::getExistingDirectory(this);
-
-    if(dir.isEmpty()) return;
-
-    directoryLineEdit->setText(dir);
-}
-
 void UpdateManager::requestUpdate()
 {
     /* フォームに入力されたURL */
@@ -213,7 +204,7 @@ void UpdateManager::startDownload(const QUrl& url)
     reply.reset(networkAccessManager.get(QNetworkRequest(url)));
 
     connect(reply.get(), &QNetworkReply::readyRead, this, &UpdateManager::readData);
-    connect(reply.get(), &QNetworkReply::finished, this, &UpdateManager::updateFiles);
+    connect(reply.get(), &QNetworkReply::finished, this, &UpdateManager::unzipFile);
 
     ProgressDialog *progressDialog = new ProgressDialog(url, this);
     progressDialog->setAttribute(Qt::WA_DeleteOnClose);
@@ -231,39 +222,60 @@ void UpdateManager::readData()
         file->write(reply->readAll());
 }
 
-void UpdateManager::updateFiles()
+void UpdateManager::unzipFile()
 {
-    file->close();
+    file->close();       //closeしないとunzipできない(アクセス拒否される)
     unzipThread.start();
 
     Unzip *unzip = new Unzip(nullptr);
     unzip->moveToThread(&unzipThread);
 
-    connect(unzip, &Unzip::stdOutReceived, [](const QString& out){
-        qDebug() << out;
-    });
+    connect(unzip, &Unzip::stdOutReceived, this, &UpdateManager::outMessage);
+    connect(unzip, &Unzip::stdErrReceived, this, &UpdateManager::outMessage);
+    connect(unzip, &Unzip::finished, this, &UpdateManager::updateApp);
     connect(unzip, &Unzip::finished, unzip, &Unzip::deleteLater);
     connect(this, &UpdateManager::unzipRequested, unzip, &Unzip::unzip);
-    connect(unzip, &Unzip::finished, [this](){
-        qDebug() << "finished";
-        file->remove();
-        unzipThread.quit();
-        unzipThread.wait();
-    });
 
     emit unzipRequested(file->fileName(), newParentFolder);
+}
+
+void UpdateManager::updateApp()
+{
+    file->remove(); //zipファイル削除
+    unzipThread.quit();
+    unzipThread.wait();
 
 
-
-    //file->remove();
 }
 
 void UpdateManager::cancelUpdate()
 {
     reply->abort();
-    messageLabel->setText("Download canceled");
+    outMessage("download canceled");
     updateButton->setEnabled(true);
     file->remove();
+}
+
+
+
+void UpdateManager::selectDirectory()
+{
+    const QString dir = QFileDialog::getExistingDirectory(this);
+
+    if(dir.isEmpty()) return;
+
+    directoryLineEdit->setText(dir);
+}
+
+void UpdateManager::outMessage(const QString& message)
+{
+    if(message.isEmpty()) return;
+
+    for(const QString& text : message.split('\n'))
+    {
+        if(text.isEmpty()) continue;
+        messageLabel->setText(text);
+    }
 }
 
 

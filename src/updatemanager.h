@@ -46,7 +46,7 @@ private slots:
 signals:
     void stdOutReceived(const QString& stdOut);
     void stdErrReceived(const QString& stdErr);
-    void finished(const int exitCode);
+    void finished();
 };
 
 
@@ -60,11 +60,14 @@ public:
     void startRequest(const QUrl& requestedUrl);
 
 private slots:
-    void selectDirectory();
     void requestUpdate();
     void readData();
-    void updateFiles();
+    void unzipFile();
+    void updateApp();
     void cancelUpdate();
+
+    void selectDirectory();
+    void outMessage(const QString& message);
 
 private:
     void startDownload(const QUrl& url);
@@ -86,7 +89,7 @@ private:
     QNetworkAccessManager networkAccessManager;
     QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> reply;
     std::unique_ptr<QFile> file;
-    bool httpsRequestAborted;
+    //bool httpsRequestAborted;
 
     QThread unzipThread;
 
