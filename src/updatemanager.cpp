@@ -138,7 +138,7 @@ UpdateManager::UpdateManager(QWidget *parent)
     directoryLabel->setFixedWidth(label_width);
     versionLabel->setFixedWidth(label_width);
 
-    urlLineEdit->setReadOnly(true);
+    //urlLineEdit->setReadOnly(true);  //一時的に開発中のみ編集可能にする
     versionLineEdit->setReadOnly(true);
     selectDirButton->setText("...");
 
@@ -259,7 +259,7 @@ void UpdateManager::updateApp()
 
     outNormalMessage("Finished unzipping all files");
 
-    if(QProcess::startDetached(newParentFolder + "/GnuplotEditor-master/bin/release/GnuplotEditor.exe"))
+    if(QProcess::startDetached(newParentFolder + "/GnuplotEditor-develop/bin/release/GnuplotEditor.exe"))
         emit closeApplicationRequested();
     else
         outErrorMessage("Failed to start updated application");
