@@ -13,6 +13,7 @@
 #include <memory>
 
 #include <QProcess>
+#include <QThread>
 
 class ProgressDialog : public QProgressDialog
 {
@@ -23,6 +24,29 @@ public:
 
 public slots:
     void replyProgress(qint64 bytesRead, qint64 totalBytes);
+};
+
+class Unzip : public QObject
+{
+    Q_OBJECT
+public:
+    Unzip(QObject *parent);
+
+public slots:
+    void unzip(const QString& zipName, const QString& dir);
+
+private:
+    QString unzipExePath;
+    QProcess *process;
+
+private slots:
+    void receiveStdOut();
+    void receiveStdErr();
+
+signals:
+    void stdOutReceived(const QString& stdOut);
+    void stdErrReceived(const QString& stdErr);
+    void finished(const int exitCode);
 };
 
 
@@ -64,7 +88,10 @@ private:
     std::unique_ptr<QFile> file;
     bool httpsRequestAborted;
 
-    QProcess *unzipProcess;
+    QThread unzipThread;
+
+signals:
+    void unzipRequested(const QString& zipName, const QString& dir);
 };
 
 #endif // UPDATEMANAGER_H
