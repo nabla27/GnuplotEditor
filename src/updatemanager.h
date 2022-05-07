@@ -7,6 +7,7 @@
 
 #include <QUrl>
 #include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <QProgressDialog>
 #include <QFile>
 
@@ -25,6 +26,10 @@ public:
 public slots:
     void replyProgress(qint64 bytesRead, qint64 totalBytes);
 };
+
+
+
+
 
 class Unzip : public QObject
 {
@@ -50,6 +55,10 @@ signals:
 };
 
 
+
+
+
+
 class UpdateManager : public QDialog
 {
     Q_OBJECT
@@ -67,10 +76,13 @@ private slots:
     void cancelUpdate();
 
     void selectDirectory();
-    void outMessage(const QString& message);
+    void outNormalMessage(const QString& message);
+    void outErrorMessage(const QString& message);
+    void receiveNetworkError(const QNetworkReply::NetworkError& err);
 
 private:
     void startDownload(const QUrl& url);
+    void outMessage(const QString& message);
 
 private:
     static const QString defaultFileName;     //ダウンロードするzipファイルの名前
@@ -89,7 +101,7 @@ private:
     QNetworkAccessManager networkAccessManager;
     QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> reply;
     std::unique_ptr<QFile> file;
-    //bool httpsRequestAborted;
+    bool networkCanceledFlag = false;  //ネットワークエラーや実行中にキャンセルされればTrueとする
 
     QThread unzipThread;
 

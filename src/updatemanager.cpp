@@ -7,11 +7,8 @@
 
 #include <QFileDialog>
 
-#include <QtWidgets>
-#include <QtNetwork>
-
+#include "utility.h"
 #include "zipper/unzipper.h"
-
 
 const QString UpdateManager::defaultFileName = "pltEditor.zip";
 const QString UpdateManager::downloadUrl = "https://github.com/nabla27/GnuplotEditor/archive/refs/heads/master.zip";
@@ -21,7 +18,6 @@ ProgressDialog::ProgressDialog(const QUrl& url, QWidget *parent)
     : QProgressDialog(parent)
 {
     setWindowTitle("Download Progress");
-    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     setLabelText(QString("Downloading %1.").arg(url.toDisplayString()));
     setMinimum(0);
     setValue(0);
@@ -171,11 +167,19 @@ void UpdateManager::requestUpdate()
 {
     /* フォームに入力されたURL */
     const QString urlText = urlLineEdit->text().trimmed();
-    if(urlText.isEmpty()) return;
+    if(urlText.isEmpty())
+    {
+        outErrorMessage("Invalid URL");
+        return;
+    }
 
     /* URL ダウンロードリンク */
     const QUrl url = QUrl::fromUserInput(urlText);
-    if(!url.isValid()) return;
+    if(!url.isValid())
+    {
+        outErrorMessage("Invalid URL");
+        return;
+    }
 
     /* ダウンロードリンク先のzipファイルのファイル名 */
     QString fileName = url.fileName();
@@ -193,6 +197,7 @@ void UpdateManager::requestUpdate()
     }
     else
     {   //指定されたダウンロード先のディレクトリが存在しない
+        outErrorMessage("Invalid directory");
         return;
     }
 
@@ -201,10 +206,15 @@ void UpdateManager::requestUpdate()
 
 void UpdateManager::startDownload(const QUrl& url)
 {
+    networkCanceledFlag = false;
+
+    outNormalMessage("Start downloading ...");
+
     reply.reset(networkAccessManager.get(QNetworkRequest(url)));
 
     connect(reply.get(), &QNetworkReply::readyRead, this, &UpdateManager::readData);
-    connect(reply.get(), &QNetworkReply::finished, this, &UpdateManager::unzipFile);
+    connect(reply.get(), &QNetworkReply::errorOccurred, this, &UpdateManager::receiveNetworkError);
+    connect(reply.get(), &QNetworkReply::finished, this, &UpdateManager::unzipFile); //ダウンロードをキャンセルした場合もfinishedが送られる
 
     ProgressDialog *progressDialog = new ProgressDialog(url, this);
     progressDialog->setAttribute(Qt::WA_DeleteOnClose);
@@ -224,14 +234,16 @@ void UpdateManager::readData()
 
 void UpdateManager::unzipFile()
 {
+    if(networkCanceledFlag) return; //ダウンロードされていない場合は無効
+
     file->close();       //closeしないとunzipできない(アクセス拒否される)
     unzipThread.start();
 
     Unzip *unzip = new Unzip(nullptr);
     unzip->moveToThread(&unzipThread);
 
-    connect(unzip, &Unzip::stdOutReceived, this, &UpdateManager::outMessage);
-    connect(unzip, &Unzip::stdErrReceived, this, &UpdateManager::outMessage);
+    connect(unzip, &Unzip::stdOutReceived, this, &UpdateManager::outNormalMessage);
+    connect(unzip, &Unzip::stdErrReceived, this, &UpdateManager::outErrorMessage);
     connect(unzip, &Unzip::finished, this, &UpdateManager::updateApp);
     connect(unzip, &Unzip::finished, unzip, &Unzip::deleteLater);
     connect(this, &UpdateManager::unzipRequested, unzip, &Unzip::unzip);
@@ -245,13 +257,16 @@ void UpdateManager::updateApp()
     unzipThread.quit();
     unzipThread.wait();
 
+    outNormalMessage("Finished unzipping all files");
 
 }
 
 void UpdateManager::cancelUpdate()
 {
+    networkCanceledFlag = true;
+    outNormalMessage("Download canceled");
+
     reply->abort();
-    outMessage("download canceled");
     updateButton->setEnabled(true);
     file->remove();
 }
@@ -267,7 +282,32 @@ void UpdateManager::selectDirectory()
     directoryLineEdit->setText(dir);
 }
 
-void UpdateManager::outMessage(const QString& message)
+void UpdateManager::outNormalMessage(const QString& message)
+{
+    QPalette p = messageLabel->palette();
+    p.setColor(messageLabel->foregroundRole(), Qt::black);
+    messageLabel->setPalette(p);
+
+    outMessage(message);
+}
+
+void UpdateManager::outErrorMessage(const QString& message)
+{
+    QPalette p = messageLabel->palette();
+    p.setColor(messageLabel->foregroundRole(), Qt::red);
+    messageLabel->setPalette(p);
+
+    outMessage(message);
+}
+
+void UpdateManager::receiveNetworkError(const QNetworkReply::NetworkError& err)
+{
+    networkCanceledFlag = true;
+
+    outErrorMessage("Network error caused : " + enumToString(err));
+}
+
+void UpdateManager::outMessage(const QString &message)
 {
     if(message.isEmpty()) return;
 
@@ -277,5 +317,6 @@ void UpdateManager::outMessage(const QString& message)
         messageLabel->setText(text);
     }
 }
+
 
 
