@@ -107,6 +107,7 @@ private:
 
 signals:
     void unzipRequested(const QString& zipName, const QString& dir);
+    void closeApplicationRequested();
 };
 
 #endif // UPDATEMANAGER_H
