@@ -6,6 +6,7 @@
 #include <QDialogButtonBox>
 
 #include <QFileDialog>
+#include <QFile>
 
 #include "utility.h"
 #include "boost/property_tree/xml_parser.hpp"
@@ -14,6 +15,8 @@
 const QString UpdateManager::defaultFileName = "pltEditor.zip";
 const QString UpdateManager::downloadUrl = "https://github.com/nabla27/GnuplotEditor/archive/refs/heads/master.zip";
 const QString UpdateManager::unzipName = "GnuplotEditor-develop"; //DEBUG
+const QString UpdateManager::localVersionPath = "bin/release/setting/version.xml";
+const QString UpdateManager::removeVersionUrl = "https://raw.githubusercontent.com/nabla27/GnuplotEditor/develop/bin/release/setting/version.xml";
 
 
 ProgressDialog::ProgressDialog(const QUrl& url, QWidget *parent)
@@ -174,11 +177,31 @@ UpdateManager::~UpdateManager()
 
 }
 
+
+/* updateButton QPushButton::release
+ *
+ * UpdateManager::requestUpdate()
+ *
+ * UpdateManager::startDownload()
+ *
+ * reply networkManager QNetworkManager::get()
+ *      UpdateManager::writeZipFile()
+ *      UpdateManager::receiveNetworkError()
+ *      ProgressDialog::replyProgress()
+ *
+ * UpdateManager::unzipFile()
+ *      UpdateManager::unzipRequested Unzip::unzip()
+ *
+ * UpdateManager::updateApp()
+ *
+ * UpdateManager::closeApplicationRequested
+ */
+
 void UpdateManager::getVersion()
 {
     using namespace boost::property_tree;
 
-    const QString versionFile = oldFolderPath + "/bin/release/setting/version.xml";
+    const QString versionFile = oldFolderPath + '/' + localVersionPath;
 
     QString oldVersion;
     QString newVersion;
@@ -194,6 +217,12 @@ void UpdateManager::getVersion()
             oldVersion = QString::fromStdString(version.value());
         if(boost::optional<std::string> date = pt.get_optional<std::string>("root.date"))
             oldDate = QString::fromStdString(date.value());
+    }
+
+    QFile tmpVersionFile(oldFolderPath + "/tmp_version.xml");
+    if(tmpVersionFile.open(QIODevice::WriteOnly))
+    {
+
     }
 }
 
@@ -232,9 +261,9 @@ void UpdateManager::requestUpdate()
 
         newParentFolder = dlDirectory.path();
 
-        file = std::make_unique<QFile>(newParentFolder + '/' + fileName);
+        zipFile = std::make_unique<QFile>(newParentFolder + '/' + fileName);
 
-        if(!file->open(QIODevice::WriteOnly)) return;
+        if(!zipFile->open(QIODevice::WriteOnly)) return;
     }
     else
     {   //指定されたダウンロード先のディレクトリが存在しない
@@ -253,7 +282,7 @@ void UpdateManager::startDownload(const QUrl& url)
 
     reply.reset(networkAccessManager.get(QNetworkRequest(url)));
 
-    connect(reply.get(), &QNetworkReply::readyRead, this, &UpdateManager::readData);
+    connect(reply.get(), &QNetworkReply::readyRead, this, &UpdateManager::writeZipFile);
     connect(reply.get(), &QNetworkReply::errorOccurred, this, &UpdateManager::receiveNetworkError);
     connect(reply.get(), &QNetworkReply::finished, this, &UpdateManager::unzipFile); //ダウンロードをキャンセルした場合もfinishedが送られる
 
@@ -267,10 +296,10 @@ void UpdateManager::startDownload(const QUrl& url)
     updateButton->setEnabled(false);
 }
 
-void UpdateManager::readData()
+void UpdateManager::writeZipFile()
 {
-    if(file)
-        file->write(reply->readAll());
+    if(zipFile)
+        zipFile->write(reply->readAll());
 }
 
 void UpdateManager::unzipFile()
@@ -281,7 +310,7 @@ void UpdateManager::unzipFile()
 
     outNormalMessage("start unzip...");
 
-    file->close();       //closeしないとunzipできない(アクセス拒否される)
+    zipFile->close();       //closeしないとunzipできない(アクセス拒否される)
     unzipThread.start();
 
     Unzip *unzip = new Unzip(nullptr);
@@ -293,12 +322,12 @@ void UpdateManager::unzipFile()
     connect(unzip, &Unzip::finished, unzip, &Unzip::deleteLater);
     connect(this, &UpdateManager::unzipRequested, unzip, &Unzip::unzip);
 
-    emit unzipRequested(file->fileName(), newParentFolder);
+    emit unzipRequested(zipFile->fileName(), newParentFolder);
 }
 
 void UpdateManager::updateApp()
 {
-    file->remove(); //zipファイル削除
+    zipFile->remove(); //zipファイル削除
     unzipThread.quit();
     unzipThread.wait();
 
@@ -317,7 +346,7 @@ void UpdateManager::cancelUpdate()
 
     reply->abort();
     updateButton->setEnabled(true);
-    file->remove();
+    zipFile->remove();
 }
 
 

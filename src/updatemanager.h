@@ -66,11 +66,9 @@ public:
     explicit UpdateManager(QWidget *parent);
     ~UpdateManager();
 
-    void startRequest(const QUrl& requestedUrl);
-
 private slots:
     void requestUpdate();
-    void readData();
+    void writeZipFile();
     void unzipFile();
     void updateApp();
     void cancelUpdate();
@@ -89,6 +87,8 @@ private:
     static const QString defaultFileName;     //ダウンロードするzipファイルの名前
     static const QString downloadUrl;         //ダウンロード先のURL
     static const QString unzipName;           //unzip後に展開されるフォルダー名
+    static const QString localVersionPath;    //バージョンが書かれたファイルのアプリケーションフォルダーからの相対パス
+    static const QString removeVersionUrl;    //リモート上のバージョンが書かれたファイルのURL
 
     QLineEdit *urlLineEdit;
     QLineEdit *directoryLineEdit;
@@ -102,7 +102,7 @@ private:
 
     QNetworkAccessManager networkAccessManager;
     QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> reply;
-    std::unique_ptr<QFile> file;
+    std::unique_ptr<QFile> zipFile;
     bool networkCanceledFlag = false;  //ネットワークエラーや実行中にキャンセルされればTrueとする
 
     QThread unzipThread;
