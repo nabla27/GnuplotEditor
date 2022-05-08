@@ -81,12 +81,14 @@ private slots:
     void receiveNetworkError(const QNetworkReply::NetworkError& err);
 
 private:
+    void getVersion();
     void startDownload(const QUrl& url);
     void outMessage(const QString& message);
 
 private:
     static const QString defaultFileName;     //ダウンロードするzipファイルの名前
     static const QString downloadUrl;         //ダウンロード先のURL
+    static const QString unzipName;           //unzip後に展開されるフォルダー名
 
     QLineEdit *urlLineEdit;
     QLineEdit *directoryLineEdit;
