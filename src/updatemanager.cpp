@@ -16,7 +16,7 @@ const QString UpdateManager::defaultFileName = "pltEditor.zip";
 const QString UpdateManager::downloadUrl = "https://github.com/nabla27/GnuplotEditor/archive/refs/heads/master.zip";
 const QString UpdateManager::unzipName = "GnuplotEditor-develop"; //DEBUG
 const QString UpdateManager::localVersionPath = "bin/release/setting/version.xml";
-const QString UpdateManager::removeVersionUrl = "https://raw.githubusercontent.com/nabla27/GnuplotEditor/develop/bin/release/setting/version.xml";
+const QString UpdateManager::remoteVersionUrl = "https://raw.githubusercontent.com/nabla27/GnuplotEditor/develop/bin/release/setting/version.xml"; //DEBUG
 
 
 ProgressDialog::ProgressDialog(const QUrl& url, QWidget *parent)
@@ -169,61 +169,120 @@ UpdateManager::UpdateManager(QWidget *parent)
 
     directoryLineEdit->setText(oldFolderPath.first(oldFolderPath.lastIndexOf('/')));
 
-    getVersion();
+    fetchRemoteVersion();
 }
 
 UpdateManager::~UpdateManager()
 {
-
 }
 
 
-/* updateButton QPushButton::release
+
+
+
+/* [ バージョンの取得 ]
  *
- * UpdateManager::requestUpdate()
+ * UpdateManager::fetchRemoteVersion()                 * リモートからバージョンファイルを持ってくる
+ *      reply networkManager QNetworkManager::get()    * ネットワークにバージョンファイルのリクエスト
+ *           UpdateManager::readRemoveVersionXml()     * バージョンファイルのダウンロード
+ *           UpdateManager::receiveNetworkError()      * エラーの読み取り
+ *                                                     *
+ * UpdateManager::getVersionFromXml()                  * ダウンロードしたものとローカルのバージョンxmlファイルの読み取り
  *
- * UpdateManager::startDownload()
+ * [ アップデートの流れ ]
  *
- * reply networkManager QNetworkManager::get()
- *      UpdateManager::writeZipFile()
- *      UpdateManager::receiveNetworkError()
- *      ProgressDialog::replyProgress()
- *
- * UpdateManager::unzipFile()
- *      UpdateManager::unzipRequested Unzip::unzip()
- *
- * UpdateManager::updateApp()
- *
- * UpdateManager::closeApplicationRequested
+ *  updateButton QPushButton::release                  * "Update"ボタンが押される
+ *                                                     *
+ * UpdateManager::requestUpdate()                      * フォームからディレクトリやURLを取得
+ *                                                     *
+ * UpdateManager::startDownload()                      * リモートからファイルをダウンロード
+ *      reply networkManager QNetworkManager::get()    * ネットワークにダウンロードをリクエスト
+ *           UpdateManager::writeZipFile()             * ファイルのダウンロード
+ *           UpdateManager::receiveNetworkError()      * エラーの読み取り
+ *           ProgressDialog::replyProgress()           * ダウンロード経過の読み取り
+ *                                                     *
+ * UpdateManager::unzipFile()                          * ダウンロードしたzipファイルの解凍
+ *      UpdateManager::unzipRequested Unzip::unzip()   * zipファイルの解凍を別スレッドで実行
+ *                                                     *
+ * UpdateManager::updateApp()                          * 新しいバージョンのappの立ち上げなど
+ *                                                     *
+ * UpdateManager::closeApplicationRequested            * 起動されている古いバージョンのappを閉じる
  */
 
-void UpdateManager::getVersion()
+void UpdateManager::fetchRemoteVersion()
+{
+    networkCanceledFlag = false;
+
+    xmlVersionFile = std::make_unique<QFile>(oldFolderPath + "/new-version.xml"); //一時的なリモートのバージョンファイルのコピー先
+    if(!xmlVersionFile->open(QIODevice::ReadWrite))
+    {
+        /* リモートのバージョンファイルのコピー先ファイルが作成できなければ、リモートから持ってくるのをやめる */
+        outErrorMessage("Could not open a file : " + xmlVersionFile->fileName());
+        getVersionFromXml();
+        return;
+    }
+
+    /* リモートのバージョンファイルをダウンロード */
+    reply.reset(networkAccessManager.get(QNetworkRequest(remoteVersionUrl)));
+
+    connect(reply.get(), &QNetworkReply::readyRead, this, &UpdateManager::readRemoteVersionXml);
+    connect(reply.get(), &QNetworkReply::errorOccurred, this, &UpdateManager::receiveNetworkError);
+    connect(reply.get(), &QNetworkReply::finished, this, &UpdateManager::getVersionFromXml);
+}
+
+void UpdateManager::getVersionFromXml()
 {
     using namespace boost::property_tree;
 
-    const QString versionFile = oldFolderPath + '/' + localVersionPath;
+    const QString oldVersionFilePath = oldFolderPath + '/' + localVersionPath;
+    const QString newVersionFilePath = xmlVersionFile->fileName();
 
     QString oldVersion;
     QString newVersion;
     QString oldDate;
     QString newDate;
 
-    if(QFile::exists(versionFile))
+    if(QFile::exists(oldVersionFilePath))
     {
         ptree pt;
-        read_xml(versionFile.toUtf8().constData(), pt);
+        read_xml(oldVersionFilePath.toUtf8().constData(), pt);
 
         if(boost::optional<std::string> version = pt.get_optional<std::string>("root.version"))
             oldVersion = QString::fromStdString(version.value());
         if(boost::optional<std::string> date = pt.get_optional<std::string>("root.date"))
             oldDate = QString::fromStdString(date.value());
     }
-
-    QFile tmpVersionFile(oldFolderPath + "/tmp_version.xml");
-    if(tmpVersionFile.open(QIODevice::WriteOnly))
+    if(QFile::exists(newVersionFilePath) && !networkCanceledFlag)
     {
+        xmlVersionFile->close(); //closeしないと読み取り権限が得られない
 
+        ptree pt;
+        read_xml(newVersionFilePath.toUtf8().constData(), pt);
+
+        if(boost::optional<std::string> version = pt.get_optional<std::string>("root.version"))
+            newVersion = QString::fromStdString(version.value());
+        if(boost::optional<std::string> date = pt.get_optional<std::string>("root.date"))
+            newDate = QString::fromStdString(date.value());
     }
+
+    /* 読み取り後、不要なので削除 */
+    if(!xmlVersionFile->remove())
+        outErrorMessage("Could not remove a file : " + xmlVersionFile->fileName());
+
+    /* バージョンを表示 */
+    versionLineEdit->setText(oldVersion + " (" + oldDate + ")  to  " +
+                             newVersion + " (" + newDate + ")");
+
+    if(oldVersion == newVersion)
+    {
+        outNormalMessage("Already the latest version");
+        updateButton->setEnabled(false);
+    }
+
+    if(!newVersion.isEmpty())
+        this->newVersion = newVersion;
+    else
+        this->newVersion = QDateTime::currentDateTime().date().toString();
 }
 
 void UpdateManager::requestUpdate()
@@ -394,6 +453,12 @@ void UpdateManager::outMessage(const QString &message)
         if(text.isEmpty()) continue;
         messageLabel->setText(text);
     }
+}
+
+void UpdateManager::readRemoteVersionXml()
+{
+    if(xmlVersionFile)
+        xmlVersionFile->write(reply->readAll());
 }
 
 

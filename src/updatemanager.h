@@ -67,6 +67,9 @@ public:
     ~UpdateManager();
 
 private slots:
+    void readRemoteVersionXml();
+    void getVersionFromXml();
+
     void requestUpdate();
     void writeZipFile();
     void unzipFile();
@@ -79,7 +82,7 @@ private slots:
     void receiveNetworkError(const QNetworkReply::NetworkError& err);
 
 private:
-    void getVersion();
+    void fetchRemoteVersion();
     void startDownload(const QUrl& url);
     void outMessage(const QString& message);
 
@@ -88,7 +91,7 @@ private:
     static const QString downloadUrl;         //ダウンロード先のURL
     static const QString unzipName;           //unzip後に展開されるフォルダー名
     static const QString localVersionPath;    //バージョンが書かれたファイルのアプリケーションフォルダーからの相対パス
-    static const QString removeVersionUrl;    //リモート上のバージョンが書かれたファイルのURL
+    static const QString remoteVersionUrl;    //リモート上のバージョンが書かれたファイルのURL
 
     QLineEdit *urlLineEdit;
     QLineEdit *directoryLineEdit;
@@ -99,10 +102,12 @@ private:
 
     QString newParentFolder;
     QString oldFolderPath;
+    QString newVersion;
 
     QNetworkAccessManager networkAccessManager;
     QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> reply;
-    std::unique_ptr<QFile> zipFile;
+    std::unique_ptr<QFile> zipFile;         //リモートからのコピー先
+    std::unique_ptr<QFile> xmlVersionFile;  //リモートからのコピー先
     bool networkCanceledFlag = false;  //ネットワークエラーや実行中にキャンセルされればTrueとする
 
     QThread unzipThread;
