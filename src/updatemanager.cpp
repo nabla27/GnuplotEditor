@@ -8,10 +8,12 @@
 #include <QFileDialog>
 
 #include "utility.h"
-#include "zipper/unzipper.h"
+#include "boost/property_tree/xml_parser.hpp"
+#include "boost/lexical_cast.hpp"
 
 const QString UpdateManager::defaultFileName = "pltEditor.zip";
 const QString UpdateManager::downloadUrl = "https://github.com/nabla27/GnuplotEditor/archive/refs/heads/master.zip";
+const QString UpdateManager::unzipName = "GnuplotEditor-develop"; //DEBUG
 
 
 ProgressDialog::ProgressDialog(const QUrl& url, QWidget *parent)
@@ -46,16 +48,21 @@ Unzip::Unzip(QObject *parent)
     , process(new QProcess(this))
 {
     /* unzipの実行ファイルのパスを取得 */
-    const QString currentDirectory = QDir::currentPath();
-    const qsizetype sp = currentDirectory.count('/');
-    for(qsizetype i = 0; i < sp; ++i)
+    QString dir = QDir::currentPath();
+    for(;;)
     {
-        const QString dir = currentDirectory.section('/', 0, -i); //'/'でセクションに区切る。一番左0から右からのセクションi番目を取り出す
         if(QDir(dir).entryList().contains("unzip.exe"))
         {
             unzipExePath = dir + '/' + "unzip.exe";
             break;
         }
+
+        const qsizetype n = dir.lastIndexOf('/');
+
+        if(n == qsizetype(-1))
+            break;
+        else
+            dir = dir.first(n);
     }
 
     connect(process, &QProcess::readyReadStandardOutput, this, &Unzip::receiveStdOut);
@@ -65,9 +72,11 @@ Unzip::Unzip(QObject *parent)
 
 void Unzip::unzip(const QString& zipName, const QString& dir)
 {
+    if(!QFile::exists(unzipExePath))
+        emit stdErrReceived("Could not find the unzip.exe");
+
     process->start(unzipExePath,
-                   QStringList() << "-o"
-                                 << zipName
+                   QStringList() << zipName
                                  << "-d"
                                  << dir);
 
@@ -138,7 +147,7 @@ UpdateManager::UpdateManager(QWidget *parent)
     directoryLabel->setFixedWidth(label_width);
     versionLabel->setFixedWidth(label_width);
 
-    //urlLineEdit->setReadOnly(true);  //一時的に開発中のみ編集可能にする
+    //urlLineEdit->setReadOnly(true);  //DEBUG
     versionLineEdit->setReadOnly(true);
     selectDirButton->setText("...");
 
@@ -156,11 +165,36 @@ UpdateManager::UpdateManager(QWidget *parent)
     }
 
     directoryLineEdit->setText(oldFolderPath.first(oldFolderPath.lastIndexOf('/')));
+
+    getVersion();
 }
 
 UpdateManager::~UpdateManager()
 {
 
+}
+
+void UpdateManager::getVersion()
+{
+    using namespace boost::property_tree;
+
+    const QString versionFile = oldFolderPath + "/bin/release/setting/version.xml";
+
+    QString oldVersion;
+    QString newVersion;
+    QString oldDate;
+    QString newDate;
+
+    if(QFile::exists(versionFile))
+    {
+        ptree pt;
+        read_xml(versionFile.toUtf8().constData(), pt);
+
+        if(boost::optional<std::string> version = pt.get_optional<std::string>("root.version"))
+            oldVersion = QString::fromStdString(version.value());
+        if(boost::optional<std::string> date = pt.get_optional<std::string>("root.date"))
+            oldDate = QString::fromStdString(date.value());
+    }
 }
 
 void UpdateManager::requestUpdate()
@@ -169,7 +203,7 @@ void UpdateManager::requestUpdate()
     const QString urlText = urlLineEdit->text().trimmed();
     if(urlText.isEmpty())
     {
-        outErrorMessage("Invalid URL");
+        outErrorMessage("Invalid URL.");
         return;
     }
 
@@ -177,7 +211,7 @@ void UpdateManager::requestUpdate()
     const QUrl url = QUrl::fromUserInput(urlText);
     if(!url.isValid())
     {
-        outErrorMessage("Invalid URL");
+        outErrorMessage("Invalid URL.");
         return;
     }
 
@@ -189,6 +223,13 @@ void UpdateManager::requestUpdate()
     QDir dlDirectory(directoryLineEdit->text().trimmed());
     if(dlDirectory.exists())
     {
+        /* 選択したディレクトリに展開後と同じフォルダー名があれば無効 */
+        if(QDir(dlDirectory.path() + '/' + unzipName).exists())
+        {
+            outErrorMessage("Already exists : " + dlDirectory.path() + '/' + unzipName);
+            return;
+        }
+
         newParentFolder = dlDirectory.path();
 
         file = std::make_unique<QFile>(newParentFolder + '/' + fileName);
@@ -197,7 +238,7 @@ void UpdateManager::requestUpdate()
     }
     else
     {   //指定されたダウンロード先のディレクトリが存在しない
-        outErrorMessage("Invalid directory");
+        outErrorMessage("Invalid directory.");
         return;
     }
 
@@ -236,6 +277,10 @@ void UpdateManager::unzipFile()
 {
     if(networkCanceledFlag) return; //ダウンロードされていない場合は無効
 
+
+
+    outNormalMessage("start unzip...");
+
     file->close();       //closeしないとunzipできない(アクセス拒否される)
     unzipThread.start();
 
@@ -257,18 +302,18 @@ void UpdateManager::updateApp()
     unzipThread.quit();
     unzipThread.wait();
 
-    outNormalMessage("Finished unzipping all files");
+    outNormalMessage("Finished unzipping all files.");
 
-    if(QProcess::startDetached(newParentFolder + "/GnuplotEditor-develop/bin/release/GnuplotEditor.exe"))
+    if(QProcess::startDetached(newParentFolder + '/' + unzipName + "/bin/release/GnuplotEditor.exe"))
         emit closeApplicationRequested();
     else
-        outErrorMessage("Failed to start updated application");
+        outErrorMessage("Failed to start updated application.");
 }
 
 void UpdateManager::cancelUpdate()
 {
     networkCanceledFlag = true;
-    outNormalMessage("Download canceled");
+    outNormalMessage("Download canceled.");
 
     reply->abort();
     updateButton->setEnabled(true);
