@@ -1,9 +1,13 @@
 #include "updatemanager.h"
+
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QToolButton>
 #include <QDialogButtonBox>
+
+#include <QStyle>
+#include <QApplication>
 
 #include <QFileDialog>
 #include <QFile>
@@ -129,6 +133,7 @@ UpdateManager::UpdateManager(QWidget *parent)
     QLabel *directoryLabel = new QLabel("Directory", this);
     QToolButton *selectDirButton = new QToolButton(this);
     QLabel *versionLabel = new QLabel("Version", this);
+    QToolButton *reloadVersion = new QToolButton(this);
     urlLayout->addWidget(urlLabel);
     urlLayout->addWidget(urlLineEdit);
     directoryLayout->addWidget(directoryLabel);
@@ -136,7 +141,9 @@ UpdateManager::UpdateManager(QWidget *parent)
     directoryLayout->addWidget(selectDirButton);
     versionLayout->addWidget(versionLabel);
     versionLayout->addWidget(versionLineEdit);
+    versionLayout->addWidget(reloadVersion);
     connect(selectDirButton, &QToolButton::released, this, &UpdateManager::selectDirectory);
+    connect(reloadVersion, &QToolButton::released, this, &UpdateManager::fetchRemoteVersion);
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(this);
     vLayout->addWidget(buttonBox);
@@ -150,9 +157,16 @@ UpdateManager::UpdateManager(QWidget *parent)
     directoryLabel->setFixedWidth(label_width);
     versionLabel->setFixedWidth(label_width);
 
+    const int icon_width = 23;
+    selectDirButton->setFixedWidth(icon_width);
+    reloadVersion->setFixedWidth(icon_width);
+
     //urlLineEdit->setReadOnly(true);  //DEBUG
     versionLineEdit->setReadOnly(true);
     selectDirButton->setText("...");
+    reloadVersion->setIcon(QApplication::style()->standardIcon(QStyle::SP_BrowserReload));
+    reloadVersion->setStyleSheet("QToolButton { background: transparent }"
+                                 "QToolButton:hover { background-color: rgb(208, 236, 244); }");
 
     /* カレントディレクトリからさかのぼって、binフォルダのあるパス(=アプリケーションのパス)を特定する */
     const QString currentDirectory = QDir::currentPath();
@@ -191,7 +205,7 @@ UpdateManager::~UpdateManager()
  *
  * [ アップデートの流れ ]
  *
- *  updateButton QPushButton::release                  * "Update"ボタンが押される
+ * updateButton QPushButton::release                   * "Update"ボタンが押される
  *                                                     *
  * UpdateManager::requestUpdate()                      * フォームからディレクトリやURLを取得
  *                                                     *
@@ -270,7 +284,7 @@ void UpdateManager::getVersionFromXml()
         outErrorMessage("Could not remove a file : " + xmlVersionFile->fileName());
 
     /* バージョンを表示 */
-    versionLineEdit->setText(oldVersion + " (" + oldDate + ")  to  " +
+    versionLineEdit->setText(oldVersion + " (" + oldDate + ")    to    " +
                              newVersion + " (" + newDate + ")");
 
     if(oldVersion == newVersion)

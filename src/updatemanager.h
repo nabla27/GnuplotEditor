@@ -67,6 +67,7 @@ public:
     ~UpdateManager();
 
 private slots:
+    void fetchRemoteVersion();
     void readRemoteVersionXml();
     void getVersionFromXml();
 
@@ -82,7 +83,6 @@ private slots:
     void receiveNetworkError(const QNetworkReply::NetworkError& err);
 
 private:
-    void fetchRemoteVersion();
     void startDownload(const QUrl& url);
     void outMessage(const QString& message);
 
