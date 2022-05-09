@@ -10,6 +10,8 @@ int main(int argc, char *argv[])
         if(QString(argv[1]) == "-updated")
         {
             QThread::sleep(1);
+            QDir oldApp(argv[2]);
+            oldApp.removeRecursively();
         }
     }
 
