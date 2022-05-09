@@ -4,11 +4,11 @@
 
 int main(int argc, char *argv[])
 {
-    if(argc == 2)
+    if(argc == 3)
     {
-        if(QString(argv[0]) == "-updated")
+        if(QString(argv[1]) == "-updated")
         {
-            QDir oldApp(argv[1]);
+            QDir oldApp(argv[2]);
             oldApp.removeRecursively();
         }
     }
