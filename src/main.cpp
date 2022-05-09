@@ -10,8 +10,10 @@ int main(int argc, char *argv[])
         if(QString(argv[1]) == "-updated")
         {
             QThread::sleep(1);
-            QDir oldApp(QString(argv[2]).first(QString(argv[2]).lastIndexOf('/')));
-            oldApp.rmdir(argv[2]);
+            const QString oldAppPath = argv[2];
+            QDir oldAppDir(oldAppPath);
+            oldAppDir.removeRecursively();
+            oldAppDir.rmdir(oldAppPath);
         }
     }
 
