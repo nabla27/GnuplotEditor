@@ -410,12 +410,18 @@ void UpdateManager::updateApp()
     if(QFile::rename(newFolderName, newFolderName + "-" + newVersion))
         outErrorMessage("Could not rename a folder : " + newFolderName);
 
+    QProcess *process = new QProcess(this);
+    process->setProgram(newFolderName + "-" + newVersion + '/' + localExePath);
+    process->setArguments(QStringList() << "-updated" << oldFolderPath);
+    process->startDetached();
+    emit closeApplicationRequested();
+
     /* 新しいアプリを立ち上げる */
-    if(QProcess::startDetached(newFolderName + "-" + newVersion + '/' + localExePath,
-                               QStringList() << "-updated" << oldFolderPath))
-        emit closeApplicationRequested();
-    else
-        outErrorMessage("Failed to start updated application.");
+    //if(QProcess::startDetached(newFolderName + "-" + newVersion + '/' + localExePath,
+    //                           QStringList() << "-updated" << oldFolderPath))
+    //    emit closeApplicationRequested();
+    //else
+    //    outErrorMessage("Failed to start updated application.");
 }
 
 void UpdateManager::cancelUpdate()
