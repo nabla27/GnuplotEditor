@@ -8,7 +8,8 @@ int main(int argc, char *argv[])
     {
         if(QString(argv[0]) == "-updated")
         {
-            QFile::remove(argv[1]);
+            QDir oldApp(argv[1]);
+            oldApp.removeRecursively();
         }
     }
 
