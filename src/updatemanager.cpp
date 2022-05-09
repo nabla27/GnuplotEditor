@@ -21,6 +21,7 @@ const QString UpdateManager::downloadUrl = "https://github.com/nabla27/GnuplotEd
 const QString UpdateManager::unzipName = "GnuplotEditor-develop"; //DEBUG
 const QString UpdateManager::localVersionPath = "bin/release/setting/version.xml";
 const QString UpdateManager::remoteVersionUrl = "https://raw.githubusercontent.com/nabla27/GnuplotEditor/develop/bin/release/setting/version.xml"; //DEBUG
+const QString UpdateManager::localExePath = "bin/release/GnuplotEditor.exe";
 
 
 ProgressDialog::ProgressDialog(const QUrl& url, QWidget *parent)
@@ -289,8 +290,8 @@ void UpdateManager::getVersionFromXml()
 
     if(oldVersion == newVersion)
     {
-        outNormalMessage("Already the latest version");
-        updateButton->setEnabled(false);
+        outNormalMessage("Already the latest version.");
+        //updateButton->setEnabled(false); //DEBUG
     }
 
     if(!newVersion.isEmpty())
@@ -379,8 +380,6 @@ void UpdateManager::unzipFile()
 {
     if(networkCanceledFlag) return; //ダウンロードされていない場合は無効
 
-
-
     outNormalMessage("start unzip...");
 
     zipFile->close();       //closeしないとunzipできない(アクセス拒否される)
@@ -406,7 +405,13 @@ void UpdateManager::updateApp()
 
     outNormalMessage("Finished unzipping all files.");
 
-    if(QProcess::startDetached(newParentFolder + '/' + unzipName + "/bin/release/GnuplotEditor.exe"))
+    /* 新しくunzipしたフォルダーの名前にバージョンを加える */
+    const QString newFolderName = newParentFolder + '/' + unzipName;
+    if(QFile::rename(newFolderName, newFolderName + "-" + newVersion))
+        outErrorMessage("Could not rename a folder : " + newFolderName);
+
+    /* 新しいアプリを立ち上げる */
+    if(QProcess::startDetached(newFolderName + "-" + newVersion + '/' + localExePath))
         emit closeApplicationRequested();
     else
         outErrorMessage("Failed to start updated application.");

@@ -92,6 +92,7 @@ private:
     static const QString unzipName;           //unzip後に展開されるフォルダー名
     static const QString localVersionPath;    //バージョンが書かれたファイルのアプリケーションフォルダーからの相対パス
     static const QString remoteVersionUrl;    //リモート上のバージョンが書かれたファイルのURL
+    static const QString localExePath;        //実行ファイルのアプリケーションっフォルダーからの相対パス
 
     QLineEdit *urlLineEdit;
     QLineEdit *directoryLineEdit;
