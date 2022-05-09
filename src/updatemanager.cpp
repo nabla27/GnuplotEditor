@@ -466,6 +466,9 @@ void UpdateManager::outErrorMessage(const QString& message)
 void UpdateManager::receiveNetworkError(const QNetworkReply::NetworkError& err)
 {
     networkCanceledFlag = true;
+    updateButton->setEnabled(true);
+    zipFile->remove();
+    xmlVersionFile->remove();
 
     outErrorMessage("Network error caused : " + enumToString(err));
 }

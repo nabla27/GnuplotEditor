@@ -11,8 +11,7 @@ int main(int argc, char *argv[])
         {
             QThread::sleep(1);
             QDir oldApp(QString(argv[2]).first(QString(argv[2]).lastIndexOf('/')));
-            oldApp.remove(argv[2]);
-            oldApp.cleanPath(argv[2]);
+            oldApp.rmdir(argv[2]);
         }
     }
 
