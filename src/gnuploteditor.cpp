@@ -61,6 +61,8 @@ void GnuplotEditor::postProcess()
         QDir oldApp(oldAppFolderPath);
         oldApp.removeRecursively();
         oldApp.rmdir(oldAppFolderPath);
+        oldApp.removeRecursively();
+        oldApp.rmdir(oldAppFolderPath);
     }
 }
 
