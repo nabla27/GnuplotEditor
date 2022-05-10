@@ -5,21 +5,18 @@
 
 int main(int argc, char *argv[])
 {
+    QString oldApp;
+
     if(argc == 3)
     {
         if(QString(argv[1]) == "-updated")
         {
-            QThread::sleep(3);
-            const QString oldAppPath(argv[2]);
-            QDir oldAppDir(oldAppPath);
-            oldAppDir.removeRecursively();
-            QThread::sleep(2);
-            oldAppDir.rmdir(oldAppPath);
+            oldApp = QString(argv[2]);
         }
     }
 
     QApplication a(argc, argv);
-    GnuplotEditor w;
+    GnuplotEditor w(oldApp, nullptr);
     w.show();
     return a.exec();
 }

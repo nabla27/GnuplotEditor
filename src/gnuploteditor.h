@@ -24,13 +24,14 @@ class GnuplotEditor : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit GnuplotEditor(QWidget *parent = nullptr);
+    explicit GnuplotEditor(const QString& oldAppPath = QString(), QWidget *parent = nullptr);
     ~GnuplotEditor();
 
 private:
     void initializeMenuBar();
     void initializeLayout();
     void connectEditorSetting(TextEdit *const editor);
+    void postProcess();
 
 private slots:
     void setEditorWidget(const QString& fileName, const ScriptInfo* info);
@@ -63,6 +64,8 @@ private:
     ConsoleWidget *consoleWidget;
     BrowserWidget *browserWidget;
     UpdateManager *updateManager;
+
+    const QString oldAppFolderPath;
 
 signals:
     void workingDirectoryChanged(const QString& path);
