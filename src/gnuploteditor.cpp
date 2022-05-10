@@ -1,12 +1,13 @@
 #include "gnuploteditor.h"
 #include "imagedisplay.h"
 
-GnuplotEditor::GnuplotEditor(QWidget *parent)
+GnuplotEditor::GnuplotEditor(const QString& oldApp, QWidget *parent)
     : QMainWindow(parent)
     , gnuplot(new Gnuplot(this))
     , editorSetting(new EditorSettingWidget(nullptr))
     , gnuplotSetting(new GnuplotSettingWidget(gnuplot, nullptr))
     , updateManager(new UpdateManager(this))
+    , oldAppFolderPath(oldApp)
 {
     /* ウィンドウをスクリーン画面に対して(0.4,0.5)の比率サイズに設定 */
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
@@ -45,10 +46,22 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 
 GnuplotEditor::~GnuplotEditor()
 {
+    postProcess();
+}
+
+void GnuplotEditor::postProcess()
+{
     editorSetting->hide();
     gnuplotSetting->hide();
     delete editorSetting;
     delete gnuplotSetting;
+
+    if(!oldAppFolderPath.isEmpty())
+    {
+        QDir oldApp(oldAppFolderPath);
+        oldApp.removeRecursively();
+        oldApp.rmdir(oldAppFolderPath);
+    }
 }
 
 void GnuplotEditor::initializeMenuBar()
@@ -294,8 +307,7 @@ void GnuplotEditor::setDisplayTabHeight(const int dy)
 
 void GnuplotEditor::closeApplication()
 {
-    fileTree->saveAllScript();
-    fileTree->saveAllSheet();
+    postProcess();
     exit(0);
 }
 
