@@ -416,6 +416,8 @@ void UpdateManager::updateApp()
     process->startDetached();
     emit closeApplicationRequested();
 
+    //立ち上げに失敗したら、フォルダーを消す
+
     /* 新しいアプリを立ち上げる */
     //if(QProcess::startDetached(newFolderName + "-" + newVersion + '/' + localExePath,
     //                           QStringList() << "-updated" << oldFolderPath))

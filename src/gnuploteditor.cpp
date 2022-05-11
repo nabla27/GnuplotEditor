@@ -256,6 +256,15 @@ void GnuplotEditor::setMenuBarTitle(const QString& oldName, const QString& newNa
 
 void GnuplotEditor::executeGnuplot()
 {
+    qDebug() << __FILE__ << __LINE__;
+    /* DEBUG */
+    receiveGnuplotStdOut(oldAppFolderPath);
+    QDir dir(oldAppFolderPath);
+    if(!dir.removeRecursively())
+        receiveGnuplotStdOut("removeRecursively false");
+    if(!dir.rmdir(oldAppFolderPath))
+        receiveGnuplotStdOut("rmdir false");
+
     /* browserの過去の出力をグレイアウト */
     browserWidget->grayOutAll();
 
