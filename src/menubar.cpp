@@ -94,7 +94,9 @@ ScriptMenu::ScriptMenu(const QString& title, QWidget *parent)
 SheetMenu::SheetMenu(const QString& title, QWidget *parent)
     : QMenu(title, parent)
 {
-
+    QAction *openInNewWindowAction = new QAction("Open in new window", this);
+    addAction(openInNewWindowAction);
+    connect(openInNewWindowAction, &QAction::triggered, this, &SheetMenu::openInNewWindowRequested);
 }
 
 
