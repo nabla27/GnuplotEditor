@@ -348,7 +348,7 @@ void FileTree::newFile()
 void FileTree::renameFile()
 {
     /* ファイル名でなく、項目名(Script,Sheet,Other)が押された場合は無視 */
-    if(selectedItems().takeAt(0)->parent() == nullptr) return;
+    if(!selectedItems().takeAt(0)->parent()) return;
 
     /* renameするファイルの元の名前 */
     const QString oldFileName = selectedItems().takeAt(0)->text(0);
@@ -376,7 +376,14 @@ void FileTree::renameFile()
 
     /* ディレクトリのファイル名とfileTreeのファイル名を変更 */
     QDir dir(folderPath);
-    dir.rename(oldFileName, newFileName);
+    const bool success = dir.rename(oldFileName, newFileName);
+
+    if(!success)
+    {
+        emit errorCaused("failed to rename the file : " + oldFileName + " to " + newFileName, BrowserWidget::MessageType::FileSystemErr);
+        return;
+    }
+
     selectedItems().takeAt(0)->setText(0, newFileName);
 
     /* リストの変更 */
@@ -399,7 +406,7 @@ void FileTree::renameFile()
 void FileTree::removeFile()
 {
     /* ファイル名ではなく、項目名(Script,Sheet,Other)が選択された場合は無視 */
-    if(selectedItems().takeAt(0)->parent() == nullptr) return;
+    if(!selectedItems().takeAt(0)->parent()) return;
 
     const QString parentTitle = selectedItems().takeAt(0)->parent()->text(0);                      //選択されたファイルの項目名
     const QString selectedFile = selectedItems().takeAt(0)->text(0);                               //選択されたファイルの名前
@@ -445,7 +452,7 @@ void FileTree::removeFile()
 void FileTree::exportFile()
 {
     /* ファイル名以外が選択された場合は無視 */
-    if(selectedItems().takeAt(0)->parent() == nullptr) return;
+    if(!selectedItems().takeAt(0)->parent()) return;
 
     /* ディレクトリダイアログの表示と保存するフォルダーのフルパス取得 */
     const QString pathForSave = QFileDialog::getExistingDirectory(this);
