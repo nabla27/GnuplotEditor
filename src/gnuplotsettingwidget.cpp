@@ -5,7 +5,6 @@
 #include "boost/property_tree/xml_parser.hpp"
 #include "boost/lexical_cast.hpp"
 
-
 GnuplotSettingWidget::GnuplotSettingWidget(Gnuplot *gnuplot, QWidget *parent)
     : QWidget(parent)
     , gnuplot(gnuplot)

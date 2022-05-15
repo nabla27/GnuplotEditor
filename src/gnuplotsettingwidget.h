@@ -5,6 +5,7 @@
 #include <QTextBrowser>
 #include <QLineEdit>
 #include <QToolButton>
+#include <QApplication>
 #include "gnuplot.h"
 #include "texteditor.h"
 
@@ -34,7 +35,7 @@ private:
     TextEdit *initializeCmd;
     TextEdit *preCmd;
 
-    const QString settingFolderPath = "./setting/";
+    const QString settingFolderPath = QApplication::applicationDirPath() + "/setting";
     const QString settingFileName = "gnuplot-setting.xml";
 
 signals:

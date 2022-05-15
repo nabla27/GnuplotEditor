@@ -1,7 +1,6 @@
 #include "editorsettingwidget.h"
 
 
-const QString EditorSettingWidget::settingFolderPath = "./setting";
 EditorSettingWidget::EditorSettingWidget(QWidget *parent)
     : QWidget{parent}
 {
@@ -116,10 +115,10 @@ void EditorSettingWidget::loadXmlSetting()
 {
     using namespace boost::property_tree;
 
-    if(QFile::exists(settingFolderPath + "/" + "editor-setting.xml"))
+    if(QFile::exists(settingFolderPath + "/" + settingFileName))
     {
         ptree pt;
-        read_xml((settingFolderPath + "/" + "editor-setting.xml").toUtf8().constData(), pt); //存在しないファイルやフォルダーを指定するとエラー(落ちる)
+        read_xml((settingFolderPath + "/" + settingFileName).toUtf8().constData(), pt); //存在しないファイルやフォルダーを指定するとエラー(落ちる)
 
         {
             int r = 0, g = 0, b = 0;
@@ -282,7 +281,7 @@ void EditorSettingWidget::saveXmlSetting()
 
     //存在しないフォルダーを含むパスを指定した場合はクラッシュする
     //存在しないファイルは指定しても大丈夫
-    write_xml((settingFolderPath + "/" + "editor-setting.xml").toUtf8().constData()
+    write_xml((settingFolderPath + "/" + settingFileName).toUtf8().constData()
               , pt, std::locale(), xml_writer_make_settings<std::string>(' ', indent, "utf-8"));
 }
 
