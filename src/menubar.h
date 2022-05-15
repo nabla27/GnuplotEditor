@@ -44,6 +44,9 @@ class HelpMenu : public QMenu
 
 public:
     HelpMenu(const QString& title, QWidget *parent);
+
+signals:
+    void rebootRequested();
 };
 
 

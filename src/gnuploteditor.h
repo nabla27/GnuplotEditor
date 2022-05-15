@@ -30,6 +30,7 @@ private:
     void initializeMenuBar();
     void initializeLayout();
     void connectEditorSetting(TextEdit *const editor);
+    void postProcessing();
 
 private slots:
     void setEditorWidget(const QString& fileName, const ScriptInfo* info);
@@ -41,6 +42,7 @@ private slots:
     void receiveGnuplotStdErr(const QString& text, const int line);
     void setFileTreeWidth(const int dx);
     void setDisplayTabHeight(const int dy);
+    void reboot();
 
 private:
     ScriptMenu *scriptMenu;
