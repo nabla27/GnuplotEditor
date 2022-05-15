@@ -261,6 +261,7 @@ void GnuplotTable::toLatexCode()
 
         clip += "\\begin{table}[h]\n";
         clip += "\t\\centering\n";
+        clip += "\t\\caption{}\n";
         clip += "\t\\begin{tabular}{|";
         for(int i = 0; i <= endCol - startCol; ++i)
             clip += "c|";
@@ -271,14 +272,23 @@ void GnuplotTable::toLatexCode()
             for(int col = startCol; col <= endCol; ++col)
             {
                 if(col != endCol)
-                    clip += this->item(row, col)->text() + " & ";
+                {
+                    if(QTableWidgetItem *item = this->item(row, col))
+                        clip += item->text() + " & ";
+                    else
+                        clip += " & ";
+                }
                 else
-                    clip += this->item(row, col)->text() + " \\\\\n";
+                {
+                    if(QTableWidgetItem *item = this->item(row, col))
+                        clip += item->text() + " \\\\\n";
+                    else
+                        clip += " \\\\\n";
+                }
             }
         }
         clip += "\t\t\\hline\n";
         clip += "\t\\end{tabular}\n";
-        clip += "\t\\caption{}\n";
         clip += "\t\\label{}\n";
         clip += "\\end{table}\n";
 
