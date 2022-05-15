@@ -37,11 +37,16 @@ private slots:
     void setSheetWidget(const QString& fileName, const SheetInfo* info);
     void setOtherWidget(const QString& fileName, const OtherInfo* info);
     void setMenuBarTitle(const QString& oldName, const QString& newName);
+
     void executeGnuplot();
     void receiveGnuplotStdOut(const QString& text);
     void receiveGnuplotStdErr(const QString& text, const int line);
+
+    void closeCurrentProcess();
+
     void setFileTreeWidth(const int dx);
     void setDisplayTabHeight(const int dy);
+
     void reboot();
 
 private:

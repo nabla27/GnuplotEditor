@@ -56,6 +56,9 @@ class ScriptMenu : public QMenu
 
 public:
     ScriptMenu(const QString& title, QWidget *parent);
+
+signals:
+    void closeProcessRequested();
 };
 
 

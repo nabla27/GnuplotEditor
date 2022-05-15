@@ -90,6 +90,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(widgetMenu, &WidgetMenu::editorSettingOpened, editorSetting, &EditorSettingWidget::show);
     connect(widgetMenu, &WidgetMenu::gnuplotSettingOpened, gnuplotSetting, &GnuplotSettingWidget::show);
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
+    connect(scriptMenu, &ScriptMenu::closeProcessRequested, this, &GnuplotEditor::closeCurrentProcess);
     connect(runAction, &QAction::triggered, this, &GnuplotEditor::executeGnuplot);
 }
 
@@ -281,6 +282,12 @@ void GnuplotEditor::receiveGnuplotStdErr(const QString& text, const int line)
     /* エラー行の設定とハイライト */
     qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->setErrorLineNumber(line - 1);
     qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->highlightLine();
+}
+
+void GnuplotEditor::closeCurrentProcess()
+{
+    if(gnuplotProcess)
+        gnuplotProcess->close();
 }
 
 void GnuplotEditor::setFileTreeWidth(const int dx)
