@@ -11,8 +11,6 @@ void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist)
 
     currentProcess = process;
 
-    emit cmdPushed("\n[ " + QDateTime::currentDateTime().toString() + " ]     ProcessID(" + QString::number(process->processId()) + ")");
-
     /* 標準出力 */
     QObject::connect(process, &QProcess::readyReadStandardOutput, this, &Gnuplot::readStandardOutput);
 
@@ -28,6 +26,8 @@ void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist)
             emit errorCaused("failed to start the gnuplot process.", BrowserWidget::MessageType::ProcessErr);
         }
     }
+
+    emit cmdPushed("\n[ " + QDateTime::currentDateTime().toString() + " ]     ProcessID(" + QString::number(process->processId()) + ")");
 
     /* workingDirectoryに移動 */
     const QString moveDirCmd = "cd '" + workingDirectory + "'";
