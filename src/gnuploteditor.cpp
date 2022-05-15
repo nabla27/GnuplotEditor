@@ -43,6 +43,11 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 
 GnuplotEditor::~GnuplotEditor()
 {
+    postProcessing();
+}
+
+void GnuplotEditor::postProcessing()
+{
     editorSetting->hide();
     gnuplotSetting->hide();
     delete editorSetting;
@@ -84,6 +89,7 @@ void GnuplotEditor::initializeMenuBar()
     //connect(widgetMenu, &WidgetMenu::clearConsoleWindowPushed, consoleWidget, &);
     connect(widgetMenu, &WidgetMenu::editorSettingOpened, editorSetting, &EditorSettingWidget::show);
     connect(widgetMenu, &WidgetMenu::gnuplotSettingOpened, gnuplotSetting, &GnuplotSettingWidget::show);
+    connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
     connect(runAction, &QAction::triggered, this, &GnuplotEditor::executeGnuplot);
 }
 
@@ -287,6 +293,15 @@ void GnuplotEditor::setDisplayTabHeight(const int dy)
     const int nextHeight = displayTab->maximumHeight() + dy;
     if(nextHeight < 0 || nextHeight > 600) return;
     displayTab->setMaximumHeight(nextHeight);
+}
+
+void GnuplotEditor::reboot()
+{
+    postProcessing();
+
+    QProcess::startDetached(QApplication::applicationFilePath());
+
+    exit(0);
 }
 
 

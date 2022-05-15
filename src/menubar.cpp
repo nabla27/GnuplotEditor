@@ -68,7 +68,9 @@ WidgetMenu::WidgetMenu(const QString& title, QWidget *parent)
 HelpMenu::HelpMenu(const QString& title, QWidget *parent)
     : QMenu(title, parent)
 {
-
+    QAction *rebootAction = new QAction("Reboot", this);
+    addAction(rebootAction);
+    connect(rebootAction, &QAction::triggered, this, &HelpMenu::rebootRequested);
 }
 
 
