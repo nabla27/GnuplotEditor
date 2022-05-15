@@ -411,6 +411,16 @@ void FileTree::removeFile()
     /* 確認してNoまたは×ボタンが押されたらなら無効 */
     if(reply == QMessageBox::No) return;
 
+    /* ファイルの削除 */
+    QDir dir(folderPath);
+    const bool success = dir.remove(selectedFile);
+
+    if(!success)
+    {
+        emit errorCaused("failed to remove the file : " + selectedFile, BrowserWidget::MessageType::FileSystemErr);
+        return;
+    }
+
     /* リストの削除 */
     if(parentTitle == "Script"){
         delete scriptList.value(selectedFile);
@@ -427,10 +437,6 @@ void FileTree::removeFile()
         otherList.remove(selectedFile);
         emit otherRemoved(selectedFile, otherList.value(selectedFile));
     }
-
-    /* ファイルの削除 */
-    QDir dir(folderPath);
-    dir.remove(selectedFile);
 
     /* リストからファイルを削除 */
     selectedItems().takeAt(0)->parent()->removeChild(selectedItems().takeAt(0));
