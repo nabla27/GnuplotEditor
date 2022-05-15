@@ -91,6 +91,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(widgetMenu, &WidgetMenu::gnuplotSettingOpened, gnuplotSetting, &GnuplotSettingWidget::show);
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
     connect(scriptMenu, &ScriptMenu::closeProcessRequested, this, &GnuplotEditor::closeCurrentProcess);
+    connect(sheetMenu, &SheetMenu::openInNewWindowRequested, this, &GnuplotEditor::moveSheetToNewWindow);
     connect(runAction, &QAction::triggered, this, &GnuplotEditor::executeGnuplot);
 }
 
@@ -288,6 +289,17 @@ void GnuplotEditor::closeCurrentProcess()
 {
     if(gnuplotProcess)
         gnuplotProcess->close();
+}
+
+void GnuplotEditor::moveSheetToNewWindow()
+{
+    if(QWidget *widget = sheetWidget->currentWidget())
+    {
+        widget->setParent(nullptr);
+        widget->show();
+        widget->setWindowTitle(widget->windowTitle() + "  " + sheetMenu->title());
+        sheetMenu->setTitle("");
+    }
 }
 
 void GnuplotEditor::setFileTreeWidth(const int dx)

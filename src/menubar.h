@@ -68,6 +68,9 @@ class SheetMenu : public QMenu
 
 public:
     SheetMenu(const QString& title, QWidget *parent);
+
+signals:
+    void openInNewWindowRequested();
 };
 
 
