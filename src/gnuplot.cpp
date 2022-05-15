@@ -17,6 +17,10 @@ void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist)
     /* 標準エラー */
     QObject::connect(process, &QProcess::readyReadStandardError, this, &Gnuplot::readStandardError);
 
+    /* プロセスエラー */
+    QObject::connect(process, &QProcess::errorOccurred, this, &Gnuplot::receiveProcessError);
+    QObject::connect(process, &QProcess::errorOccurred, process, &QProcess::close);
+
     /* プロセスの開始 */
     if(process->state() == QProcess::ProcessState::NotRunning)
     {
@@ -90,6 +94,11 @@ void Gnuplot::readStandardError()
         emit standardOutputPassed(output);          //エラーじゃない標準出力でもreadAllStandardError()で拾われてしまう
     else
         emit standardErrorPassed(output, errLine);
+}
+
+void Gnuplot::receiveProcessError(const QProcess::ProcessError& error)
+{
+    emit errorCaused("Process error has occurred [" + enumToString(error) + "]. The process is closed.", BrowserWidget::MessageType::ProcessErr);
 }
 
 

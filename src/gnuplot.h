@@ -32,6 +32,7 @@ private:
 private slots:
     void readStandardOutput();
     void readStandardError();
+    void receiveProcessError(const QProcess::ProcessError& error);
 
 private:
     QString path = "gnuplot.exe";
