@@ -297,7 +297,7 @@ void GnuplotEditor::moveSheetToNewWindow()
     {
         widget->setParent(nullptr);
         widget->show();
-        widget->setWindowTitle(widget->windowTitle() + "  " + sheetMenu->title());
+        widget->setWindowTitle("GnuplotEditor  " + sheetMenu->title());
         sheetMenu->setTitle("");
     }
 }
