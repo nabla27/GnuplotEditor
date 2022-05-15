@@ -10,6 +10,7 @@
 #include "texteditor.h"
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
+#include <QApplication>
 
 class EditorSettingWidget : public QWidget
 {
@@ -25,10 +26,12 @@ public:
 
 private:
     void initializeLayout();
-    void showEvent(QShowEvent*) override { loadXmlSetting(); }
+    //void showEvent(QShowEvent*) override { loadXmlSetting(); }
     void closeEvent(QCloseEvent*) override { saveXmlSetting(); }
     void loadDefaultSetting();
-    static const QString settingFolderPath;
+
+    const QString settingFolderPath = QApplication::applicationDirPath() + "/setting";
+    const QString settingFileName = "editor-setting.xml";
 
 private:
     ComboEditLayout *backgroundColorCombo;

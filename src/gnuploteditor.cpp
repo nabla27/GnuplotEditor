@@ -17,16 +17,13 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     initializeMenuBar();
 
     /* workingDirectoryの設定 */
-    const QString path = QDir::currentPath() + "/gnuplot-project";
+    const QString path = QApplication::applicationDirPath() + "/gnuplot-project";
     //フォルダーが存在していなければ作成
     QDir workingDir(path);
     if(!workingDir.exists()) workingDir.mkpath(path);
     //初期化
     fileTree->setFolderPath(path);
     gnuplot->setWorkingDirectory(path);
-
-
-
 
     connect(this, &GnuplotEditor::workingDirectoryChanged, fileTree, &FileTree::setFolderPath);
     connect(this, &GnuplotEditor::workingDirectoryChanged, gnuplot, &Gnuplot::setWorkingDirectory);
