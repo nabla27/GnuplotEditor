@@ -219,6 +219,8 @@ void GnuplotEditor::setSheetWidget(const QString& fileName, const SheetInfo* inf
 
 void GnuplotEditor::setOtherWidget(const QString& fileName, const OtherInfo* info)
 {
+    if(!info) return; //消された場合
+
     const qsizetype extStartIndex = fileName.lastIndexOf('.');
 
     if(extStartIndex == qsizetype(-1) &&    //ドットを含まない
