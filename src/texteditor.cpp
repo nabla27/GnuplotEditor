@@ -69,7 +69,7 @@ void TextEdit::changeCompleterModel()
     QList<QString> firstCmdBlock;                                                               //firstCmdを参照する行の文字列(コマンドごとに分割される)
 
     /* firstCmdを決定するために参照する行の文字列firstCmdBlockを決定する */
-    if(blockCount == 1)                                                                         //エディタの行数が1のとき
+    if(currentBlockNumber == 0)                                                                         //エディタの行数が1のとき
         firstCmdBlock = blockTextList.at(0).split(' ');                                         //firstCmdを参照する行数は一列目
     else
         for(int block = currentBlockNumber - 1; block >= 0; --block)                            //カーソル行の手前の行から先頭まで順にさかのぼる
@@ -105,7 +105,8 @@ void TextEdit::changeCompleterModel()
     if((firstCmd == "plot" ||
         firstCmd == "splot" ||
         firstCmd == "load" ||
-        firstCmd == "cd") && currentCmd.size() >= 1 && currentCmd.front() == '\"')          //currenCmdがダブルクォーテーションから始まるとき
+        firstCmd == "cd" ||
+        firstCmd == "fit") && currentCmd.size() >= 1 && currentCmd.front() == '\"')          //currenCmdがダブルクォーテーションから始まるとき
     {
         QDir dir(workingDirectory);
         dir.setNameFilters(QStringList() << "[a-zA-Z0-9]*");

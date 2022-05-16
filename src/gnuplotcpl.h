@@ -39,5 +39,7 @@ QAbstractItemModel* getEditCompleter_Cdatafile();
 
 QAbstractItemModel* getEditCompleter_Foption();
 
+QAbstractItemModel* getEditCompleter_Ffit();
+
 
 #endif // CPL_GNUPLOT_H
