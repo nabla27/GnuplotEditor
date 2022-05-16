@@ -7,6 +7,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     , gnuplot(new Gnuplot(this))
     , editorSetting(new EditorSettingWidget(nullptr))
     , gnuplotSetting(new GnuplotSettingWidget(gnuplot, nullptr))
+    , templateCustom(new TemplateCustomWidget(this))
 {
     /* ウィンドウをスクリーン画面に対して(0.4,0.5)の比率サイズに設定 */
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
@@ -90,6 +91,7 @@ void GnuplotEditor::initializeMenuBar()
     //connect(widgetMenu, &WidgetMenu::clearConsoleWindowPushed, consoleWidget, &);
     connect(widgetMenu, &WidgetMenu::editorSettingOpened, editorSetting, &EditorSettingWidget::show);
     connect(widgetMenu, &WidgetMenu::gnuplotSettingOpened, gnuplotSetting, &GnuplotSettingWidget::show);
+    connect(widgetMenu, &WidgetMenu::openTemplateCustomRequested, templateCustom, &TemplateCustomWidget::show);
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
     connect(scriptMenu, &ScriptMenu::closeProcessRequested, this, &GnuplotEditor::closeCurrentProcess);
     connect(sheetMenu, &SheetMenu::openInNewWindowRequested, this, &GnuplotEditor::moveSheetToNewWindow);

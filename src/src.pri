@@ -11,7 +11,7 @@ HEADERS += \
     $$PWD/gnuplottable.h \
     $$PWD/imagedisplay.h \
     $$PWD/menubar.h \
-    $$PWD/templatescriptwidget.h \
+    $$PWD/templatecustomwidget.h \
     $$PWD/texteditor.h \
     $$PWD/windowmenubar.h
 
@@ -29,6 +29,6 @@ SOURCES += \
     $$PWD/imagedisplay.cpp \
     $$PWD/main.cpp \
     $$PWD/menubar.cpp \
-    $$PWD/templatescriptwidget.cpp \
+    $$PWD/templatecustomwidget.cpp \
     $$PWD/texteditor.cpp \
     $$PWD/windowmenubar.cpp
