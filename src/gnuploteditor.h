@@ -43,6 +43,8 @@ private slots:
     void receiveGnuplotStdErr(const QString& text, const int line);
 
     void closeCurrentProcess();
+    void moveSheetToNewWindow();
+    void changeSheetAutoUpdating();
 
     void setFileTreeWidth(const int dx);
     void setDisplayTabHeight(const int dy);

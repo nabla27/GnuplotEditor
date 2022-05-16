@@ -1,6 +1,7 @@
 #include "gnuploteditor.h"
 #include "imagedisplay.h"
 
+
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
     , gnuplot(new Gnuplot(this))
@@ -91,6 +92,8 @@ void GnuplotEditor::initializeMenuBar()
     connect(widgetMenu, &WidgetMenu::gnuplotSettingOpened, gnuplotSetting, &GnuplotSettingWidget::show);
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
     connect(scriptMenu, &ScriptMenu::closeProcessRequested, this, &GnuplotEditor::closeCurrentProcess);
+    connect(sheetMenu, &SheetMenu::openInNewWindowRequested, this, &GnuplotEditor::moveSheetToNewWindow);
+    connect(sheetMenu, &SheetMenu::autoTableUpdateRequested, this, &GnuplotEditor::changeSheetAutoUpdating);
     connect(runAction, &QAction::triggered, this, &GnuplotEditor::executeGnuplot);
 }
 
@@ -216,6 +219,10 @@ void GnuplotEditor::setSheetWidget(const QString& fileName, const SheetInfo* inf
 
     /* メニューバーの名前変更 */
     sheetMenu->setTitle(fileName);
+    sheetMenu->setAutoUpdateMenuText(info->table->isEnablenotifyUpdating());
+
+    connect(info->table, &GnuplotTable::tableUpdated, this, &GnuplotEditor::executeGnuplot);
+    connect(gnuplotSetting, &GnuplotSettingWidget::autoCompileMsecSet, info->table, &GnuplotTable::setUpdateMsec);
 }
 
 void GnuplotEditor::setOtherWidget(const QString& fileName, const OtherInfo* info)
@@ -261,8 +268,8 @@ void GnuplotEditor::executeGnuplot()
     qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->highlightLine();
 
     /* ファイルの保存 */
-    fileTree->saveScript(scriptMenu->title());
-    fileTree->saveSheet(sheetMenu->title());
+    fileTree->saveAllScript();
+    fileTree->saveAllSheet();
 
     /* gnuplotにコマンドを渡す */
     gnuplot->exc(gnuplotProcess, QList<QString>() << "load '" + scriptMenu->title() + "'");
@@ -288,6 +295,26 @@ void GnuplotEditor::closeCurrentProcess()
 {
     if(gnuplotProcess)
         gnuplotProcess->close();
+}
+
+void GnuplotEditor::moveSheetToNewWindow()
+{
+    if(QWidget *widget = sheetWidget->currentWidget())
+    {
+        widget->setParent(nullptr);
+        widget->show();
+        widget->setWindowTitle("GnuplotEditor  " + sheetMenu->title());
+        sheetMenu->setTitle("");
+    }
+}
+
+void GnuplotEditor::changeSheetAutoUpdating()
+{
+    if(GnuplotTable *table = qobject_cast<GnuplotTable*>(sheetWidget->currentWidget()))
+    {
+        table->changeUpdateNotification();
+        sheetMenu->setAutoUpdateMenuText(table->isEnablenotifyUpdating());
+    }
 }
 
 void GnuplotEditor::setFileTreeWidth(const int dx)
