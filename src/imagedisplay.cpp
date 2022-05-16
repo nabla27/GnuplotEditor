@@ -1,4 +1,5 @@
 #include "imagedisplay.h"
+#include <QHBoxLayout>
 
 PaintImage::PaintImage(QWidget *parent)
     : QGraphicsView(parent) {}
@@ -7,7 +8,7 @@ PaintImage::~PaintImage() {}
 
 
 
-void PaintImage::paintEvent(QPaintEvent *event)
+void PaintImage::paintEvent(QPaintEvent*)
 {
     QPainter widgetPainter(viewport());
     const QImage img = this->img.scaled(viewport()->width(),
@@ -16,6 +17,14 @@ void PaintImage::paintEvent(QPaintEvent *event)
                                         Qt::FastTransformation);
 
     widgetPainter.drawImage(0, 0, img);
+
+    emit imageResized(img.size());
+}
+
+void PaintImage::setImage(const QImage &img)
+{
+    this->img = img;
+    viewport()->update();
 }
 
 
@@ -30,11 +39,28 @@ void PaintImage::paintEvent(QPaintEvent *event)
 ImageDisplay::ImageDisplay(QWidget *parent)
     : QWidget(parent)
     , painter(new PaintImage(this))
+    , originalSize(new QLineEdit(this))
+    , currentSize(new QLineEdit(this))
 {
-    QHBoxLayout *hLayout = new QHBoxLayout(this);
+    QVBoxLayout *vLayout = new QVBoxLayout(this);
+    QHBoxLayout *hLayout = new QHBoxLayout;
+    QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-    setLayout(hLayout);
-    hLayout->addWidget(painter, 0);
+    setLayout(vLayout);
+    vLayout->addLayout(hLayout);
+    hLayout->addWidget(originalSize);
+    hLayout->addWidget(currentSize);
+    hLayout->addItem(spacer);
+    vLayout->addWidget(painter, 0);
+
+    vLayout->setContentsMargins(0, 0, 0, 0);
+    vLayout->setSpacing(0);
+    originalSize->setReadOnly(true);
+    currentSize->setReadOnly(true);    //後々画像サイズを入力で指定できるようにするよいいかも!!
+    originalSize->setFixedWidth(60);
+    currentSize->setFixedWidth(60);
+
+    connect(painter, &PaintImage::imageResized, this, &ImageDisplay::setCurrentSizeText);
 
     //ウィンドウ閉じたら自動でdelete
     setAttribute(Qt::WA_DeleteOnClose);
@@ -47,6 +73,9 @@ bool ImageDisplay::setImageFile(const QString &fullPath)
 {
     QImage img(fullPath);
     painter->setImage(img);
+
+    originalSize->setText(QString::number(img.size().width()) + ":" +
+                          QString::number(img.size().height()));
 
     return !img.isNull();
 }
@@ -68,4 +97,10 @@ bool ImageDisplay::isValidExtension(const QString &ext)
     }
 
     return true;
+}
+
+void ImageDisplay::setCurrentSizeText(const QSize& size)
+{
+    currentSize->setText(QString::number(size.width()) + ":" +
+                         QString::number(size.height()));
 }

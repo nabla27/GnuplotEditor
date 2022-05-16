@@ -1,7 +1,7 @@
 #ifndef IMAGEDISPLAY_H
 #define IMAGEDISPLAY_H
 #include <QGraphicsView>
-#include <QHBoxLayout>
+#include <QLineEdit>
 
 class PaintImage : public QGraphicsView
 {
@@ -11,14 +11,16 @@ public:
     ~PaintImage();
 
 public:
-    void setImage(const QImage& img)
-    { this->img = img; viewport()->update(); }
+    void setImage(const QImage& img);
 
 private:
     void paintEvent(QPaintEvent *event);
 
 private:
     QImage img;
+
+signals:
+    void imageResized(const QSize& size);
 };
 
 
@@ -36,8 +38,13 @@ public:
     bool setImageFile(const QString& fullpath);
     static bool isValidExtension(const QString& ext);
 
+public slots:
+    void setCurrentSizeText(const QSize& size);
+
 private:
     PaintImage *painter;
+    QLineEdit *originalSize;
+    QLineEdit *currentSize;
 };
 
 #endif // IMAGEDISPLAY_H
