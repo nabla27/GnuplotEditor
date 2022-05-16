@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <QApplication>
 #include <QClipboard>
+#include <QTimer>
 #include "gnuplot.h"
 #include "tablewidget.h"
 
@@ -16,9 +17,12 @@
 
 class GnuplotTable : public TableWidget
 {
+    Q_OBJECT
 public:
     GnuplotTable(QWidget *parent = nullptr);
     ~GnuplotTable();
+
+    bool isEnablenotifyUpdating() const { return notifyUpdatingEnable; }
 
 public slots:
     void appendLineRow() { insertRow(rowCount()); }
@@ -27,6 +31,9 @@ public slots:
     void removeLineCol() { removeColumn(columnCount() - 1); }
     void setGnuplot(Gnuplot *gnuplot) { this->gnuplot = gnuplot; }
 
+    void changeUpdateNotification();
+    void setUpdateMsec(const int msec) { updateMsec = msec; }
+
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -34,6 +41,7 @@ protected:
 
 private slots:
     void onCustomContextMenu(const QPoint& point);
+    void startItemChangedTimer();
     void plot();
     void gnuplotClip();
     void toLatexCode();
@@ -48,8 +56,17 @@ private:
     QMenu *normalMenu = nullptr;
 
     Gnuplot *gnuplot = nullptr;
-    QProcess *process = nullptr;
+    QProcess *process;
     QString optionCmd;
+
+    bool notifyUpdatingEnable = false;
+    QMetaObject::Connection startTimerConnection;
+    QMetaObject::Connection requestUpdateConnection;
+    QTimer *updateTimer;
+    int updateMsec = 0;
+
+signals:
+    void tableUpdated();
 };
 
 #endif // TableWidget_H
