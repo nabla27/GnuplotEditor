@@ -22,6 +22,11 @@ private:
     QStringList firstOrderKeyWord;
     QTextCharFormat commentsFormat;
     QTextCharFormat quotationFormat;
+
+    QList<qsizetype> doubleQuotationLeft;
+    QList<qsizetype> doubleQuotationRight;
+    QList<qsizetype> singleQuotationLeft;
+    QList<qsizetype> singleQuotationRight;
 };
 
 
