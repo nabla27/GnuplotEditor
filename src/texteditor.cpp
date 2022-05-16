@@ -59,7 +59,6 @@ void TextEdit::changeCompleterModel()
 
     const QString script = toPlainText().remove('\t');                                          //エディタの文字列をタブ文字を削除して取得
     const QList<QString> blockTextList = script.split('\n');                                    //各行ごとに文字列を取得(改行文字で分割)
-    const qsizetype blockCount = blockTextList.size();                                          //行数
     const int currentBlockNumber = textCursor().blockNumber();                                  //カーソル行の行数
     const QString currentBlockText = blockTextList.at(currentBlockNumber);                      //カーソル行の文字列
     const int positionInBlock = qMin(textCursor().positionInBlock(), currentBlockText.size());  //行頭からの位置(タブを消去しているので調整する)
@@ -196,8 +195,14 @@ void TextEdit::focusInEvent(QFocusEvent *e)
 }
 
 /* 括弧の補完 */
-void TextEdit::bracketCompletion(QKeyEvent *e, const QChar nextChar)
+void TextEdit::bracketCompletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar)
 {
+    if(e->key() == Qt::Key_Backspace)
+    {
+        bracketDeletion(e, beforeChar, nextChar);
+        return;
+    }
+
     const QString keyText = e->text();
 
     if(keyText == "("){
@@ -232,6 +237,42 @@ void TextEdit::bracketCompletion(QKeyEvent *e, const QChar nextChar)
         QPlainTextEdit::keyPressEvent(e);
 }
 
+void TextEdit::bracketDeletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar)
+{
+    auto removeBracket = [this]()
+    {
+        QTextCursor tc = textCursor();
+        tc.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, 1);
+        tc.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 2);
+        tc.removeSelectedText();
+        setTextCursor(tc);
+    };
+
+    if(beforeChar == '\'' && nextChar == '\'' &&
+       textHighlight->singleQuotationLeft.size() && textHighlight->singleQuotationRight.size())
+    {
+        removeBracket();
+    }
+    else if(beforeChar == '\"' && nextChar == '\"' &&
+            textHighlight->doubleQuotationLeft.size() && textHighlight->doubleQuotationRight.size())
+    {
+        removeBracket();
+    }
+    else if(beforeChar == '(' && nextChar == ')' &&
+            textHighlight->bracketLeft == textHighlight->bracketRight)
+    {
+        removeBracket();
+    }
+    else if(beforeChar == '[' && nextChar == ']' &&
+            textHighlight->squareBracketLeft == textHighlight->squareBracketRight)
+    {
+        removeBracket();
+    }
+    else
+        QPlainTextEdit::keyPressEvent(e);
+
+}
+
 /* キーが入力された再の予測変換ボックスの設定 */
 void TextEdit::keyPressEvent(QKeyEvent *e)
 {
@@ -263,7 +304,8 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
         const QString text = toPlainText();
         const int cursorPos = textCursor().position();
         const QChar nextChar = (text.size() > cursorPos) ? text.at(cursorPos) : ' ';
-        bracketCompletion(e, nextChar);
+        const QChar beforeChar = (cursorPos > 0) ? text.at(cursorPos - 1) : ' ';
+        bracketCompletion(e, beforeChar, nextChar);
     }
 
     const bool ctr10rShift = (e->modifiers().testFlag(Qt::ControlModifier) ||
