@@ -87,10 +87,10 @@ void GnuplotEditor::initializeMenuBar()
     connect(fileMenu, &FileMenu::openFolderPushed, this, &GnuplotEditor::workingDirectoryChanged);
     connect(fileMenu, &FileMenu::addFolderPushed, fileTree, &FileTree::addFolder);
     connect(fileMenu, &FileMenu::saveFolderPushed, fileTree, &FileTree::saveFolder);
-    connect(widgetMenu, &WidgetMenu::clearOutputWindowPushed, browserWidget, &BrowserWidget::clear);
+    connect(widgetMenu, &WidgetMenu::clearOutputWindowRequested, browserWidget, &BrowserWidget::clear);
     //connect(widgetMenu, &WidgetMenu::clearConsoleWindowPushed, consoleWidget, &);
-    connect(widgetMenu, &WidgetMenu::editorSettingOpened, editorSetting, &EditorSettingWidget::show);
-    connect(widgetMenu, &WidgetMenu::gnuplotSettingOpened, gnuplotSetting, &GnuplotSettingWidget::show);
+    connect(widgetMenu, &WidgetMenu::openEditorSettingRequested, editorSetting, &EditorSettingWidget::show);
+    connect(widgetMenu, &WidgetMenu::openGnuplotSettingRequested, gnuplotSetting, &GnuplotSettingWidget::show);
     connect(widgetMenu, &WidgetMenu::openTemplateCustomRequested, templateCustom, &TemplateCustomWidget::show);
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
     connect(scriptMenu, &ScriptMenu::closeProcessRequested, this, &GnuplotEditor::closeCurrentProcess);
