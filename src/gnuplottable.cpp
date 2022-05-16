@@ -3,18 +3,43 @@
 
 GnuplotTable::GnuplotTable(QWidget *parent)
     : TableWidget(parent)
+    , process(new QProcess(this))
+    , updateTimer(new QTimer(this))
 {
-    process = new QProcess(this);
-
     /* contextMenu初期化 */
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &GnuplotTable::customContextMenuRequested, this, &GnuplotTable::onCustomContextMenu);
     initializeContextMenu();
+
+    updateTimer->setSingleShot(true);
+
+    disconnect(startTimerConnection);
 }
 
 GnuplotTable::~GnuplotTable()
 {
     process->close();
+}
+
+void GnuplotTable::startItemChangedTimer()
+{
+    updateTimer->start(updateMsec);
+}
+
+void GnuplotTable::changeUpdateNotification()
+{
+    notifyUpdatingEnable = !notifyUpdatingEnable;
+
+    if(notifyUpdatingEnable)
+    {
+        startTimerConnection = connect(this, &GnuplotTable::itemChanged, this, &GnuplotTable::startItemChangedTimer);
+        requestUpdateConnection = connect(updateTimer, &QTimer::timeout, this, &GnuplotTable::tableUpdated);
+    }
+    else
+    {
+        disconnect(startTimerConnection);
+        disconnect(requestUpdateConnection);
+    }
 }
 
 

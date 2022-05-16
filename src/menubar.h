@@ -69,8 +69,14 @@ class SheetMenu : public QMenu
 public:
     SheetMenu(const QString& title, QWidget *parent);
 
+    void setAutoUpdateMenuText(const bool isEnable);
+
+private:
+    QAction *autoUpdateAction;
+
 signals:
     void openInNewWindowRequested();
+    void autoTableUpdateRequested();
 };
 
 

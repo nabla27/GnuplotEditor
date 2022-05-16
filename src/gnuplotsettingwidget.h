@@ -39,7 +39,7 @@ private:
     const QString settingFileName = "gnuplot-setting.xml";
 
 signals:
-
+    void autoCompileMsecSet(const int msec);
 };
 
 #endif // GNUPLOTSETTINGWIDGET_H

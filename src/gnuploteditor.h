@@ -44,6 +44,7 @@ private slots:
 
     void closeCurrentProcess();
     void moveSheetToNewWindow();
+    void changeSheetAutoUpdating();
 
     void setFileTreeWidth(const int dx);
     void setDisplayTabHeight(const int dy);

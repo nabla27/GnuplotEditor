@@ -1,6 +1,7 @@
 #include "gnuplotsettingwidget.h"
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QSpinBox>
 #include "utility.h"
 #include "boost/property_tree/xml_parser.hpp"
 #include "boost/lexical_cast.hpp"
@@ -41,6 +42,9 @@ void GnuplotSettingWidget::initializeLayout()
     QLabel *initCmdLabel = new QLabel("Initialize Cmd", this);
     QHBoxLayout *preCmdLayout = new QHBoxLayout;
     QLabel *preCmdLabel = new QLabel("Pre Cmd", this);
+    QHBoxLayout *autoCompileMsecLayout = new QHBoxLayout;
+    QLabel *autoCompileMsecLabel = new QLabel("Auto compile sec", this);
+    QSpinBox *autoCompileMsec = new QSpinBox(this);
     QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     setLayout(vLayout);
@@ -55,6 +59,9 @@ void GnuplotSettingWidget::initializeLayout()
     vLayout->addLayout(preCmdLayout);
     preCmdLayout->addWidget(preCmdLabel);
     preCmdLayout->addWidget(preCmd);
+    vLayout->addLayout(autoCompileMsecLayout);
+    autoCompileMsecLayout->addWidget(autoCompileMsecLabel);
+    autoCompileMsecLayout->addWidget(autoCompileMsec);
     vLayout->addItem(spacer);
 
     constexpr int label_width = 80;
@@ -65,13 +72,18 @@ void GnuplotSettingWidget::initializeLayout()
     initializeCmd->setFixedHeight(editor_height);
     preCmdLabel->setFixedWidth(label_width);
     preCmd->setFixedHeight(editor_height);
+    autoCompileMsecLabel->setFixedWidth(label_width);
+    autoCompileMsec->setMaximum(10000);
 
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.3f, 0.3f));
     setFixedHeight(editor_height * 3 +
-                   vLayout->spacing() * 3 +
+                   vLayout->spacing() * 2 +
                    vLayout->contentsMargins().bottom() +
                    vLayout->contentsMargins().top() +
-                   pathEdit->height());
+                   pathEdit->height() +
+                   autoCompileMsec->height());
+
+    connect(autoCompileMsec, &QSpinBox::valueChanged, this, &GnuplotSettingWidget::autoCompileMsecSet);
 }
 
 void GnuplotSettingWidget::addLogToBrowser(const QString& text)
