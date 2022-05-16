@@ -419,7 +419,7 @@ QAbstractItemModel* getEditCompleter_Cr()
 {
     QStringList list;
     list
-<<"[:]";
+<<"[]";
 
     QStringListModel *listModel = new QStringListModel();
     listModel->setStringList(list);

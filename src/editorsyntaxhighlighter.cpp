@@ -11,151 +11,128 @@ EditorSyntaxHighlighter::EditorSyntaxHighlighter(QTextDocument *document)
 
     quotationFormat.setForeground(QColor(255, 200, 0));
 
-    firstOrderKeyWord << "\\bbreak\\b" <<
-                         "\\bcd\\b" <<
-                         "\\bcall\\b" <<
-                         "\\bclear\\b" <<
-                         "\\bcontinue\\b" <<
-                         "\\bdo\\b" <<
-                         "\\bevaluate\\b" <<
-                         "\\bexit\\b" <<
-                         "\\bfit\\b" <<
-                         "\\bhelp\\b" <<
-                         "\\bhistory\\b" <<
-                         "\\bif\\b" <<
-                         "\\bfor\\b" <<
-                         "\\bimport\\b" <<
-                         "\\bload\\b" <<
-                         "\\blower\\b" <<
-                         "\\bplot\\b" <<
-                         "\\bprint\\b" <<
-                         "\\bprinterr\\b" <<
-                         "\\bpwd\\b" <<
-                         "\\bquit\\b" <<
-                         "\\braise\\b" <<
-                         "\\brefresh\\b" <<
-                         "\\breplot\\b" <<
-                         "\\breread\\b" <<
-                         "\\breset\\b" <<
-                         "\\bsave\\b" <<
-                         "\\bset\\b" <<
-                         "\\bshow\\b" <<
-                         "\\bshell\\b" <<
-                         "\\bsplot\\b" <<
-                         "\\bstats\\b" <<
-                         "\\bsystem\\b" <<
-                         "\\btest\\b" <<
-                         "\\btoggle\\b" <<
-                         "\\bundefine\\b" <<
-                         "\\bunset\\b" <<
-                         "\\bupdate\\b" <<
-                         "\\bwhile\\b";
+    firstCmdList << "break" <<
+                    "cd" <<
+                    "call" <<
+                    "clear" <<
+                    "continue" <<
+                    "do" <<
+                    "evaluate" <<
+                    "exit" <<
+                    "fit" <<
+                    "help" <<
+                    "history" <<
+                    "if" <<
+                    "for" <<
+                    "import" <<
+                    "load" <<
+                    "lower" <<
+                    "plot" <<
+                    "print" <<
+                    "printerr" <<
+                    "pwdb" <<
+                    "quit" <<
+                    "raise" <<
+                    "refresh" <<
+                    "replot" <<
+                    "reread" <<
+                    "reset" <<
+                    "save" <<
+                    "set" <<
+                    "show" <<
+                    "shell" <<
+                    "splot" <<
+                    "stats" <<
+                    "system" <<
+                    "test" <<
+                    "toggle" <<
+                    "undefine" <<
+                    "unset" <<
+                    "update" <<
+                    "while";
 }
 
 /* カーソル行の文字列がtextとして自動で渡される */
 void EditorSyntaxHighlighter::highlightBlock(const QString &text)
 {
-    /* firstCmdのハイライト */
-    foreach(const QString& pattern, firstOrderKeyWord)                         //ハイライト候補firstOrderKeyWordの中で一致するものがないのかループ
     {
-        const QRegularExpression regexp(pattern);                              //ハイライト候補(QString)を正規表現regexpに
-        QRegularExpressionMatchIterator i = regexp.globalMatch(text);          //text内で正規表現regexpと一致したイテレータ
-        while(i.hasNext())                                                     //一致したイテレータが終わるまで
+        /* firstCmdより空白スペースが前にあれば、ハイライトされない事に注意 */
+        const qsizetype index = text.indexOf(' '); //空白の最初のインデックス
+        if(index != qsizetype(-1))
         {
-            QRegularExpressionMatch match = i.next();                          //一致したイテレータの情報を順に進める
-            setFormat(match.capturedStart(),                                   //ハイライトする語句の初めのインデックス
-                      match.capturedLength(),                                  //ハイライトする語句の長さ
-                      firstOrderFormat);                                       //ハイライトする語句のフォーマット
-        }
-    }
-#if 0
-    /* ダブルクォーテーション部分のハイライト */
-    if(text.contains('\"'))
-    {
-        QList<qsizetype> braLeft;                                              //左括弧のインデックスを格納
-        QList<qsizetype> braRight;                                             //右括弧のインデックスを格納
-        qsizetype count = 0;                                                   //括弧の数
-        for(qsizetype index = 0; index < text.size(); ++index){                //テキストを一文字ずつ見る
-            if(text.at(index) == '\"'){
-                if(count % 2 == 0) braLeft << index;                           //偶数個目 = 左括弧
-                else braRight << index;                                        //奇数個目 = 右括弧
-                count++;                                                       //括弧の数インクリメント
+            const QString firstCmd = text.first(index);
+            if(firstCmdList.contains(firstCmd))
+            {
+                setFormat(0, index, firstOrderFormat);
             }
         }
-        for(qsizetype i = 0; i < braRight.size(); ++i)                         //それぞれのクォーテーションにフォーマットを適用
-        {
-            setFormat(braLeft.at(i),                                           //クォーテーション開始位置
-                      braRight.at(i) - braLeft.at(i) + 1,                      //クォーテーション部分の長さ
-                      quotationFormat);                                        //クォーテーション部分のフォーマット
-        }
     }
 
-    /* コメントアウト部分のハイライト */
-    const qsizetype commentsStartPoint = text.indexOf('#');                    //text内で#が最初に出てくるインデックス
-    if(commentsStartPoint != qsizetype(-1))                                    //#が見つからなかった場合は-1を返される
-    {
-        const qsizetype commentsLength = text.size() - commentsStartPoint + 1; //コメント部分の文字列長
-        setFormat(commentsStartPoint,                                          //コメント部分の始まり
-                  commentsLength,                                              //コメント部分の長さ
-                  commentsFormat);                                             //コメント部分のフォーマット
-    }
-#endif
+    bracketLeft = text.count('(');
+    bracketRight = text.count(')');
+    squareBracketLeft = text.count('[');
+    squareBracketRight = text.count(']');
 
+    /* ダブルクォーテーション、シングルクォーテーション、シャープ#の位置を探す。
+     * クォーテーション内部にシャープ記号がある場合はシャープのコメントアウトの効果を無効にするために、
+     * 一緒に走査する必要がある */
     doubleQuotationLeft.clear();
     doubleQuotationRight.clear();
     singleQuotationLeft.clear();
     singleQuotationRight.clear();
-    qsizetype doubleQuotationCount = 0;
-    qsizetype singleQuotationCount = 0;
-    int commentStartPoint = -1;
-    /* ダブルクォーテーション、シングルクォーテーション、シャープ#の位置を探す。
-     * クォーテーション内部にシャープ記号がある場合はシャープのコメントアウトの効果を無効にするために、
-     * 一緒に走査する必要がある */
-    for(qsizetype index = 0; index < text.size(); ++index)
+
     {
-        const QChar c = text.at(index);
+        qsizetype doubleQuotationCount = 0;
+        qsizetype singleQuotationCount = 0;
+        int commentStartPoint = -1;
 
-        if(c == '\"')
+        for(qsizetype index = 0; index < text.size(); ++index)
         {
-            if(doubleQuotationCount % 2 == 0)
-                doubleQuotationLeft << index;
-            else
-                doubleQuotationRight << index;
+            const QChar c = text.at(index);
 
-            doubleQuotationCount++;
+            if(c == '\"')
+            {
+                if(doubleQuotationCount % 2 == 0)
+                    doubleQuotationLeft << index;
+                else
+                    doubleQuotationRight << index;
+
+                doubleQuotationCount++;
+            }
+            else if(c == '\'')
+            {
+                if(singleQuotationCount % 2 == 0)
+                    singleQuotationLeft << index;
+                else
+                    singleQuotationRight << index;
+
+                singleQuotationCount++;
+            }
+            else if(c == '#' && commentStartPoint == -1)
+            {
+                if(doubleQuotationLeft.size() == doubleQuotationRight.size() &&   //'#'はダブルクォーテーション内部でない
+                   singleQuotationLeft.size() == singleQuotationRight.size())     //'#'はシングルクォーテーション内部でない
+                    commentStartPoint = index;
+            }
         }
-        else if(c == '\'')
+
+        /* ダブルクォーテーション部分のハイライト */
+        const qsizetype doubleQuotationPairCount = doubleQuotationRight.size();
+        for(qsizetype i = 0; i < doubleQuotationPairCount; ++i)
         {
-            if(singleQuotationCount % 2 == 0)
-                singleQuotationLeft << index;
-            else
-                singleQuotationRight << index;
-
-            singleQuotationCount++;
+            setFormat(doubleQuotationLeft.at(i),                                   //クォーテーション開始位置
+                      doubleQuotationRight.at(i) - doubleQuotationLeft.at(i) + 1,  //クォーテーション部分の長さ
+                      quotationFormat);                                            //クォーテーション部分のフォーマット
         }
-        else if(c == '#' && commentStartPoint == -1)
+
+        /* コメント部分のハイライト */
+        if(commentStartPoint != -1)
         {
-            if(doubleQuotationLeft.size() == doubleQuotationRight.size() &&   //'#'はダブルクォーテーション内部でない
-               singleQuotationLeft.size() == singleQuotationRight.size())     //'#'はシングルクォーテーション内部でない
-                commentStartPoint = index;
+            const qsizetype commentLength = text.size() - commentStartPoint + 1;  //コメント部分の文字列長
+            setFormat(commentStartPoint,                                          //コメント部分の始まり
+                      commentLength,                                              //コメント部分の長さ
+                      commentsFormat);                                            //コメント部分のフォーマット
         }
-    }
 
-    /* ダブルクォーテーション部分のハイライト */
-    const qsizetype doubleQuotationPairCount = doubleQuotationRight.size();
-    for(qsizetype i = 0; i < doubleQuotationPairCount; ++i)
-    {
-        setFormat(doubleQuotationLeft.at(i),                                   //クォーテーション開始位置
-                  doubleQuotationRight.at(i) - doubleQuotationLeft.at(i) + 1,  //クォーテーション部分の長さ
-                  quotationFormat);                                            //クォーテーション部分のフォーマット
-    }
-
-    /* コメント部分のハイライト */
-    if(commentStartPoint != -1)
-    {
-        const qsizetype commentLength = text.size() - commentStartPoint + 1;  //コメント部分の文字列長
-        setFormat(commentStartPoint,                                          //コメント部分の始まり
-                  commentLength,                                              //コメント部分の長さ
-                  commentsFormat);                                            //コメント部分のフォーマット
     }
 }

@@ -51,7 +51,8 @@ protected:
 private:
     void insertCompletion(const QString& completion);           //予測変換で決定された文字をエディタに挿入
     QString textUnderCursor() const;                            //予測変換を出すために参照するテキスト
-    void bracketCompletion(QKeyEvent *e, const QChar nextChar); //括弧の補完 [ ( ' "
+    void bracketCompletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar); //括弧の補完 [ ( ' "
+    void bracketDeletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar);   //括弧の削除
     void changeCompleterModel();                                //入力コマンドから予測変換候補を変更
 
 private:
