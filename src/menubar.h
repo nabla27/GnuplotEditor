@@ -35,6 +35,7 @@ signals:
     void clearConsoleWindowPushed();
     void editorSettingOpened();
     void gnuplotSettingOpened();
+    void openTemplateCustomRequested();
 };
 
 

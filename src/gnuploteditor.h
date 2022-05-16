@@ -18,6 +18,7 @@
 #include "editorsettingwidget.h"
 #include "consolewidget.h"
 #include "gnuplotsettingwidget.h"
+#include "templatecustomwidget.h"
 
 class GnuplotEditor : public QMainWindow
 {
@@ -60,6 +61,7 @@ private:
 
     EditorSettingWidget *editorSetting;
     GnuplotSettingWidget *gnuplotSetting;
+    TemplateCustomWidget *templateCustom;
 
     FileTree *fileTree;
     QTabWidget *editorTab;

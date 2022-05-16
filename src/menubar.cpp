@@ -59,6 +59,10 @@ WidgetMenu::WidgetMenu(const QString& title, QWidget *parent)
     QAction *openGnuplotSetting = new QAction("Gnuplot Setting", this);
     addAction(openGnuplotSetting);
     connect(openGnuplotSetting, &QAction::triggered, this, &WidgetMenu::gnuplotSettingOpened);
+
+    QAction *openTemplateCustom = new QAction("Template Script", this);
+    addAction(openTemplateCustom);
+    connect(openTemplateCustom, &QAction::triggered, this, &WidgetMenu::openTemplateCustomRequested);
 }
 
 
