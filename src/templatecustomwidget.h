@@ -3,9 +3,10 @@
 #include <QWidget>
 #include <QScrollArea>
 #include <QVBoxLayout>
-#include <QToolButton>
+#include <QPushButton>
 #include <QPushButton>
 #include <QApplication>
+#include "texteditor.h"
 #include "layoutparts.h"
 
 class TemplateCustomWidget : public QWidget
@@ -25,6 +26,8 @@ private:
     QWidget *templateScriptTree;
     QVBoxLayout *templateScriptTreeLayout;
 
+    TextEdit *editor;
+
 signals:
 
 };
@@ -36,7 +39,8 @@ public:
     explicit TemplateItemWidget(const QString& name, QWidget *parent);
 
 private:
-    QToolButton *scriptName;
+    QPushButton *scriptNameButton;
+    QLabel *buttonLabel;
     mlayout::IconLabel *menuTool;
 };
 

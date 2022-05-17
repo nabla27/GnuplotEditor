@@ -10,6 +10,7 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     , templateScriptTreeArea(new QScrollArea(this))
     , templateScriptTree(new QWidget(this))
     , templateScriptTreeLayout(new QVBoxLayout(templateScriptTree))
+    , editor(new TextEdit(this))
 {
     setWindowFlag(Qt::WindowType::Window, true);
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.4f));
@@ -22,15 +23,27 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     hLayout->addLayout(templateListLayout);
     hLayout->addLayout(displayLayout);
 
-    displayLayout->addWidget(templateScriptTreeArea);
+    templateListLayout->addWidget(templateScriptTreeArea);
     templateScriptTreeArea->setWidget(templateScriptTree);
     templateScriptTree->setLayout(templateScriptTreeLayout);
+    displayLayout->addWidget(editor);
 
+    templateScriptTreeArea->setLayout(new QVBoxLayout);
+    templateScriptTreeArea->setMaximumWidth(200);
     templateScriptTreeArea->setWidgetResizable(true);
     templateScriptTreeLayout->setAlignment(Qt::AlignmentFlag::AlignTop);
+
+    setContentsMargins(0, 0, 0, 0);
+    templateListLayout->setContentsMargins(0, 0, 0, 0);
+    hLayout->setContentsMargins(0, 0, 0, 0);
+    hLayout->setSpacing(0);
+    templateListLayout->setSpacing(0);
     templateScriptTreeLayout->setSpacing(0);
+    templateScriptTreeLayout->setContentsMargins(0, 0, 0, 0);
     templateScriptTree->setContentsMargins(0, 0, 0, 0);
     templateScriptTreeArea->setContentsMargins(0, 0, 0, 0);
+    templateScriptTreeArea->layout()->setContentsMargins(0, 0, 0, 0);
+    templateScriptTreeArea->layout()->setSpacing(0);
 
     setupTemplateList();
 }
@@ -53,22 +66,35 @@ void TemplateCustomWidget::setupTemplateList()
 
 TemplateItemWidget::TemplateItemWidget(const QString& name, QWidget *parent)
     : QWidget(parent)
-    , scriptName(new QToolButton(this))
+    , scriptNameButton(new QPushButton(this))
+    , buttonLabel(new QLabel(name, scriptNameButton))
     , menuTool(new mlayout::IconLabel(this))
 {
-    setFixedHeight(40);
+    //アイコンのサイズ。ボタンの高さ(=このwidget)もこれに合わせる
+    constexpr int iconSize = 22;
+
+    setFixedHeight(iconSize);
 
     QHBoxLayout *hLayout = new QHBoxLayout(this);
-    hLayout->addWidget(scriptName);
+    QHBoxLayout *buttonLayout = new QHBoxLayout(scriptNameButton);
+
+    setLayout(hLayout);
+    hLayout->addWidget(scriptNameButton);
     hLayout->addWidget(menuTool);
 
-    scriptName->setText(name);
-    menuTool->setPixmap(QApplication::style()->standardIcon(QStyle::SP_FileDialogDetailedView).pixmap(20, 20));
+    scriptNameButton->setLayout(buttonLayout);
+    buttonLayout->addWidget(buttonLabel);
+
+    menuTool->setPixmap(QApplication::style()->standardIcon(QStyle::SP_FileDialogDetailedView).pixmap(iconSize, iconSize));
     menuTool->setHoveredFrameShape(QFrame::Shape::Box);
 
     setContentsMargins(0, 0, 0, 0);
     hLayout->setSpacing(0);
-    scriptName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    hLayout->setContentsMargins(0, 0, 0, 0);
+    buttonLayout->setContentsMargins(0, 0, 0, 0);
+    buttonLabel->setIndent(10); //ボタン左先頭部分の余白
+
+    scriptNameButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
 
