@@ -331,7 +331,7 @@ void GnuplotEditor::importTemplate(const QString& script)
         return;
     }
 
-    currentEditor->appendPlainText(script);
+    currentEditor->insertPlainText(script);
 }
 
 void GnuplotEditor::saveAsTemplate()
