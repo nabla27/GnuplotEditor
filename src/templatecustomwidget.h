@@ -20,23 +20,32 @@ public:
     explicit TemplateCustomWidget(QWidget *parent = nullptr);
 
 private:
-    void setupTemplateList();
+    void setupTemplateList(const QString& folderPath);
+    void setupNewTemplate(const QString& filePath);
+    void setupNewFolder(const QString& folderPath);
 
 private slots:
     void setTemplate(const QString& filePath);
     void renameTemplate(const QString& oldFilePath, const QString& newFilePath);
     void removeTemplate(TemplateItemWidget* item, const QString& filePath);
 
+    void backDirectory();
+    void reloadTemplateList();
+    void createNewTemplate();
+    void createNewFolder();
+
 private:
     const QString settingFolderPath;
     const QString rootFolderName;
-    const QString templateFolderPath;
+    const QString rootFolderPath;
 
     TemplateItemPanel *templateItemPanel;
     QScrollArea *templateScriptTreeArea;
+
     QWidget *templateScriptTree;
     QVBoxLayout *templateScriptTreeLayout;
 
+    QString currentTemplateFolderPath;
     QString currentTemplateFilePath;
     TemplateEditorPanel *editorPanel;
     TextEdit *editor;
@@ -64,6 +73,12 @@ private:
     mlayout::IconLabel *reloadDirIcon;
     mlayout::IconLabel *newFileIcon;
     mlayout::IconLabel *newFolderIcon;
+
+signals:
+    void backDirRequested();
+    void reloadDirRequested();
+    void createTemplateRequested();
+    void createFolderRequested();
 };
 
 
@@ -76,10 +91,19 @@ class TemplateItemWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit TemplateItemWidget(const QString& name, const QString& filePath, QWidget *parent);
+    enum class ItemType { File, Dir };
+    Q_ENUM(ItemType)
+
+    explicit TemplateItemWidget(const ItemType& itemType, const QString& name, const QString& filePath, QWidget *parent);
+
+    ItemType itemType;
 
 private:
     void setupToolMenu();
+    void renameTempalteFile();
+    void renameFolder();
+    void removeTemplateFile();
+    void removeFolder();
 
 private slots:
     void emitSelectedSignals();
@@ -97,8 +121,9 @@ private:
 
 signals:
     void templateSelected(const QString& filePath);
+    void folderSelected(const QString& filePath);
     void templateRenamed(const QString& oldPath, const QString& newPath);
-    void removed(TemplateItemWidget*, const QString& filePath);
+    void templateRemoved(TemplateItemWidget*, const QString& filePath);
 };
 
 

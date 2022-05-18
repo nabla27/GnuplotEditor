@@ -13,12 +13,14 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     : QWidget(parent)
     , settingFolderPath(QApplication::applicationDirPath() + "/setting")
     , rootFolderName("script-template")
-    , templateFolderPath(settingFolderPath + '/' + rootFolderName)
+    , rootFolderPath(settingFolderPath + '/' + rootFolderName)
 
     , templateItemPanel(new TemplateItemPanel(this))
     , templateScriptTreeArea(new QScrollArea(this))
-    , templateScriptTree(new QWidget(this))
-    , templateScriptTreeLayout(new QVBoxLayout(templateScriptTree))
+    , templateScriptTree(nullptr)
+    , templateScriptTreeLayout(nullptr)
+
+    , currentTemplateFolderPath(settingFolderPath + '/' + rootFolderName)
     , editorPanel(new TemplateEditorPanel(rootFolderName, this))
     , editor(new TextEdit(this))
 {
@@ -36,17 +38,13 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
 
     templateListLayout->addWidget(templateItemPanel);
     templateListLayout->addWidget(templateScriptTreeArea);
-    templateScriptTreeArea->setWidget(templateScriptTree);
-    templateScriptTree->setLayout(templateScriptTreeLayout);
     displayLayout->addWidget(editorPanel);
     displayLayout->addWidget(editor);
 
     templateItemPanel->setMaximumWidth(200);
-    templateItemPanel->setFolderName(rootFolderName);
     templateScriptTreeArea->setLayout(new QVBoxLayout);
     templateScriptTreeArea->setMaximumWidth(200);
     templateScriptTreeArea->setWidgetResizable(true);
-    templateScriptTreeLayout->setAlignment(Qt::AlignmentFlag::AlignTop);
     editor->setReadOnly(true);
 
     setContentsMargins(0, 0, 0, 0);
@@ -54,38 +52,97 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     hLayout->setContentsMargins(0, 0, 0, 0);
     hLayout->setSpacing(0);
     templateListLayout->setSpacing(0);
-    templateScriptTreeLayout->setSpacing(0);
-    templateScriptTreeLayout->setContentsMargins(0, 0, 0, 0);
-    templateScriptTree->setContentsMargins(0, 0, 0, 0);
     templateScriptTreeArea->setContentsMargins(0, 0, 0, 0);
     templateScriptTreeArea->layout()->setContentsMargins(0, 0, 0, 0);
     templateScriptTreeArea->layout()->setSpacing(0);
 
-    setupTemplateList();
-}
+    connect(templateItemPanel, &TemplateItemPanel::backDirRequested, this, &TemplateCustomWidget::backDirectory);
+    connect(templateItemPanel, &TemplateItemPanel::reloadDirRequested, this, &TemplateCustomWidget::reloadTemplateList);
+    connect(templateItemPanel, &TemplateItemPanel::createTemplateRequested, this, &TemplateCustomWidget::createNewTemplate);
+    connect(templateItemPanel, &TemplateItemPanel::createFolderRequested, this, &TemplateCustomWidget::createNewFolder);
 
-void TemplateCustomWidget::setupTemplateList()
-{
+    /* フォルダーの設定 */
     QDir settingFolderDir(settingFolderPath);
     if(!settingFolderDir.exists()) settingFolderDir.mkdir(settingFolderPath);
-    QDir templateFolderDir(templateFolderPath);
-    if(!templateFolderDir.exists()) templateFolderDir.mkdir(templateFolderPath);
+    templateItemPanel->setFolderName('/' + rootFolderName);
+    setupTemplateList(currentTemplateFolderPath);
+}
 
-    const QList<QFileInfo> fileInfoList = templateFolderDir.entryInfoList(QStringList() << "*.txt");
+void TemplateCustomWidget::setupTemplateList(const QString& folderPath)
+{
+    /* ディレクトリが存在するか */
+    QDir templateFolderDir(folderPath);
+    if(!templateFolderDir.exists()) templateFolderDir.mkdir(folderPath);
+
+    /* widgetとレイアウトの初期化 */
+    if(templateScriptTreeLayout) delete templateScriptTreeLayout;
+    if(templateScriptTree) delete templateScriptTree;
+    templateScriptTree = new QWidget(this);
+    templateScriptTreeLayout = new QVBoxLayout(templateScriptTree);
+
+    templateScriptTreeArea->setWidget(templateScriptTree);
+    templateScriptTree->setLayout(templateScriptTreeLayout);
+    templateScriptTreeLayout->setAlignment(Qt::AlignmentFlag::AlignTop);
+    templateScriptTreeLayout->setSpacing(0);
+    templateScriptTreeLayout->setContentsMargins(0, 0, 0, 0);
+    templateScriptTree->setContentsMargins(0, 0, 0, 0);
+
+    /* ディレクトリのファイルを走査し、リストとして追加していく */
+    const QList<QFileInfo> fileInfoList = templateFolderDir.entryInfoList(QStringList(),
+                                                                          QDir::Filter::NoDotAndDotDot |
+                                                                          QDir::Filter::Files |
+                                                                          QDir::Filter::Dirs);
     for(const QFileInfo& info : fileInfoList)
     {
-        const QString fileName = info.fileName();
+        TemplateItemWidget::ItemType itemType;
+        if(info.isFile())
+        {
+            if(info.suffix() != "txt") continue;
+            itemType = TemplateItemWidget::ItemType::File;
+        }
+        else
+            itemType = TemplateItemWidget::ItemType::Dir;
 
-        const qsizetype dotIndex = fileName.lastIndexOf('.');
-        const QString templateName = (qsizetype(-1) == dotIndex) ? fileName : fileName.first(dotIndex);
-
-        TemplateItemWidget *item = new TemplateItemWidget(templateName, info.filePath(), templateScriptTree);
-        templateScriptTreeLayout->addWidget(item);
-
-        connect(item, &TemplateItemWidget::templateSelected, this, &TemplateCustomWidget::setTemplate);
-        connect(item, &TemplateItemWidget::templateRenamed, this, &TemplateCustomWidget::renameTemplate);
-        connect(item, &TemplateItemWidget::removed, this, &TemplateCustomWidget::removeTemplate);
+        switch(itemType)
+        {
+        case TemplateItemWidget::ItemType::File:
+            setupNewTemplate(info.filePath());
+            break;
+        case TemplateItemWidget::ItemType::Dir:
+            setupNewFolder(info.filePath());
+            break;
+        default:
+            break;
+        }
     }
+}
+
+void TemplateCustomWidget::setupNewTemplate(const QString &filePath)
+{
+    if(filePath.last(1) == "/") return;
+
+    const qsizetype barIndex = filePath.lastIndexOf('/');
+    const QString fileName = (barIndex == qsizetype(-1)) ? filePath : filePath.sliced(barIndex + 1);
+    const qsizetype dotIndex = fileName.lastIndexOf('.');
+    const QString templateName = (dotIndex == qsizetype(-1)) ? fileName : fileName.first(dotIndex);
+
+    TemplateItemWidget *item = new TemplateItemWidget(TemplateItemWidget::ItemType::File, templateName, filePath, templateScriptTree);
+    templateScriptTreeLayout->addWidget(item);
+
+    connect(item, &TemplateItemWidget::templateSelected, this, &TemplateCustomWidget::setTemplate);
+    connect(item, &TemplateItemWidget::templateRenamed, this, &TemplateCustomWidget::renameTemplate);
+    connect(item, &TemplateItemWidget::templateRemoved, this, &TemplateCustomWidget::removeTemplate);
+}
+
+void TemplateCustomWidget::setupNewFolder(const QString &folderPath)
+{
+    if(folderPath.last(1) == "/") return;
+
+    const qsizetype barIndex = folderPath.lastIndexOf('/');
+    const QString folderName = (barIndex == qsizetype(-1)) ? folderPath : folderPath.sliced(barIndex + 1);
+
+    TemplateItemWidget *item = new TemplateItemWidget(TemplateItemWidget::ItemType::Dir, folderName, folderPath, templateScriptTree);
+    templateScriptTreeLayout->addWidget(item);
 }
 
 void TemplateCustomWidget::setTemplate(const QString& filePath)
@@ -130,6 +187,64 @@ void TemplateCustomWidget::removeTemplate(TemplateItemWidget *item, const QStrin
     delete item;
 }
 
+void TemplateCustomWidget::backDirectory()
+{
+    if(currentTemplateFolderPath == rootFolderPath) return;
+
+    currentTemplateFolderPath = currentTemplateFolderPath.first(currentTemplateFolderPath.lastIndexOf('/'));
+    templateItemPanel->setFolderName(currentTemplateFolderPath.sliced(currentTemplateFolderPath.lastIndexOf('/')));
+    setupTemplateList(currentTemplateFolderPath);
+}
+
+void TemplateCustomWidget::reloadTemplateList()
+{
+    setupTemplateList(currentTemplateFolderPath);
+}
+
+void TemplateCustomWidget::createNewTemplate()
+{
+    QString newTemplateName;
+
+    for(;;)
+    {
+        newTemplateName = QInputDialog::getText(this, "Create New Template", "Enter the name.");
+
+        if(newTemplateName.contains('.'))
+            QMessageBox::critical(this, "File Name Error", "Do not include a suffix.");
+        else
+            break;
+    }
+
+    if(newTemplateName.isEmpty()) return;
+
+    QFile newFile(currentTemplateFolderPath + '/' + newTemplateName + ".txt");
+    if(newFile.open(QFile::OpenModeFlag::NewOnly))
+    {
+        setupNewTemplate(newFile.fileName());
+        setTemplate(newFile.fileName());
+
+        newFile.close();
+    }
+    else
+        QMessageBox::critical(this, "File System Error", "Could not create the file.");
+}
+
+void TemplateCustomWidget::createNewFolder()
+{
+    const QString newFolderName = QInputDialog::getText(this, "Create New Folder", "Enter the name");
+
+    if(newFolderName.isEmpty()) return;
+
+    const QString newFolderPath = currentTemplateFolderPath + '/' + newFolderName;
+
+    QDir currentDir(newFolderPath);
+
+    if(currentDir.mkdir(newFolderPath))
+        setupNewFolder(newFolderPath);
+    else
+        QMessageBox::critical(this, "File System Error", "Could not create the folder");
+}
+
 
 
 
@@ -168,6 +283,11 @@ TemplateItemPanel::TemplateItemPanel(QWidget *parent)
     hLayout->setSpacing(0);
     hLayout->setContentsMargins(0, 0, 0, 0);
     setContentsMargins(0, 0, 0, 0);
+
+    connect(backDirIcon, &mlayout::IconLabel::released, this, &TemplateItemPanel::backDirRequested);
+    connect(reloadDirIcon, &mlayout::IconLabel::released, this, &TemplateItemPanel::reloadDirRequested);
+    connect(newFileIcon, &mlayout::IconLabel::released, this, &TemplateItemPanel::createTemplateRequested);
+    connect(newFolderIcon, &mlayout::IconLabel::released, this, &TemplateItemPanel::createFolderRequested);
 }
 
 void TemplateItemPanel::setFolderName(const QString &folderName)
@@ -184,8 +304,9 @@ void TemplateItemPanel::setFolderName(const QString &folderName)
 
 
 
-TemplateItemWidget::TemplateItemWidget(const QString& name, const QString& filePath, QWidget *parent)
+TemplateItemWidget::TemplateItemWidget(const ItemType& itemType, const QString& name, const QString& filePath, QWidget *parent)
     : QWidget(parent)
+    , itemType(itemType)
     , filePath(filePath)
     , scriptNameButton(new QPushButton(this))
     , buttonLabel(new QLabel(name, scriptNameButton))
@@ -241,7 +362,12 @@ void TemplateItemWidget::setupToolMenu()
 
 void TemplateItemWidget::emitSelectedSignals()
 {
-    emit templateSelected(filePath);
+    switch (itemType)
+    {
+    case ItemType::File: emit templateSelected(filePath); break;
+    case ItemType::Dir: emit folderSelected(filePath); break;
+    default: break;
+    }
 }
 
 void TemplateItemWidget::showToolMenu()
@@ -250,6 +376,16 @@ void TemplateItemWidget::showToolMenu()
 }
 
 void TemplateItemWidget::rename()
+{
+    switch (itemType)
+    {
+    case ItemType::File: renameTempalteFile(); break;
+    case ItemType::Dir: renameFolder(); break;
+    default: break;
+    }
+}
+
+void TemplateItemWidget::renameTempalteFile()
 {
     const QString oldFileName = buttonLabel->text();
     const QString newFileName = QInputDialog::getText(this, "Rename", "new file name", QLineEdit::Normal, oldFileName);
@@ -281,15 +417,35 @@ void TemplateItemWidget::rename()
     filePath = newFilePath;
 }
 
+void TemplateItemWidget::renameFolder()
+{
+
+}
+
 void TemplateItemWidget::remove()
+{
+    switch(itemType)
+    {
+    case ItemType::File: removeTemplateFile(); break;
+    case ItemType::Dir: removeFolder(); break;
+    default: break;
+    }
+}
+
+void TemplateItemWidget::removeTemplateFile()
 {
     QFile file(filePath);
     if(file.remove())
     {
-        emit removed(this, filePath);
+        emit templateRemoved(this, filePath);
     }
     else
         QMessageBox::critical(this, "Failed to remove.", "Could not remove the file.");
+}
+
+void TemplateItemWidget::removeFolder()
+{
+
 }
 
 
