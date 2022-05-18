@@ -31,10 +31,11 @@ public:
     WidgetMenu(const QString& title, QWidget *parent);
 
 signals:
-    void clearOutputWindowPushed();
-    void clearConsoleWindowPushed();
-    void editorSettingOpened();
-    void gnuplotSettingOpened();
+    void clearOutputWindowRequested();
+    void clearConsoleWindowRequested();
+    void openEditorSettingRequested();
+    void openGnuplotSettingRequested();
+    void openTemplateCustomRequested();
 };
 
 
@@ -59,6 +60,7 @@ public:
 
 signals:
     void closeProcessRequested();
+    void saveAsTemplateRequested();
 };
 
 

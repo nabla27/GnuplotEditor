@@ -44,21 +44,25 @@ void FileMenu::openFolder()
 WidgetMenu::WidgetMenu(const QString& title, QWidget *parent)
     : QMenu(title, parent)
 {
-    QAction *clearConsoleWindow = new QAction("Clear console window", this);
+    QAction *clearConsoleWindow = new QAction("Clear Console Widget", this);
     addAction(clearConsoleWindow);
-    connect(clearConsoleWindow, &QAction::triggered, this, &WidgetMenu::clearConsoleWindowPushed);
+    connect(clearConsoleWindow, &QAction::triggered, this, &WidgetMenu::clearConsoleWindowRequested);
 
-    QAction *clearOutputWindow = new QAction("Clear output window", this);
+    QAction *clearOutputWindow = new QAction("Clear Output Widget", this);
     addAction(clearOutputWindow);
-    connect(clearOutputWindow, &QAction::triggered, this, &WidgetMenu::clearOutputWindowPushed);
+    connect(clearOutputWindow, &QAction::triggered, this, &WidgetMenu::clearOutputWindowRequested);
 
     QAction *openEditorSetting = new QAction("Editor Setting", this);
     addAction(openEditorSetting);
-    connect(openEditorSetting, &QAction::triggered, this, &WidgetMenu::editorSettingOpened);
+    connect(openEditorSetting, &QAction::triggered, this, &WidgetMenu::openEditorSettingRequested);
 
     QAction *openGnuplotSetting = new QAction("Gnuplot Setting", this);
     addAction(openGnuplotSetting);
-    connect(openGnuplotSetting, &QAction::triggered, this, &WidgetMenu::gnuplotSettingOpened);
+    connect(openGnuplotSetting, &QAction::triggered, this, &WidgetMenu::openGnuplotSettingRequested);
+
+    QAction *openTemplateCustom = new QAction("Script Template", this);
+    addAction(openTemplateCustom);
+    connect(openTemplateCustom, &QAction::triggered, this, &WidgetMenu::openTemplateCustomRequested);
 }
 
 
@@ -84,6 +88,10 @@ ScriptMenu::ScriptMenu(const QString& title, QWidget *parent)
     QAction *const closeProcess = new QAction("Close this process", this);
     addAction(closeProcess);
     connect(closeProcess, &QAction::triggered, this, &ScriptMenu::closeProcessRequested);
+
+    QAction *const saveAsTemplate = new QAction("Save as template", this);
+    addAction(saveAsTemplate);
+    connect(saveAsTemplate, &QAction::triggered, this, &ScriptMenu::saveAsTemplateRequested);
 }
 
 
