@@ -79,9 +79,11 @@ public:
     explicit TemplateItemPanel(QWidget *parent);
 
 public:
-    void setFolderName(const QString& folderName);
+    void setFolderPath(const QString& folderPath);
 
 private:
+    QString currentFolderPath;
+
     mlayout::IconLabel *backDirIcon;
     QLineEdit *folderNameEdit;
     mlayout::IconLabel *folderListIcon;
