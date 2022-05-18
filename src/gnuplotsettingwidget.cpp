@@ -45,9 +45,8 @@ void GnuplotSettingWidget::initializeLayout()
     QHBoxLayout *preCmdLayout = new QHBoxLayout;
     QLabel *preCmdLabel = new QLabel("Pre Cmd", this);
     QHBoxLayout *autoCompileMsecLayout = new QHBoxLayout;
-    QLabel *autoCompileMsecLabel = new QLabel("Auto compile sec", this);
+    QLabel *autoCompileMsecLabel = new QLabel("Auto compile", this);
     QSpinBox *autoCompileMsec = new QSpinBox(this);
-    QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     setLayout(vLayout);
     vLayout->addWidget(browser);
@@ -64,27 +63,26 @@ void GnuplotSettingWidget::initializeLayout()
     vLayout->addLayout(autoCompileMsecLayout);
     autoCompileMsecLayout->addWidget(autoCompileMsecLabel);
     autoCompileMsecLayout->addWidget(autoCompileMsec);
-    vLayout->addItem(spacer);
 
     constexpr int label_width = 80;
     constexpr int editor_height = 80;
-    browser->setFixedHeight(editor_height);
     pathLabel->setFixedWidth(label_width);
-    pathTool->setText("...");
     initCmdLabel->setFixedWidth(label_width);
     initializeCmd->setFixedHeight(editor_height);
     preCmdLabel->setFixedWidth(label_width);
     preCmd->setFixedHeight(editor_height);
     autoCompileMsecLabel->setFixedWidth(label_width);
+
+    pathTool->setText("...");
     autoCompileMsec->setMaximum(10000);
 
+    pathLabel->setToolTip("Execution path of gnuplot.");
+    initCmdLabel->setToolTip("Command to be executed in advance.\nThis will be kept event if you close the app.");
+    preCmdLabel->setToolTip("Command to be executed in advance.\nThis will be removed if you close the app.");
+    autoCompileMsecLabel->setToolTip("Auto compile msec time for sheet changes.");
+
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.3f, 0.3f));
-    setFixedHeight(editor_height * 3 +
-                   vLayout->spacing() * 2 +
-                   vLayout->contentsMargins().bottom() +
-                   vLayout->contentsMargins().top() +
-                   pathEdit->height() +
-                   autoCompileMsec->height());
+    browser->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     connect(autoCompileMsec, &QSpinBox::valueChanged, this, &GnuplotSettingWidget::autoCompileMsecSet);
 }
