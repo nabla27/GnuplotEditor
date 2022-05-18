@@ -382,15 +382,22 @@ TemplateItemPanel::TemplateItemPanel(QWidget *parent)
     hLayout->addWidget(newFolderIcon);
 
     folderNameEdit->setReadOnly(true);
+
     constexpr int iconSize = 20;
     backDirIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_FileDialogBack).pixmap(iconSize, iconSize));
     reloadDirIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_BrowserReload).pixmap(iconSize, iconSize));
     newFileIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_FileIcon).pixmap(iconSize, iconSize));
     newFolderIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder).pixmap(iconSize, iconSize));
+
     backDirIcon->setHoveredFrameShape(QFrame::Box);
     reloadDirIcon->setHoveredFrameShape(QFrame::Box);
     newFileIcon->setHoveredFrameShape(QFrame::Box);
     newFolderIcon->setHoveredFrameShape(QFrame::Box);
+
+    backDirIcon->setToolTip("move to parent directory");
+    reloadDirIcon->setToolTip("realod");
+    newFileIcon->setToolTip("create new file");
+    newFolderIcon->setToolTip("create new folder");
 
     hLayout->setSpacing(0);
     hLayout->setContentsMargins(0, 0, 0, 0);
