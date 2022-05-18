@@ -95,6 +95,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(widgetMenu, &WidgetMenu::openTemplateCustomRequested, templateCustom, &TemplateCustomWidget::show);
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
     connect(scriptMenu, &ScriptMenu::closeProcessRequested, this, &GnuplotEditor::closeCurrentProcess);
+    connect(scriptMenu, &ScriptMenu::saveAsTemplateRequested, this, &GnuplotEditor::saveAsTemplate);
     connect(sheetMenu, &SheetMenu::openInNewWindowRequested, this, &GnuplotEditor::moveSheetToNewWindow);
     connect(sheetMenu, &SheetMenu::autoTableUpdateRequested, this, &GnuplotEditor::changeSheetAutoUpdating);
     connect(runAction, &QAction::triggered, this, &GnuplotEditor::executeGnuplot);
@@ -331,6 +332,19 @@ void GnuplotEditor::importTemplate(const QString& script)
     }
 
     currentEditor->appendPlainText(script);
+}
+
+void GnuplotEditor::saveAsTemplate()
+{
+    TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->currentWidget());
+
+    if(!currentEditor)
+    {
+        QMessageBox::critical(this, "Error", "script is not selected.");
+        return;
+    }
+
+    templateCustom->addTemplate(currentEditor->toPlainText());
 }
 
 void GnuplotEditor::setFileTreeWidth(const int dx)

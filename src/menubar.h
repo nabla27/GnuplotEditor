@@ -60,6 +60,7 @@ public:
 
 signals:
     void closeProcessRequested();
+    void saveAsTemplateRequested();
 };
 
 

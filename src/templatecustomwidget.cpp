@@ -6,6 +6,8 @@
 #include <QMenu>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QFormLayout>
+#include <QDialogButtonBox>
 #include "utility.h"
 #include "iofile.h"
 
@@ -67,6 +69,65 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     if(!settingFolderDir.exists()) settingFolderDir.mkdir(settingFolderPath);
     templateItemPanel->setFolderName('/' + rootFolderName);
     setupTemplateList(currentTemplateFolderPath);
+}
+
+void TemplateCustomWidget::addTemplate(const QString& script)
+{
+    QDialog dialog(this);
+    QFormLayout formLayout(&dialog);
+    QComboBox folderCombo(&dialog);
+    QLineEdit templateName(&dialog);
+    QDialogButtonBox button(QDialogButtonBox::Ok, &dialog);
+
+    dialog.setLayout(&formLayout);
+    formLayout.addRow(new QLabel("Folder", &dialog), &folderCombo);
+    formLayout.addRow(new QLabel("Name", &dialog), &templateName);
+    formLayout.addRow(&button);
+
+    /* comboにフォルダー一覧を設定 */
+    QStringList folderList;
+    folderList << rootFolderName;
+    getDirRecursively(rootFolderPath, folderList);
+    folderCombo.addItems(folderList);
+
+    connect(&button, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+
+    dialog.exec();
+
+    if(templateName.text().isEmpty()) return;
+    if(templateName.text().contains('.')) return;
+
+    const QString templateFilePath = settingFolderPath + '/' + folderCombo.currentText() + '/' + templateName.text() + ".txt";
+
+    QFile newFile(templateFilePath);
+    if(newFile.open(QFile::OpenModeFlag::WriteOnly))
+    {
+        QTextStream write(&newFile);
+        write << script;
+
+        newFile.close();
+
+        if(currentTemplateFolderPath == settingFolderPath + '/' + folderCombo.currentText())
+        {
+            setupNewTemplate(newFile.fileName());
+            setTemplate(newFile.fileName());
+        }
+    }
+    else
+        QMessageBox::critical(this, "Error", "Could not create the template.");
+}
+
+void TemplateCustomWidget::getDirRecursively(const QString& folderPath, QStringList& folderList)
+{
+    QDir dir(folderPath);
+    const QList<QFileInfo> infoList = dir.entryInfoList(QDir::Filter::NoDotAndDotDot | QDir::Filter::Dirs);
+
+    for(const QFileInfo& info : infoList)
+    {
+        const QString absolutePath = info.absoluteFilePath();
+        folderList << absolutePath.sliced(absolutePath.lastIndexOf(rootFolderName));
+        getDirRecursively(absolutePath, folderList);
+    }
 }
 
 void TemplateCustomWidget::setupTemplateList(const QString& folderPath)
@@ -249,10 +310,9 @@ void TemplateCustomWidget::createNewTemplate()
     QFile newFile(currentTemplateFolderPath + '/' + newTemplateName + ".txt");
     if(newFile.open(QFile::OpenModeFlag::NewOnly))
     {
+        newFile.close();
         setupNewTemplate(newFile.fileName());
         setTemplate(newFile.fileName());
-
-        newFile.close();
     }
     else
         QMessageBox::critical(this, "Error", "Could not create the file.");
