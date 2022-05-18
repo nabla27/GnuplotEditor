@@ -7,6 +7,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     , gnuplot(new Gnuplot(this))
     , editorSetting(new EditorSettingWidget(nullptr))
     , gnuplotSetting(new GnuplotSettingWidget(gnuplot, nullptr))
+    , templateCustom(new TemplateCustomWidget(this))
 {
     /* ウィンドウをスクリーン画面に対して(0.4,0.5)の比率サイズに設定 */
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
@@ -40,6 +41,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     connect(gnuplot, &Gnuplot::standardErrorPassed, this, &GnuplotEditor::receiveGnuplotStdErr);
     connect(gnuplot, &Gnuplot::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(browserWidget, &BrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
+    connect(templateCustom, &TemplateCustomWidget::importTemplateRequested, this, &GnuplotEditor::importTemplate);
 }
 
 GnuplotEditor::~GnuplotEditor()
@@ -86,12 +88,14 @@ void GnuplotEditor::initializeMenuBar()
     connect(fileMenu, &FileMenu::openFolderPushed, this, &GnuplotEditor::workingDirectoryChanged);
     connect(fileMenu, &FileMenu::addFolderPushed, fileTree, &FileTree::addFolder);
     connect(fileMenu, &FileMenu::saveFolderPushed, fileTree, &FileTree::saveFolder);
-    connect(widgetMenu, &WidgetMenu::clearOutputWindowPushed, browserWidget, &BrowserWidget::clear);
+    connect(widgetMenu, &WidgetMenu::clearOutputWindowRequested, browserWidget, &BrowserWidget::clear);
     //connect(widgetMenu, &WidgetMenu::clearConsoleWindowPushed, consoleWidget, &);
-    connect(widgetMenu, &WidgetMenu::editorSettingOpened, editorSetting, &EditorSettingWidget::show);
-    connect(widgetMenu, &WidgetMenu::gnuplotSettingOpened, gnuplotSetting, &GnuplotSettingWidget::show);
+    connect(widgetMenu, &WidgetMenu::openEditorSettingRequested, editorSetting, &EditorSettingWidget::show);
+    connect(widgetMenu, &WidgetMenu::openGnuplotSettingRequested, gnuplotSetting, &GnuplotSettingWidget::show);
+    connect(widgetMenu, &WidgetMenu::openTemplateCustomRequested, templateCustom, &TemplateCustomWidget::show);
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
     connect(scriptMenu, &ScriptMenu::closeProcessRequested, this, &GnuplotEditor::closeCurrentProcess);
+    connect(scriptMenu, &ScriptMenu::saveAsTemplateRequested, this, &GnuplotEditor::saveAsTemplate);
     connect(sheetMenu, &SheetMenu::openInNewWindowRequested, this, &GnuplotEditor::moveSheetToNewWindow);
     connect(sheetMenu, &SheetMenu::autoTableUpdateRequested, this, &GnuplotEditor::changeSheetAutoUpdating);
     connect(runAction, &QAction::triggered, this, &GnuplotEditor::executeGnuplot);
@@ -315,6 +319,32 @@ void GnuplotEditor::changeSheetAutoUpdating()
         table->changeUpdateNotification();
         sheetMenu->setAutoUpdateMenuText(table->isEnablenotifyUpdating());
     }
+}
+
+void GnuplotEditor::importTemplate(const QString& script)
+{
+    TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->currentWidget());
+
+    if(!currentEditor)
+    {
+        QMessageBox::critical(this, "Error", "script is not selected.");
+        return;
+    }
+
+    currentEditor->insertPlainText(script);
+}
+
+void GnuplotEditor::saveAsTemplate()
+{
+    TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->currentWidget());
+
+    if(!currentEditor)
+    {
+        QMessageBox::critical(this, "Error", "script is not selected.");
+        return;
+    }
+
+    templateCustom->addTemplate(currentEditor->toPlainText());
 }
 
 void GnuplotEditor::setFileTreeWidth(const int dx)
