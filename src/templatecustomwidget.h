@@ -29,6 +29,9 @@ private slots:
     void renameTemplate(const QString& oldFilePath, const QString& newFilePath);
     void removeTemplate(TemplateItemWidget* item, const QString& filePath);
 
+    void setFolder(const QString& folderPath);
+    void removeFolder(TemplateItemWidget* item, const QString& folderPath);
+
     void backDirectory();
     void reloadTemplateList();
     void createNewTemplate();
@@ -113,6 +116,8 @@ private slots:
 
 private:
     QString filePath;
+
+    mlayout::IconLabel *typeIcon;
     QPushButton *scriptNameButton;
     QLabel *buttonLabel;
     mlayout::IconLabel *toolIcon;
@@ -121,9 +126,12 @@ private:
 
 signals:
     void templateSelected(const QString& filePath);
-    void folderSelected(const QString& filePath);
     void templateRenamed(const QString& oldPath, const QString& newPath);
     void templateRemoved(TemplateItemWidget*, const QString& filePath);
+
+    void folderSelected(const QString& filePath);
+    void folderRenamed(const QString& oldPath, const QString& newPath);
+    void folderRemoved(TemplateItemWidget*, const QString& folderPath);
 };
 
 
@@ -138,6 +146,7 @@ public:
 
 public:
     void setTemplateName(const QString& filePath);
+    void renameFolder(const QString& oldFolderPath, const QString& newFolderPath);
 
 private:
     const QString rootFolderName;
