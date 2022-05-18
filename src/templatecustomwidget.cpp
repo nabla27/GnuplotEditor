@@ -69,7 +69,7 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     /* フォルダーの設定 */
     QDir settingFolderDir(settingFolderPath);
     if(!settingFolderDir.exists()) settingFolderDir.mkdir(settingFolderPath);
-    templateItemPanel->setFolderName('/' + rootFolderName);
+    templateItemPanel->setFolderPath(rootFolderPath);
     setupTemplateList(currentTemplateFolderPath);
 }
 
@@ -285,7 +285,7 @@ void TemplateCustomWidget::removeTemplate(TemplateItemWidget *item, const QStrin
 void TemplateCustomWidget::setFolder(const QString& folderPath)
 {
     currentTemplateFolderPath = folderPath;
-    templateItemPanel->setFolderName(folderPath.sliced(folderPath.lastIndexOf('/')));
+    templateItemPanel->setFolderPath(folderPath);
     setupTemplateList(folderPath);
 }
 
@@ -306,7 +306,7 @@ void TemplateCustomWidget::backDirectory()
     if(currentTemplateFolderPath == rootFolderPath) return;
 
     currentTemplateFolderPath = currentTemplateFolderPath.first(currentTemplateFolderPath.lastIndexOf('/'));
-    templateItemPanel->setFolderName(currentTemplateFolderPath.sliced(currentTemplateFolderPath.lastIndexOf('/')));
+    templateItemPanel->setFolderPath(currentTemplateFolderPath);
     setupTemplateList(currentTemplateFolderPath);
 }
 
@@ -393,7 +393,7 @@ void TemplateCustomWidget::createNewFolder()
 TemplateItemPanel::TemplateItemPanel(QWidget *parent)
     : QWidget(parent)
     , backDirIcon(new mlayout::IconLabel(this))
-    , folderNameEdit(new QLineEdit("script-template", this))
+    , folderNameEdit(new QLineEdit(this))
     , folderListIcon(new mlayout::IconLabel(this))
     , reloadDirIcon(new mlayout::IconLabel(this))
     , newFileIcon(new mlayout::IconLabel(this))
@@ -426,7 +426,7 @@ TemplateItemPanel::TemplateItemPanel(QWidget *parent)
 
     backDirIcon->setToolTip("move to parent directory");
     folderListIcon->setToolTip("folder list");
-    reloadDirIcon->setToolTip("realod");
+    reloadDirIcon->setToolTip("reload");
     newFileIcon->setToolTip("create new file");
     newFolderIcon->setToolTip("create new folder");
 
@@ -441,9 +441,11 @@ TemplateItemPanel::TemplateItemPanel(QWidget *parent)
     connect(newFolderIcon, &mlayout::IconLabel::released, this, &TemplateItemPanel::createFolderRequested);
 }
 
-void TemplateItemPanel::setFolderName(const QString &folderName)
+void TemplateItemPanel::setFolderPath(const QString &folderPath)
 {
-    folderNameEdit->setText(folderName);
+    currentFolderPath = folderPath;
+    folderNameEdit->setToolTip(currentFolderPath);
+    folderNameEdit->setText(folderPath.sliced(folderPath.lastIndexOf('/')));
 }
 
 
