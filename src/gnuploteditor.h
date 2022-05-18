@@ -47,6 +47,8 @@ private slots:
     void moveSheetToNewWindow();
     void changeSheetAutoUpdating();
 
+    void importTemplate(const QString& script);
+
     void setFileTreeWidth(const int dx);
     void setDisplayTabHeight(const int dy);
 

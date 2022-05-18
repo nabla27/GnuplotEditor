@@ -41,6 +41,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     connect(gnuplot, &Gnuplot::standardErrorPassed, this, &GnuplotEditor::receiveGnuplotStdErr);
     connect(gnuplot, &Gnuplot::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(browserWidget, &BrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
+    connect(templateCustom, &TemplateCustomWidget::importTemplateRequested, this, &GnuplotEditor::importTemplate);
 }
 
 GnuplotEditor::~GnuplotEditor()
@@ -317,6 +318,19 @@ void GnuplotEditor::changeSheetAutoUpdating()
         table->changeUpdateNotification();
         sheetMenu->setAutoUpdateMenuText(table->isEnablenotifyUpdating());
     }
+}
+
+void GnuplotEditor::importTemplate(const QString& script)
+{
+    TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->currentWidget());
+
+    if(!currentEditor)
+    {
+        QMessageBox::critical(this, "Error", "script is not selected.");
+        return;
+    }
+
+    currentEditor->appendPlainText(script);
 }
 
 void GnuplotEditor::setFileTreeWidth(const int dx)

@@ -25,6 +25,8 @@ private:
     void setupNewFolder(const QString& folderPath);
 
 private slots:
+    void requestImportingTemplate();
+
     void setTemplate(const QString& filePath);
     void renameTemplate(const QString& oldFilePath, const QString& newFilePath);
     void removeTemplate(TemplateItemWidget* item, const QString& filePath);
@@ -54,7 +56,7 @@ private:
     TextEdit *editor;
 
 signals:
-
+    void importTemplateRequested(const QString& script);
 };
 
 
@@ -151,6 +153,10 @@ public:
 private:
     const QString rootFolderName;
     QLineEdit *templateNameEdit;
+    QPushButton *importButton;
+
+signals:
+    void importButtonReleased();
 };
 
 
