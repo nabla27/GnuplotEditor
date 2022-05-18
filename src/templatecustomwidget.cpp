@@ -60,6 +60,7 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     connect(templateItemPanel, &TemplateItemPanel::reloadDirRequested, this, &TemplateCustomWidget::reloadTemplateList);
     connect(templateItemPanel, &TemplateItemPanel::createTemplateRequested, this, &TemplateCustomWidget::createNewTemplate);
     connect(templateItemPanel, &TemplateItemPanel::createFolderRequested, this, &TemplateCustomWidget::createNewFolder);
+    connect(editorPanel, &TemplateEditorPanel::importButtonReleased, this, &TemplateCustomWidget::requestImportingTemplate);
 
     /* フォルダーの設定 */
     QDir settingFolderDir(settingFolderPath);
@@ -147,6 +148,11 @@ void TemplateCustomWidget::setupNewFolder(const QString &folderPath)
     connect(item, &TemplateItemWidget::folderSelected, this, &TemplateCustomWidget::setFolder);
     connect(item, &TemplateItemWidget::folderRenamed, editorPanel, &TemplateEditorPanel::renameFolder);
     connect(item, &TemplateItemWidget::folderRemoved, this, &TemplateCustomWidget::removeFolder);
+}
+
+void TemplateCustomWidget::requestImportingTemplate()
+{
+    emit importTemplateRequested(editor->toPlainText());
 }
 
 void TemplateCustomWidget::setTemplate(const QString& filePath)
@@ -532,11 +538,13 @@ TemplateEditorPanel::TemplateEditorPanel(const QString& rootFolderName, QWidget 
     : QWidget(parent)
     , rootFolderName(rootFolderName)
     , templateNameEdit(new QLineEdit(this))
+    , importButton(new QPushButton("import", this))
 {
     QHBoxLayout *hLayout = new QHBoxLayout(this);
 
     setLayout(hLayout);
     hLayout->addWidget(templateNameEdit);
+    hLayout->addWidget(importButton);
 
     templateNameEdit->setReadOnly(true);
 
@@ -544,6 +552,8 @@ TemplateEditorPanel::TemplateEditorPanel(const QString& rootFolderName, QWidget 
     hLayout->setSpacing(0);
     hLayout->setContentsMargins(0, 0, 0, 0);
     setContentsMargins(0, 0, 0, 0);
+
+    connect(importButton, &QPushButton::released, this, &TemplateEditorPanel::importButtonReleased);
 }
 
 void TemplateEditorPanel::setTemplateName(const QString &filePath)
