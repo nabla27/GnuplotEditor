@@ -143,6 +143,10 @@ void TemplateCustomWidget::setupNewFolder(const QString &folderPath)
 
     TemplateItemWidget *item = new TemplateItemWidget(TemplateItemWidget::ItemType::Dir, folderName, folderPath, templateScriptTree);
     templateScriptTreeLayout->addWidget(item);
+
+    connect(item, &TemplateItemWidget::folderSelected, this, &TemplateCustomWidget::setFolder);
+    connect(item, &TemplateItemWidget::folderRenamed, editorPanel, &TemplateEditorPanel::renameFolder);
+    connect(item, &TemplateItemWidget::folderRemoved, this, &TemplateCustomWidget::removeFolder);
 }
 
 void TemplateCustomWidget::setTemplate(const QString& filePath)
@@ -187,6 +191,25 @@ void TemplateCustomWidget::removeTemplate(TemplateItemWidget *item, const QStrin
     delete item;
 }
 
+void TemplateCustomWidget::setFolder(const QString& folderPath)
+{
+    currentTemplateFolderPath = folderPath;
+    templateItemPanel->setFolderName(folderPath.sliced(folderPath.lastIndexOf('/')));
+    setupTemplateList(folderPath);
+}
+
+void TemplateCustomWidget::removeFolder(TemplateItemWidget *item, const QString& folderPath)
+{
+    if(currentTemplateFilePath.contains(folderPath))
+    {
+        editorPanel->setTemplateName("");
+        editor->setPlainText("");
+    }
+
+    templateScriptTreeLayout->removeWidget(item);
+    delete item;
+}
+
 void TemplateCustomWidget::backDirectory()
 {
     if(currentTemplateFolderPath == rootFolderPath) return;
@@ -210,7 +233,7 @@ void TemplateCustomWidget::createNewTemplate()
         newTemplateName = QInputDialog::getText(this, "Create New Template", "Enter the name.");
 
         if(newTemplateName.contains('.'))
-            QMessageBox::critical(this, "File Name Error", "Do not include a suffix.");
+            QMessageBox::critical(this, "Error", "Do not include a suffix.");
         else
             break;
     }
@@ -226,7 +249,7 @@ void TemplateCustomWidget::createNewTemplate()
         newFile.close();
     }
     else
-        QMessageBox::critical(this, "File System Error", "Could not create the file.");
+        QMessageBox::critical(this, "Error", "Could not create the file.");
 }
 
 void TemplateCustomWidget::createNewFolder()
@@ -242,7 +265,7 @@ void TemplateCustomWidget::createNewFolder()
     if(currentDir.mkdir(newFolderPath))
         setupNewFolder(newFolderPath);
     else
-        QMessageBox::critical(this, "File System Error", "Could not create the folder");
+        QMessageBox::critical(this, "Error", "Could not create the folder");
 }
 
 
@@ -308,6 +331,7 @@ TemplateItemWidget::TemplateItemWidget(const ItemType& itemType, const QString& 
     : QWidget(parent)
     , itemType(itemType)
     , filePath(filePath)
+    , typeIcon(new mlayout::IconLabel(this))
     , scriptNameButton(new QPushButton(this))
     , buttonLabel(new QLabel(name, scriptNameButton))
     , toolIcon(new mlayout::IconLabel(this))
@@ -322,11 +346,29 @@ TemplateItemWidget::TemplateItemWidget(const ItemType& itemType, const QString& 
     QHBoxLayout *buttonLayout = new QHBoxLayout(scriptNameButton);
 
     setLayout(hLayout);
+
+    hLayout->addWidget(typeIcon);
     hLayout->addWidget(scriptNameButton);
     hLayout->addWidget(toolIcon);
 
     scriptNameButton->setLayout(buttonLayout);
     buttonLayout->addWidget(buttonLabel);
+
+    switch(itemType)
+    {
+    case ItemType::File:
+        typeIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_FileIcon).pixmap(iconSize, iconSize));
+        break;
+    case ItemType::Dir:
+    {
+        typeIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_DirIcon).pixmap(iconSize, iconSize));
+        QFont font = buttonLabel->font();
+        font.setBold(true);
+        buttonLabel->setFont(font);
+        break;
+    }
+    default: break;
+    }
 
     toolIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_FileDialogDetailedView).pixmap(iconSize, iconSize));
     toolIcon->setHoveredFrameShape(QFrame::Shape::Box);
@@ -390,13 +432,12 @@ void TemplateItemWidget::renameTempalteFile()
     const QString oldFileName = buttonLabel->text();
     const QString newFileName = QInputDialog::getText(this, "Rename", "new file name", QLineEdit::Normal, oldFileName);
 
-    if(newFileName.isEmpty() || newFileName == oldFileName)
-        return;
+    if(newFileName.isEmpty() || newFileName == oldFileName) return;
 
     QFile file(filePath);
     if(!file.exists())
     {
-        QMessageBox::warning(this, "Failed to rename.", "Could not find the file " + filePath);
+        QMessageBox::warning(this, "Error", "Could not find the file " + filePath);
         return;
     }
 
@@ -407,7 +448,7 @@ void TemplateItemWidget::renameTempalteFile()
 
     if(!file.rename(filePath, newFilePath))
     {
-        QMessageBox::critical(this, "Failed to rename.", "Could not rename the file.");
+        QMessageBox::critical(this, "Error", "Could not rename the file.");
         return;
     }
 
@@ -419,7 +460,26 @@ void TemplateItemWidget::renameTempalteFile()
 
 void TemplateItemWidget::renameFolder()
 {
+    const QString oldFolderName = buttonLabel->text();
+    const QString newFolderName = QInputDialog::getText(this, "Rename", "new folder name", QLineEdit::Normal, oldFolderName);
 
+    if(newFolderName.isEmpty() || newFolderName == oldFolderName) return;
+
+    const qsizetype barIndex = filePath.lastIndexOf('/');
+    if(barIndex == qsizetype(-1)) return; //無効なパス
+    const QString newFolderPath = filePath.first(barIndex) + '/' + newFolderName;
+
+    QDir dir(filePath.first(barIndex));
+    if(!dir.rename(oldFolderName, newFolderName))
+    {
+        QMessageBox::critical(this, "Error", "Could not rename the folder.");
+        return;
+    }
+
+    emit folderRenamed(filePath, newFolderPath);
+
+    buttonLabel->setText(newFolderName);
+    filePath = newFolderPath;
 }
 
 void TemplateItemWidget::remove()
@@ -440,12 +500,25 @@ void TemplateItemWidget::removeTemplateFile()
         emit templateRemoved(this, filePath);
     }
     else
-        QMessageBox::critical(this, "Failed to remove.", "Could not remove the file.");
+        QMessageBox::critical(this, "Error", "Could not remove the file.");
 }
 
 void TemplateItemWidget::removeFolder()
 {
 
+    const QMessageBox::StandardButton result = QMessageBox::question(this, "", "Do you remove this \"" + buttonLabel->text() + "\" folder ??");
+
+    if(result != QMessageBox::StandardButton::Yes) return;
+
+    QDir dir(filePath);
+
+    if(!dir.removeRecursively())
+    {
+        QMessageBox::critical(this, "Error", "Counld not remove the folder.");
+        return;
+    }
+
+    emit folderRemoved(this, filePath);
 }
 
 
@@ -477,10 +550,18 @@ void TemplateEditorPanel::setTemplateName(const QString &filePath)
 {
     const qsizetype rootNameIndex = filePath.lastIndexOf(rootFolderName);
 
-    if(rootNameIndex == qsizetype(-1))
+    if(rootNameIndex == qsizetype(-1)) //templateが消された場合などに、filePathにから文字列が渡される
         templateNameEdit->setText(filePath);
     else
-        templateNameEdit->setText(filePath.sliced(filePath.lastIndexOf(rootFolderName)));
+        templateNameEdit->setText(filePath.sliced(rootNameIndex));
+}
+
+void TemplateEditorPanel::renameFolder(const QString &oldFolderPath, const QString &newFolderPath)
+{
+    const QString old = oldFolderPath.sliced(oldFolderPath.lastIndexOf(rootFolderName));
+    const QString next = newFolderPath.sliced(newFolderPath.lastIndexOf(rootFolderName));
+
+    templateNameEdit->setText(templateNameEdit->text().replace(old, next));
 }
 
 
