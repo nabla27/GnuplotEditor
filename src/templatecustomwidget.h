@@ -19,10 +19,15 @@ class TemplateCustomWidget : public QWidget
 public:
     explicit TemplateCustomWidget(QWidget *parent = nullptr);
 
+public slots:
+    void addTemplate(const QString& script);
+
 private:
     void setupTemplateList(const QString& folderPath);
     void setupNewTemplate(const QString& filePath);
     void setupNewFolder(const QString& folderPath);
+
+    void getDirRecursively(const QString& folderPath, QStringList& folderList);
 
 private slots:
     void requestImportingTemplate();

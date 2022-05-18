@@ -88,6 +88,10 @@ ScriptMenu::ScriptMenu(const QString& title, QWidget *parent)
     QAction *const closeProcess = new QAction("Close this process", this);
     addAction(closeProcess);
     connect(closeProcess, &QAction::triggered, this, &ScriptMenu::closeProcessRequested);
+
+    QAction *const saveAsTemplate = new QAction("Save as template", this);
+    addAction(saveAsTemplate);
+    connect(saveAsTemplate, &QAction::triggered, this, &ScriptMenu::saveAsTemplateRequested);
 }
 
 
