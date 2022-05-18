@@ -63,12 +63,18 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     connect(templateItemPanel, &TemplateItemPanel::createTemplateRequested, this, &TemplateCustomWidget::createNewTemplate);
     connect(templateItemPanel, &TemplateItemPanel::createFolderRequested, this, &TemplateCustomWidget::createNewFolder);
     connect(editorPanel, &TemplateEditorPanel::importButtonReleased, this, &TemplateCustomWidget::requestImportingTemplate);
+    connect(editorPanel, &TemplateEditorPanel::readOnlyChanged, editor, &TextEdit::setReadOnly);
 
     /* フォルダーの設定 */
     QDir settingFolderDir(settingFolderPath);
     if(!settingFolderDir.exists()) settingFolderDir.mkdir(settingFolderPath);
     templateItemPanel->setFolderName('/' + rootFolderName);
     setupTemplateList(currentTemplateFolderPath);
+}
+
+TemplateCustomWidget::~TemplateCustomWidget()
+{
+    saveCurrentTemplateFile();
 }
 
 void TemplateCustomWidget::addTemplate(const QString& script)
@@ -211,6 +217,20 @@ void TemplateCustomWidget::setupNewFolder(const QString &folderPath)
     connect(item, &TemplateItemWidget::folderRemoved, this, &TemplateCustomWidget::removeFolder);
 }
 
+void TemplateCustomWidget::saveCurrentTemplateFile()
+{
+    if(currentTemplateFilePath.isEmpty()) return;
+
+    QFile file(currentTemplateFilePath);
+    if(file.open(QFile::OpenModeFlag::WriteOnly))
+    {
+        QTextStream text(&file);
+        text << editor->toPlainText();
+
+        file.close();
+    }
+}
+
 void TemplateCustomWidget::requestImportingTemplate()
 {
     emit importTemplateRequested(editor->toPlainText());
@@ -218,6 +238,9 @@ void TemplateCustomWidget::requestImportingTemplate()
 
 void TemplateCustomWidget::setTemplate(const QString& filePath)
 {
+    /* 現在のテンプレートを保存 */
+    saveCurrentTemplateFile();
+
     QFile file(filePath);
 
     if(!file.exists())
@@ -598,21 +621,25 @@ TemplateEditorPanel::TemplateEditorPanel(const QString& rootFolderName, QWidget 
     : QWidget(parent)
     , rootFolderName(rootFolderName)
     , templateNameEdit(new QLineEdit(this))
+    , readOnlyButton(new QRadioButton("Read", this))
     , importButton(new QPushButton("import", this))
 {
     QHBoxLayout *hLayout = new QHBoxLayout(this);
 
     setLayout(hLayout);
     hLayout->addWidget(templateNameEdit);
+    hLayout->addWidget(readOnlyButton);
     hLayout->addWidget(importButton);
 
     templateNameEdit->setReadOnly(true);
+    readOnlyButton->setChecked(true);
 
     hLayout->setAlignment(Qt::AlignmentFlag::AlignLeft);
     hLayout->setSpacing(0);
     hLayout->setContentsMargins(0, 0, 0, 0);
     setContentsMargins(0, 0, 0, 0);
 
+    connect(readOnlyButton, &QRadioButton::toggled, this, &TemplateEditorPanel::changeReadOnly);
     connect(importButton, &QPushButton::released, this, &TemplateEditorPanel::importButtonReleased);
 }
 
@@ -632,6 +659,20 @@ void TemplateEditorPanel::renameFolder(const QString &oldFolderPath, const QStri
     const QString next = newFolderPath.sliced(newFolderPath.lastIndexOf(rootFolderName));
 
     templateNameEdit->setText(templateNameEdit->text().replace(old, next));
+}
+
+void TemplateEditorPanel::changeReadOnly(const bool isReadOnly)
+{
+    if(isReadOnly)
+    {
+        readOnlyButton->setText("Read");
+        emit readOnlyChanged(true);
+    }
+    else
+    {
+        readOnlyButton->setText("Write");
+        emit readOnlyChanged(false);
+    }
 }
 
 
