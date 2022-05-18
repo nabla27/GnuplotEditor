@@ -59,6 +59,7 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     templateScriptTreeArea->layout()->setSpacing(0);
 
     connect(templateItemPanel, &TemplateItemPanel::backDirRequested, this, &TemplateCustomWidget::backDirectory);
+    connect(templateItemPanel, &TemplateItemPanel::showFolderListRequested, this, &TemplateCustomWidget::showFolderList);
     connect(templateItemPanel, &TemplateItemPanel::reloadDirRequested, this, &TemplateCustomWidget::reloadTemplateList);
     connect(templateItemPanel, &TemplateItemPanel::createTemplateRequested, this, &TemplateCustomWidget::createNewTemplate);
     connect(templateItemPanel, &TemplateItemPanel::createFolderRequested, this, &TemplateCustomWidget::createNewFolder);
@@ -309,6 +310,31 @@ void TemplateCustomWidget::backDirectory()
     setupTemplateList(currentTemplateFolderPath);
 }
 
+void TemplateCustomWidget::showFolderList()
+{
+    QMenu menu(this);
+    QStringList folderList;
+    folderList << rootFolderName;
+    getDirRecursively(rootFolderPath, folderList);
+
+    /* menuからactionが選択されて、actionに設定されたobjectName(=選択されたパス)からフォルダーを設定する */
+    auto setFolderFromAction = [this](QAction *action)
+    {
+        setFolder(settingFolderPath + '/' + action->objectName());
+    };
+
+    for(const QString& folderName : folderList)
+    {
+        QAction *act = new QAction(folderName, &menu);
+        menu.addAction(act);
+        act->setObjectName(folderName);
+    }
+
+    connect(&menu, &QMenu::triggered, setFolderFromAction);
+
+    menu.exec(cursor().pos());
+}
+
 void TemplateCustomWidget::reloadTemplateList()
 {
     setupTemplateList(currentTemplateFolderPath);
@@ -368,6 +394,7 @@ TemplateItemPanel::TemplateItemPanel(QWidget *parent)
     : QWidget(parent)
     , backDirIcon(new mlayout::IconLabel(this))
     , folderNameEdit(new QLineEdit("script-template", this))
+    , folderListIcon(new mlayout::IconLabel(this))
     , reloadDirIcon(new mlayout::IconLabel(this))
     , newFileIcon(new mlayout::IconLabel(this))
     , newFolderIcon(new mlayout::IconLabel(this))
@@ -377,6 +404,7 @@ TemplateItemPanel::TemplateItemPanel(QWidget *parent)
     setLayout(hLayout);
     hLayout->addWidget(backDirIcon);
     hLayout->addWidget(folderNameEdit);
+    hLayout->addWidget(folderListIcon);
     hLayout->addWidget(reloadDirIcon);
     hLayout->addWidget(newFileIcon);
     hLayout->addWidget(newFolderIcon);
@@ -385,16 +413,19 @@ TemplateItemPanel::TemplateItemPanel(QWidget *parent)
 
     constexpr int iconSize = 20;
     backDirIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_FileDialogBack).pixmap(iconSize, iconSize));
+    folderListIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_TitleBarUnshadeButton).pixmap(iconSize / 2, iconSize));
     reloadDirIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_BrowserReload).pixmap(iconSize, iconSize));
     newFileIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_FileIcon).pixmap(iconSize, iconSize));
     newFolderIcon->setPixmap(QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder).pixmap(iconSize, iconSize));
 
     backDirIcon->setHoveredFrameShape(QFrame::Box);
+    folderListIcon->setHoveredFrameShape(QFrame::Box);
     reloadDirIcon->setHoveredFrameShape(QFrame::Box);
     newFileIcon->setHoveredFrameShape(QFrame::Box);
     newFolderIcon->setHoveredFrameShape(QFrame::Box);
 
     backDirIcon->setToolTip("move to parent directory");
+    folderListIcon->setToolTip("folder list");
     reloadDirIcon->setToolTip("realod");
     newFileIcon->setToolTip("create new file");
     newFolderIcon->setToolTip("create new folder");
@@ -404,6 +435,7 @@ TemplateItemPanel::TemplateItemPanel(QWidget *parent)
     setContentsMargins(0, 0, 0, 0);
 
     connect(backDirIcon, &mlayout::IconLabel::released, this, &TemplateItemPanel::backDirRequested);
+    connect(folderListIcon, &mlayout::IconLabel::released, this, &TemplateItemPanel::showFolderListRequested);
     connect(reloadDirIcon, &mlayout::IconLabel::released, this, &TemplateItemPanel::reloadDirRequested);
     connect(newFileIcon, &mlayout::IconLabel::released, this, &TemplateItemPanel::createTemplateRequested);
     connect(newFolderIcon, &mlayout::IconLabel::released, this, &TemplateItemPanel::createFolderRequested);

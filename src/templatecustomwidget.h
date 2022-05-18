@@ -43,6 +43,7 @@ private slots:
     void removeFolder(TemplateItemWidget* item, const QString& folderPath);
 
     void backDirectory();
+    void showFolderList();
     void reloadTemplateList();
     void createNewTemplate();
     void createNewFolder();
@@ -83,12 +84,14 @@ public:
 private:
     mlayout::IconLabel *backDirIcon;
     QLineEdit *folderNameEdit;
+    mlayout::IconLabel *folderListIcon;
     mlayout::IconLabel *reloadDirIcon;
     mlayout::IconLabel *newFileIcon;
     mlayout::IconLabel *newFolderIcon;
 
 signals:
     void backDirRequested();
+    void showFolderListRequested();
     void reloadDirRequested();
     void createTemplateRequested();
     void createFolderRequested();
