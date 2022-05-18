@@ -4,7 +4,7 @@
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QPushButton>
-#include <QPushButton>
+#include <QRadioButton>
 #include <QApplication>
 #include "texteditor.h"
 #include "layoutparts.h"
@@ -18,6 +18,7 @@ class TemplateCustomWidget : public QWidget
     Q_OBJECT
 public:
     explicit TemplateCustomWidget(QWidget *parent = nullptr);
+    ~TemplateCustomWidget();
 
 public slots:
     void addTemplate(const QString& script);
@@ -28,6 +29,8 @@ private:
     void setupNewFolder(const QString& folderPath);
 
     void getDirRecursively(const QString& folderPath, QStringList& folderList);
+
+    void saveCurrentTemplateFile();
 
 private slots:
     void requestImportingTemplate();
@@ -155,13 +158,18 @@ public:
     void setTemplateName(const QString& filePath);
     void renameFolder(const QString& oldFolderPath, const QString& newFolderPath);
 
+private slots:
+    void changeReadOnly(const bool isReadOnly);
+
 private:
     const QString rootFolderName;
     QLineEdit *templateNameEdit;
+    QRadioButton *readOnlyButton;
     QPushButton *importButton;
 
 signals:
     void importButtonReleased();
+    void readOnlyChanged(const bool isReadOnly);
 };
 
 
