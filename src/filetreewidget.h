@@ -97,7 +97,7 @@ public slots:
     void saveAllSheet(){};
 
 private slots:
-    void onCustomContextMenu(const QPoint& pos){};
+    void onCustomContextMenu(const QPoint& pos);
     void selectItem(QTreeWidgetItem *item, int column);
 
     void loadFileTree();
@@ -131,8 +131,8 @@ private:
     QMenu *dirMenu;
 
 signals:
-    void scriptSelected(QTreeWidgetItem *item);
-    void sheetSelected(QTreeWidgetItem *item);
+    void scriptSelected(TreeScriptItem *item);
+    void sheetSelected(TreeSheetItem *item);
     void otherSelected(QTreeWidgetItem *item);
     void scriptRemoved(QTreeWidgetItem *item);
     void sheetRemoved(QTreeWidgetItem *item);

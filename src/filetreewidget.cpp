@@ -69,9 +69,55 @@ void FileTreeWidget::initializeContextMenu()
     }
 }
 
-void FileTreeWidget::selectItem(QTreeWidgetItem *item, int column)
+void FileTreeWidget::onCustomContextMenu(const QPoint& pos)
 {
+    if(selectedItems().count() < 1) return;
 
+    switch(TreeItemType(selectedItems().at(0)->type()))
+    {
+    case TreeItemType::Script:
+    case TreeItemType::Sheet:
+    case TreeItemType::Other:
+    {
+        fileMenu->exec(viewport()->mapToGlobal(pos));
+        break;
+    }
+    case TreeItemType::Dir:
+    case TreeItemType::Root:
+    case TreeItemType::ScriptFolder:
+    case TreeItemType::SheetFolder:
+    case TreeItemType::OtherFolder:
+    {
+        dirMenu->exec(viewport()->mapToGlobal(pos));
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void FileTreeWidget::selectItem(QTreeWidgetItem *item, int)
+{
+    switch(TreeItemType(item->type()))
+    {
+    case TreeItemType::Script:
+        emit scriptSelected(static_cast<TreeScriptItem*>(item));
+        break;
+    case TreeItemType::Sheet:
+        emit sheetSelected(static_cast<TreeSheetItem*>(item));
+        break;
+    case TreeItemType::Other:
+        emit otherSelected(static_cast<TreeOtherItem*>(item));
+        break;
+    case TreeItemType::Dir:
+    case TreeItemType::Root:
+    case TreeItemType::ScriptFolder:
+    case TreeItemType::SheetFolder:
+    case TreeItemType::OtherFolder:
+        break;
+    default:
+        break;
+    }
 }
 
 
