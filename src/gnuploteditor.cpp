@@ -1,7 +1,7 @@
 #include "gnuploteditor.h"
 #include "imagedisplay.h"
 
-
+#include "filetreewidget.h" //DEBUG
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
     , gnuplot(new Gnuplot(this))
@@ -9,6 +9,9 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     , gnuplotSetting(new GnuplotSettingWidget(gnuplot, nullptr))
     , templateCustom(new TemplateCustomWidget(this))
 {
+    FileTreeWidget *test = new FileTreeWidget(nullptr);
+    test->show();
+
     /* ウィンドウをスクリーン画面に対して(0.4,0.5)の比率サイズに設定 */
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
 
