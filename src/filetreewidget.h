@@ -8,71 +8,39 @@
 #include "gnuplottable.h"
 #include "browserwidget.h"
 
-class TreeScriptItem : public QTreeWidgetItem
+class TreeFileItem : public QTreeWidgetItem
+{
+public:
+    explicit TreeFileItem(QTreeWidgetItem *parent, int type)
+        : QTreeWidgetItem(parent, type) {}
+
+public:
+    static QSet<QString> list;
+    QFileInfo info;
+};
+
+class TreeScriptItem : public TreeFileItem
 {
 public:
     explicit TreeScriptItem(QTreeWidgetItem *parent, int type)
-        : QTreeWidgetItem(parent, type) {}
+        : TreeFileItem(parent, type) {}
 
 public:
-    static QStringList list;
     static QStringList suffix;
     TextEdit *editor;
     QProcess *process;
-    QFileInfo info;
 };
 
-
-
-
-
-
-class TreeSheetItem : public QTreeWidgetItem
+class TreeSheetItem : public TreeFileItem
 {
 public:
     explicit TreeSheetItem(QTreeWidgetItem *parent, int type)
-        : QTreeWidgetItem(parent, type) {}
+        : TreeFileItem(parent, type) {}
 
 public:
-    static QStringList list;
     static QStringList suffix;
     GnuplotTable *table;
-    QFileInfo info;
 };
-
-
-
-
-
-
-class TreeOtherItem : public QTreeWidgetItem
-{
-public:
-    explicit TreeOtherItem(QTreeWidgetItem *parent, int type)
-        : QTreeWidgetItem(parent, type) {}
-
-public:
-    static QStringList list;
-    QFileInfo info;
-};
-
-
-
-
-
-class TreeDirItem : public QTreeWidgetItem
-{
-public:
-    explicit TreeDirItem(QTreeWidgetItem *parent, int type)
-        : QTreeWidgetItem(parent, type) {}
-
-public:
-    static QStringList list;
-    QFileInfo info;
-};
-
-
-
 
 
 
@@ -89,7 +57,6 @@ public:
 
 public slots:
     void setFolderPath(const QString& folderPath);
-    void saveAndLoad(){};
     void updateFileTree();
     void addFolder(){};
     void saveFolder(){};
@@ -102,7 +69,7 @@ private slots:
 
     void loadFileTree();
 
-    void renameFile(){};
+    void renameFile();
     void removeFile(){};
     void exportFile(){};
     void addFile(){};

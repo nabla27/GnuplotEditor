@@ -3,10 +3,7 @@
 
 QStringList TreeScriptItem::suffix = QStringList() << "txt";
 QStringList TreeSheetItem::suffix = QStringList() << "csv";
-QStringList TreeScriptItem::list = QStringList();
-QStringList TreeSheetItem::list = QStringList();
-QStringList TreeOtherItem::list = QStringList();
-QStringList TreeDirItem::list = QStringList();
+QSet<QString> TreeFileItem::list = QSet<QString>();
 
 FileTreeWidget::FileTreeWidget(QWidget *parent)
     : QTreeWidget(parent)
@@ -83,14 +80,15 @@ void FileTreeWidget::onCustomContextMenu(const QPoint& pos)
         break;
     }
     case TreeItemType::Dir:
-    case TreeItemType::Root:
-    case TreeItemType::ScriptFolder:
-    case TreeItemType::SheetFolder:
-    case TreeItemType::OtherFolder:
     {
         dirMenu->exec(viewport()->mapToGlobal(pos));
         break;
     }
+    case TreeItemType::Root:
+    case TreeItemType::ScriptFolder:
+    case TreeItemType::SheetFolder:
+    case TreeItemType::OtherFolder:
+        break;
     default:
         break;
     }
@@ -107,7 +105,7 @@ void FileTreeWidget::selectItem(QTreeWidgetItem *item, int)
         emit sheetSelected(static_cast<TreeSheetItem*>(item));
         break;
     case TreeItemType::Other:
-        emit otherSelected(static_cast<TreeOtherItem*>(item));
+        emit otherSelected(static_cast<TreeFileItem*>(item));
         break;
     case TreeItemType::Dir:
     case TreeItemType::Root:
@@ -129,6 +127,8 @@ void FileTreeWidget::loadFileTree()
 {
     /* treeをクリア */
     clear();
+
+    TreeFileItem::list.clear();
 
     setHeaderHidden(true);
 
@@ -170,41 +170,33 @@ void FileTreeWidget::updateGnuplotModelTree(const QString &path)
 {
     QDir dir(path);
     const QList<QFileInfo> infoList = dir.entryInfoList(QDir::Filter::NoDotAndDotDot |
-                                                    QDir::Filter::Dirs |
-                                                    QDir::Filter::Files);
+                                                        QDir::Filter::Dirs |
+                                                        QDir::Filter::Files);
 
     for(const QFileInfo& info : infoList)
     {
-        if(info.isFile())
-        {
-            const QString absPath = info.absoluteFilePath();
+        const QString absPath = info.absoluteFilePath();
+        if(TreeFileItem::list.contains(absPath)) continue;
 
+        if(info.isFile())
+        {   
             if(TreeScriptItem::suffix.contains(info.suffix()))
             {
-                if(TreeScriptItem::list.contains(absPath)) continue;
-
                 TreeScriptItem *item = new TreeScriptItem(scriptFolderItem, (int)TreeItemType::Script);
                 item->setText(0, info.fileName());
                 item->info = info;
-                TreeScriptItem::list << absPath;
             }
             else if(TreeSheetItem::suffix.contains(info.suffix()))
             {
-                if(TreeSheetItem::list.contains(absPath)) continue;
-
                 TreeSheetItem *item = new TreeSheetItem(sheetFolderItem, (int)TreeItemType::Sheet);
                 item->setText(0, info.fileName());
                 item->info = info;
-                TreeSheetItem::list << absPath;
             }
             else
             {
-                if(TreeOtherItem::list.contains(absPath)) continue;
-
-                TreeOtherItem *item = new TreeOtherItem(otherFolderItem, (int)TreeItemType::Other);
+                TreeFileItem *item = new TreeFileItem(otherFolderItem, (int)TreeItemType::Other);
                 item->setText(0, info.fileName());
                 item->info = info;
-                TreeOtherItem::list << absPath;
             }
         }
         else if(info.isDir())
@@ -219,54 +211,38 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
 {
     QDir dir(path);
     const QList<QFileInfo> infoList = dir.entryInfoList(QDir::Filter::NoDotAndDotDot |
-                                                    QDir::Filter::Dirs |
-                                                    QDir::Filter::Files);
+                                                        QDir::Filter::Dirs |
+                                                        QDir::Filter::Files);
 
     for(const QFileInfo& info : infoList)
     {
         const QString absPath = info.absoluteFilePath();
-        qDebug() << absPath;
+        if(TreeFileItem::list.contains(absPath)) continue;
+
         if(info.isFile())
-        {
+        {   
+            TreeFileItem *item;
+
             if(TreeScriptItem::suffix.contains(info.suffix()))
-            {
-                if(TreeScriptItem::list.contains(absPath)) continue;
-
-                TreeScriptItem *item = new TreeScriptItem(parent, (int)TreeItemType::Script);
-                item->setText(0, info.fileName());
-                item->info = info;
-                TreeScriptItem::list << absPath;
-            }
+                item = new TreeScriptItem(parent, (int)TreeItemType::Script);
             else if(TreeSheetItem::suffix.contains(info.suffix()))
-            {
-                if(TreeSheetItem::list.contains(absPath)) continue;
-
-                TreeSheetItem *item = new TreeSheetItem(parent, (int)TreeItemType::Sheet);
-                item->setText(0, info.fileName());
-                item->info = info;
-                TreeSheetItem::list << absPath;
-            }
+                item = new TreeSheetItem(parent, (int)TreeItemType::Sheet);
             else
-            {
-                if(TreeOtherItem::list.contains(absPath)) continue;
+                item = new TreeFileItem(parent, (int)TreeItemType::Other);
 
-                TreeOtherItem *item = new TreeOtherItem(parent, (int)TreeItemType::Other);
-                item->setText(0, info.fileName());
-                item->info = info;
-                TreeOtherItem::list << absPath;
-            }
+            item->setText(0, info.fileName());
+            item->info = info;
+            TreeFileItem::list << absPath;
         }
         else if(info.isDir())
         {
-            if(TreeDirItem::list.contains(absPath)) continue;
-
             //再帰的にサブディレクトリについても設定する
-            TreeDirItem *item = new TreeDirItem(parent, (int)TreeItemType::Dir);
+            TreeFileItem *item = new TreeFileItem(parent, (int)TreeItemType::Dir);
             item->setText(0, info.fileName());
             item->info = info;
             item->setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
             updateFileSystemModelTree(info.absoluteFilePath(), item);
-            TreeDirItem::list << absPath;
+            TreeFileItem::list << absPath;
         }
     }
 }
@@ -297,4 +273,51 @@ void FileTreeWidget::setFolderPath(const QString& folderPath)
     this->folderPath = folderPath;
     dirWatcher->addPath(folderPath);
     loadFileTree();
+}
+
+
+
+
+
+
+
+void FileTreeWidget::renameFile()
+{
+    if(selectedItems().count() < 1) return;
+
+    TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
+
+    if(!item) return;
+
+    const qsizetype dotIndex = item->info.fileName().lastIndexOf('.');
+    const QString oldFileName = (dotIndex == qsizetype(-1)) ? item->info.fileName()
+                                                            : item->info.fileName().first(dotIndex);
+
+    QString newFileName;
+
+    for(;;)
+    {
+        bool ok = false;
+        newFileName = QInputDialog::getText(this, "Rename", "Enter the new name.", QLineEdit::EchoMode::Normal, oldFileName, &ok);
+
+        if(!ok || newFileName.isEmpty()) return;
+
+        if(newFileName.contains('.'))
+            QMessageBox::critical(this, "Error", "Do not include the suffix.");
+        else
+            break;
+    }
+
+    const QString newAbsoluteFilePath = item->info.absoluteFilePath().replace(oldFileName, newFileName);
+    QDir dir(item->info.absolutePath());
+    if(!dir.rename(item->info.absoluteFilePath(), newAbsoluteFilePath))
+    {
+        emit errorCaused("failed to rename the file.", BrowserWidget::MessageType::FileSystemErr);
+        return;
+    }
+
+    TreeFileItem::list.remove(item->info.absoluteFilePath());
+    TreeFileItem::list << newAbsoluteFilePath;
+    item->info.setFile(newAbsoluteFilePath);
+    item->setText(0, item->info.fileName());
 }
