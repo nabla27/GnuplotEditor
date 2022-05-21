@@ -415,3 +415,51 @@ void FileTreeWidget::addFile()
             QMessageBox::critical(this, "Error", "Same name file \"" + filePath + "\" already exists.");
     }
 }
+
+void FileTreeWidget::newFile()
+{
+    if(selectedItems().count() < 1) return;
+
+    TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
+    const QString folderPath = item->info.absoluteFilePath();
+
+    if(!item) return;
+
+    /* 新規ファイルの名前を取得するダイアログ */
+    QString newFileName;
+    for(;;)
+    {
+        bool ok = false;
+        newFileName = QInputDialog::getText(this, "FileTree", "Enter the new file name.", QLineEdit::EchoMode::Normal, "", &ok);
+
+        if(!ok || newFileName.isEmpty()) return;
+
+        if(TreeFileItem::list.contains(folderPath + '/' + newFileName))
+            QMessageBox::critical(this, "Error", "Same name file already exists.");
+        else
+            break;
+    }
+
+    bool ok = false;
+    if(newFileName.contains('.'))
+    {
+        QFile file(folderPath + '/' + newFileName);
+        ok = file.open(QIODevice::OpenModeFlag::NewOnly);
+        file.close();
+    }
+    else
+    {
+        QDir dir(folderPath);
+        ok = dir.mkdir(folderPath + '/' + newFileName);
+    }
+
+    if(!ok)
+        QMessageBox::critical(this, "Error", "Failed to create the new file.");
+
+    /* ファイルが作成されれば、dirWatcherのdirectoryChanged() --> updateFileTree() によってTreeに追加される */
+}
+
+
+
+
+

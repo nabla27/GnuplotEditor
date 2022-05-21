@@ -76,7 +76,7 @@ private slots:
     void removeFile(); //File & Dir
     void exportFile(); //File
     void addFile(); //Dir
-    void newFile(){}; //Dir
+    void newFile(); //Dir
 
 private:
     void initializeContextMenu();
