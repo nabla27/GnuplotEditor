@@ -17,7 +17,9 @@ public:
         : QTreeWidgetItem(parent, type) {}
 
 public:
-    virtual void save() {};
+    virtual void save() {}
+    virtual void load() {}
+
     static QHash<QString, TreeFileItem*> list;
     QFileInfo info;
 };
@@ -26,7 +28,15 @@ class TreeScriptItem : public TreeFileItem
 {
 public:
     explicit TreeScriptItem(QTreeWidgetItem *parent, int type)
-        : TreeFileItem(parent, type) {}
+        : TreeFileItem(parent, type)
+        , editor(new TextEdit(nullptr))
+        , process(new QProcess(nullptr)) {}
+
+    ~TreeScriptItem()
+    {
+        delete editor; editor = nullptr;
+        delete process; process = nullptr;
+    }
 
 public:
     static QStringList suffix;
@@ -38,7 +48,12 @@ class TreeSheetItem : public TreeFileItem
 {
 public:
     explicit TreeSheetItem(QTreeWidgetItem *parent, int type)
-        : TreeFileItem(parent, type) {}
+        : TreeFileItem(parent, type)
+        , table(new GnuplotTable(nullptr)) {}
+    ~TreeSheetItem()
+    {
+        delete table; table = nullptr;
+    }
 
 public:
     static QStringList suffix;
