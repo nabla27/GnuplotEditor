@@ -9,7 +9,6 @@
 
 #include "menubar.h"
 #include "utility.h"
-//#include "filetree.h"
 #include "filetreewidget.h"
 #include "texteditor.h"
 #include "gnuplottable.h"
@@ -67,6 +66,8 @@ private:
     GnuplotSettingWidget *gnuplotSetting;
     TemplateCustomWidget *templateCustom;
 
+    QComboBox *treeModelCombo;
+    QWidget *fileTreeContents;
     FileTreeWidget *fileTree;
     QTabWidget *editorTab;
     QTabWidget *displayTab;

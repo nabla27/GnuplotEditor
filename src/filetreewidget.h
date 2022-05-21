@@ -8,6 +8,7 @@
 #include "texteditor.h"
 #include "gnuplottable.h"
 #include "browserwidget.h"
+#include "iofile.h"
 
 class TreeFileItem : public QTreeWidgetItem
 {
@@ -31,13 +32,23 @@ public:
     explicit TreeScriptItem(QTreeWidgetItem *parent, int type)
         : TreeFileItem(parent, type)
         , editor(nullptr)
-        , process(new QProcess(nullptr)) {}
+        , process(new QProcess(nullptr))
+    {
+        setText(1, "T");
+    }
 
     ~TreeScriptItem()
     {
         delete editor; editor = nullptr;
+        process->close();
         delete process; process = nullptr;
     }
+
+    void save() override
+    { if(editor) toFileTxt(info.absoluteFilePath(), editor->toPlainText()); }
+
+    void load() override
+    { if(editor) editor->setPlainText(readFileTxt(info.absoluteFilePath())); }
 
 public:
     static QStringList suffix;
@@ -56,6 +67,12 @@ public:
         delete table; table = nullptr;
     }
 
+    void save() override
+    { if(table) toFileCsv(info.absoluteFilePath(), table->getData<QString>()); }
+
+    void load() override
+    { if(table) table->setData(readFileCsv(info.absoluteFilePath())); }
+
 public:
     static QStringList suffix;
     GnuplotTable *table;
@@ -72,12 +89,16 @@ class FileTreeWidget : public QTreeWidget
 public:
     FileTreeWidget(QWidget *parent);
 
+    enum class FileTreeModel { FileSystem, Gnuplot };
+    Q_ENUM(FileTreeModel)
+    void setTreeModel(const int type);
     QString currentFolderPath() const { return folderPath; }
 
 public slots:
     void setFolderPath(const QString& folderPath);
     void updateFileTree();
     void saveAllFile();
+    void saveAndLoad();
     //void saveAllScript(){};
     //void saveAllSheet(){};
     void addFolder();
@@ -105,7 +126,6 @@ private:
 
 private:
     enum class TreeItemType { Script = 1000, Sheet, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
-    enum class FileTreeModel { FileSystem, Gnuplot };
 
     FileTreeModel treeModel;
     TreeFileItem *rootTreeItem;

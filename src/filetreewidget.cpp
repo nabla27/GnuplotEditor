@@ -121,6 +121,13 @@ void FileTreeWidget::selectItem(QTreeWidgetItem *item, int)
 
 
 
+void FileTreeWidget::setTreeModel(const int type)
+{
+    treeModel = FileTreeModel(type);
+    loadFileTree();
+}
+
+/* セーブしてからloadしないと保存されないことに注意 */
 void FileTreeWidget::loadFileTree()
 {
     /* treeをクリア */
@@ -291,6 +298,12 @@ void FileTreeWidget::saveAllFile()
 {
     foreach(TreeFileItem *item, TreeFileItem::list)
         item->save();
+}
+
+void FileTreeWidget::saveAndLoad()
+{
+    saveAllFile();
+    loadFileTree();
 }
 
 /* ローカルのフォルダーを選択し、選択されたフォルダーごと、再帰的にコピーしてもってくる */
