@@ -13,6 +13,8 @@ class TreeFileItem : public QTreeWidgetItem
 public:
     explicit TreeFileItem(QTreeWidgetItem *parent, int type)
         : QTreeWidgetItem(parent, type) {}
+    explicit TreeFileItem(QTreeWidget *parent, int type)
+        : QTreeWidgetItem(parent, type) {}
 
 public:
     virtual void save() {};
@@ -73,7 +75,7 @@ private slots:
     void renameFile(); //File & Dir
     void removeFile(); //File & Dir
     void exportFile(); //File
-    void addFile(){}; //Dir
+    void addFile(); //Dir
     void newFile(){}; //Dir
 
 private:
@@ -83,11 +85,11 @@ private:
     void updateFileSystemModelTree(const QString& path, QTreeWidgetItem *parent);
 
 private:
-    enum class TreeItemType { Script = 1000, Sheet, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
+    enum class TreeItemType { Script = 1000, Sheet, Other, Dir, ScriptFolder, SheetFolder, OtherFolder };
     enum class FileTreeModel { FileSystem, Gnuplot };
 
     FileTreeModel treeModel;
-    QTreeWidgetItem *rootTreeItem;
+    TreeFileItem *rootTreeItem;
     QTreeWidgetItem *scriptFolderItem;
     QTreeWidgetItem *sheetFolderItem;
     QTreeWidgetItem *otherFolderItem;

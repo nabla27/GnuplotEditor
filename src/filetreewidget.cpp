@@ -84,7 +84,6 @@ void FileTreeWidget::onCustomContextMenu(const QPoint& pos)
         dirMenu->exec(viewport()->mapToGlobal(pos));
         break;
     }
-    case TreeItemType::Root:
     case TreeItemType::ScriptFolder:
     case TreeItemType::SheetFolder:
     case TreeItemType::OtherFolder:
@@ -108,7 +107,6 @@ void FileTreeWidget::selectItem(QTreeWidgetItem *item, int)
         emit otherSelected(static_cast<TreeFileItem*>(item));
         break;
     case TreeItemType::Dir:
-    case TreeItemType::Root:
     case TreeItemType::ScriptFolder:
     case TreeItemType::SheetFolder:
     case TreeItemType::OtherFolder:
@@ -132,10 +130,12 @@ void FileTreeWidget::loadFileTree()
 
     setHeaderHidden(true);
 
-    rootTreeItem = new QTreeWidgetItem(this, (int)TreeItemType::Root);
+    rootTreeItem = new TreeFileItem(this, (int)TreeItemType::Dir);
     rootTreeItem->setText(0, folderPath.sliced(folderPath.lastIndexOf('/')));
     rootTreeItem->setToolTip(0, folderPath);
     rootTreeItem->setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
+    rootTreeItem->info = QFileInfo(folderPath);
+    TreeFileItem::list.insert(folderPath, rootTreeItem);
 
     switch(treeModel)
     {
@@ -387,4 +387,31 @@ void FileTreeWidget::exportFile()
     if(!ok) emit errorCaused("Could not copy a file \"" + item->info.fileName() + "\"", BrowserWidget::MessageType::FileSystemErr);
 
     removeFile();
+}
+
+void FileTreeWidget::addFile()
+{
+    if(selectedItems().count() < 1) return;
+
+    TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
+
+    if(!item) return;
+
+    /* ファイルを選択するダイアログ。複数選択可能 */
+    const QStringList filePathList = QFileDialog::getOpenFileNames(this);
+
+    for(const QString& filePath : filePathList)
+    {
+        if(!TreeFileItem::list.contains(filePath))
+        {
+            const QString fileName = filePath.sliced(filePath.lastIndexOf('/') + 1);
+            const bool ok = QFile::copy(filePath, item->info.absoluteFilePath() + '/' + fileName);
+
+            /* コピーしてこれば、自動的にdirWatcher::directoryChanged() --> updateFileTree() によってTreeに追加される */
+
+            if(!ok) QMessageBox::critical(this, "Error", "Could not copy the file \"" + filePath + "\".");
+        }
+        else
+            QMessageBox::critical(this, "Error", "Same name file \"" + filePath + "\" already exists.");
+    }
 }
