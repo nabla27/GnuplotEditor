@@ -1,5 +1,6 @@
 #include "gnuploteditor.h"
 #include "imagedisplay.h"
+#include <QMessageBox>
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
@@ -26,16 +27,13 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     fileTree->setFolderPath(path);
     gnuplot->setWorkingDirectory(path);
 
-    connect(this, &GnuplotEditor::workingDirectoryChanged, fileTree, &FileTree::setFolderPath);
+    connect(this, &GnuplotEditor::workingDirectoryChanged, fileTree, &FileTreeWidget::setFolderPath);
     connect(this, &GnuplotEditor::workingDirectoryChanged, gnuplot, &Gnuplot::setWorkingDirectory);
-    connect(fileTree, &FileTree::scriptSelected, this, &GnuplotEditor::setEditorWidget);
-    connect(fileTree, &FileTree::sheetSelected, this, &GnuplotEditor::setSheetWidget);
-    connect(fileTree, &FileTree::otherSelected, this, &GnuplotEditor::setOtherWidget);
-    connect(fileTree, &FileTree::scriptRemoved, this, &GnuplotEditor::setEditorWidget);
-    connect(fileTree, &FileTree::sheetRemoved, this, &GnuplotEditor::setSheetWidget);
-    connect(fileTree, &FileTree::otherRemoved, this, &GnuplotEditor::setOtherWidget);
-    connect(fileTree, &FileTree::fileNameChanged, this, &GnuplotEditor::setMenuBarTitle);
-    connect(fileTree, &FileTree::errorCaused, browserWidget, &BrowserWidget::outputText);
+    connect(fileTree, &FileTreeWidget::scriptSelected, this, &GnuplotEditor::setEditorWidget);
+    connect(fileTree, &FileTreeWidget::sheetSelected, this, &GnuplotEditor::setSheetWidget);
+    connect(fileTree, &FileTreeWidget::otherSelected, this, &GnuplotEditor::setOtherWidget);
+    connect(fileTree, &FileTreeWidget::fileNameChanged, this, &GnuplotEditor::setMenuBarTitle);
+    connect(fileTree, &FileTreeWidget::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(gnuplot, &Gnuplot::standardOutputPassed, this, &GnuplotEditor::receiveGnuplotStdOut);
     connect(gnuplot, &Gnuplot::standardErrorPassed, this, &GnuplotEditor::receiveGnuplotStdErr);
     connect(gnuplot, &Gnuplot::errorCaused, browserWidget, &BrowserWidget::outputText);
@@ -82,11 +80,11 @@ void GnuplotEditor::initializeMenuBar()
 
     setMenuBar(menuBar);
 
-    connect(fileMenu, &FileMenu::reloadFolderPushed, fileTree, &FileTree::saveAndLoad);
-    connect(fileMenu, &FileMenu::updateFolderPushed, fileTree, &FileTree::updateFileTree);
+    //connect(fileMenu, &FileMenu::reloadFolderPushed, fileTree, &FileTree::saveAndLoad);
+    connect(fileMenu, &FileMenu::updateFolderPushed, fileTree, &FileTreeWidget::updateFileTree);
     connect(fileMenu, &FileMenu::openFolderPushed, this, &GnuplotEditor::workingDirectoryChanged);
-    connect(fileMenu, &FileMenu::addFolderPushed, fileTree, &FileTree::addFolder);
-    connect(fileMenu, &FileMenu::saveFolderPushed, fileTree, &FileTree::saveFolder);
+    connect(fileMenu, &FileMenu::addFolderPushed, fileTree, &FileTreeWidget::addFolder);
+    connect(fileMenu, &FileMenu::saveFolderPushed, fileTree, &FileTreeWidget::saveFolder);
     connect(widgetMenu, &WidgetMenu::clearOutputWindowRequested, browserWidget, &BrowserWidget::clear);
     //connect(widgetMenu, &WidgetMenu::clearConsoleWindowPushed, consoleWidget, &);
     connect(widgetMenu, &WidgetMenu::openEditorSettingRequested, editorSetting, &EditorSettingWidget::show);
@@ -108,7 +106,7 @@ void GnuplotEditor::initializeLayout()
 
     /* ウィンドウ内の大枠となるレイアウトとウィジェットの初期化 */
     QHBoxLayout *hLayout = new QHBoxLayout;
-    fileTree = new FileTree(centralWidget());
+    fileTree = new FileTreeWidget(centralWidget());
     VerticalDragBar *fileTreeDragBar = new VerticalDragBar(centralWidget());
     QVBoxLayout *vLayout = new QVBoxLayout;
     editorTab = new QTabWidget(this);
@@ -177,74 +175,75 @@ void GnuplotEditor::connectEditorSetting(TextEdit *const editor)
     editorSetting->set(editor);
 }
 
-void GnuplotEditor::setEditorWidget(const QString& fileName, const ScriptInfo* info)
+void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
 {
-    if(!info){  //infoがnullptr(ツリーから消された場合など)なら
-        if(scriptMenu->title() == fileName) scriptMenu->setTitle("      ");
-        return;
-    }
+    if(!item) return;
 
     /* 前にセットされてたものは削除 */
-    if(gnuplotWidget->widget(gnuplotWidget->currentIndex()))
-        gnuplotWidget->removeWidget(gnuplotWidget->currentWidget());
+    if(QWidget *w = gnuplotWidget->widget(gnuplotWidget->currentIndex()))
+        gnuplotWidget->removeWidget(w);
+
+    /* 初めて表示する場合 */
+    if(!item->editor)
+    {
+        item->editor = new TextEdit(gnuplotWidget);
+        item->load();
+    }
 
     /* 新しくセット */
-    gnuplotWidget->addWidget(info->editor);       //editorのparentは自動的にgnuplotWidgetとなる
-    connectEditorSetting(info->editor);
+    gnuplotWidget->addWidget(item->editor);       //editorのparentは自動的にgnuplotWidgetとなる
+    connectEditorSetting(item->editor);
 
     /* プロセスをセット */
-    gnuplotProcess = info->process;
+    gnuplotProcess = item->process;
 
     /* タブをGnuplotに設定 */
     editorTab->setCurrentIndex(0);
 
     /* メニューバーの名前変更 */
-    scriptMenu->setTitle(fileName);
+    scriptMenu->setTitle(item->info.fileName());
 }
 
-void GnuplotEditor::setSheetWidget(const QString& fileName, const SheetInfo* info)
+void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
 {
-    if(!info){ //infoがnullptr(ツリーから消された場合など)
-        if(sheetMenu->title() == fileName) sheetMenu->setTitle("     ");
-        return;
-    }
+    if(!item) return;
 
     /* 前にセットされてたものは削除 */
-    if(sheetWidget->widget(sheetWidget->currentIndex()))
-        sheetWidget->removeWidget(sheetWidget->currentWidget());
+    if(QWidget *w = sheetWidget->widget(sheetWidget->currentIndex()))
+        sheetWidget->removeWidget(w);
+
+    /* 初めて表示する場合 */
+    if(!item->table)
+    {
+        item->table = new GnuplotTable(sheetWidget);
+        item->load();
+    }
 
     /* 新しくセット */
-    sheetWidget->addWidget(info->table);
-    info->table->setGnuplot(gnuplot);
+    sheetWidget->addWidget(item->table);
+    item->table->setGnuplot(gnuplot);
 
     /* タブをSheetに設定 */
     editorTab->setCurrentIndex(1);
 
     /* メニューバーの名前変更 */
-    sheetMenu->setTitle(fileName);
-    sheetMenu->setAutoUpdateMenuText(info->table->isEnablenotifyUpdating());
+    sheetMenu->setTitle(item->info.fileName());
+    sheetMenu->setAutoUpdateMenuText(item->table->isEnablenotifyUpdating());
 
-    connect(info->table, &GnuplotTable::tableUpdated, this, &GnuplotEditor::executeGnuplot);
-    connect(gnuplotSetting, &GnuplotSettingWidget::autoCompileMsecSet, info->table, &GnuplotTable::setUpdateMsec);
+    connect(item->table, &GnuplotTable::tableUpdated, this, &GnuplotEditor::executeGnuplot);
+    connect(gnuplotSetting, &GnuplotSettingWidget::autoCompileMsecSet, item->table, &GnuplotTable::setUpdateMsec);
 }
 
-void GnuplotEditor::setOtherWidget(const QString& fileName, const OtherInfo* info)
+void GnuplotEditor::setOtherWidget(TreeFileItem *item)
 {
-    if(!info) return; //消された場合
+    if(!item) return; //消された場合
 
-    const qsizetype extStartIndex = fileName.lastIndexOf('.');
+    const QString suffix = item->info.completeSuffix(); //拡張子
 
-    if(extStartIndex == qsizetype(-1) &&    //ドットを含まない
-       fileName.size() <= extStartIndex + 1) //ドット以降に文字がない
-    { return; }
-
-    //拡張子
-    const QString extension = fileName.sliced(extStartIndex + 1);
-
-    if(ImageDisplay::isValidExtension(extension))
+    if(ImageDisplay::isValidExtension(suffix))
     {   //画像の表示
         ImageDisplay *imageDisplay = new ImageDisplay(nullptr);  //ウィンドウ閉じたら自動でdeleteされるよ!
-        imageDisplay->setImageFile(fileTree->currentFolderPath() + "/" + fileName);
+        imageDisplay->setImageFile(item->info.absoluteFilePath());
         imageDisplay->show();
     }
 }
@@ -271,8 +270,7 @@ void GnuplotEditor::executeGnuplot()
     qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->highlightLine();
 
     /* ファイルの保存 */
-    fileTree->saveAllScript();
-    fileTree->saveAllSheet();
+    fileTree->saveAllFile();
 
     /* gnuplotにコマンドを渡す */
     gnuplot->exc(gnuplotProcess, QList<QString>() << "load '" + scriptMenu->title() + "'");

@@ -1,5 +1,8 @@
 #include "filetreewidget.h"
 #include <QApplication>
+#include <QMessageBox>
+#include <QInputDialog>
+#include <QFileDialog>
 
 QStringList TreeScriptItem::suffix = QStringList() << "txt";
 QStringList TreeSheetItem::suffix = QStringList() << "csv";
@@ -14,14 +17,12 @@ FileTreeWidget::FileTreeWidget(QWidget *parent)
     , dirMenu(nullptr)
 {
     setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
-    connect(this, &FileTree::customContextMenuRequested, this, &FileTreeWidget::onCustomContextMenu);
+    connect(this, &FileTreeWidget::customContextMenuRequested, this, &FileTreeWidget::onCustomContextMenu);
     initializeContextMenu();
 
     connect(dirWatcher, &QFileSystemWatcher::directoryChanged, this, &FileTreeWidget::updateFileTree);
 
-    connect(this, &FileTree::itemDoubleClicked, this, &FileTreeWidget::selectItem);
-
-    setFolderPath(QApplication::applicationDirPath() + "/gnuplot-project"); //DEBUG
+    connect(this, &FileTreeWidget::itemDoubleClicked, this, &FileTreeWidget::selectItem);
 }
 
 void FileTreeWidget::initializeContextMenu()
@@ -364,7 +365,6 @@ void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QSt
 
 void FileTreeWidget::renameFile()
 {
-    saveFolder(); return;
     if(selectedItems().count() < 1) return;
 
     TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
@@ -397,6 +397,8 @@ void FileTreeWidget::renameFile()
         emit errorCaused("failed to rename the file.", BrowserWidget::MessageType::FileSystemErr);
         return;
     }
+
+    emit fileNameChanged(item->info.fileName(), newFileName + '.' + item->info.suffix());
 
     TreeFileItem::list.remove(item->info.absoluteFilePath());
     TreeFileItem::list.insert(newAbsoluteFilePath, item);
@@ -439,7 +441,8 @@ void FileTreeWidget::removeFile()
     }
 
     TreeFileItem::list.remove(item->info.absoluteFilePath());
-    selectedItems().takeAt(0)->parent()->removeChild(selectedItems().takeAt(0));
+    selectedItems().takeAt(0)->parent()->removeChild(item);
+    delete item; item = nullptr;
 }
 
 void FileTreeWidget::exportFile()

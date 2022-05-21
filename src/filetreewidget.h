@@ -4,7 +4,8 @@
 #include <QTreeWidget>
 #include <QFileInfo>
 #include <QTreeWidgetItem>
-#include "gnuploteditor.h"
+#include <QFileSystemWatcher>
+#include "texteditor.h"
 #include "gnuplottable.h"
 #include "browserwidget.h"
 
@@ -29,7 +30,7 @@ class TreeScriptItem : public TreeFileItem
 public:
     explicit TreeScriptItem(QTreeWidgetItem *parent, int type)
         : TreeFileItem(parent, type)
-        , editor(new TextEdit(nullptr))
+        , editor(nullptr)
         , process(new QProcess(nullptr)) {}
 
     ~TreeScriptItem()
@@ -49,7 +50,7 @@ class TreeSheetItem : public TreeFileItem
 public:
     explicit TreeSheetItem(QTreeWidgetItem *parent, int type)
         : TreeFileItem(parent, type)
-        , table(new GnuplotTable(nullptr)) {}
+        , table(nullptr) {}
     ~TreeSheetItem()
     {
         delete table; table = nullptr;
@@ -122,10 +123,8 @@ private:
 signals:
     void scriptSelected(TreeScriptItem *item);
     void sheetSelected(TreeSheetItem *item);
-    void otherSelected(QTreeWidgetItem *item);
-    void scriptRemoved(QTreeWidgetItem *item);
-    void sheetRemoved(QTreeWidgetItem *item);
-    void otherRemoved(QTreeWidgetItem *item);
+    void otherSelected(TreeFileItem *item);
+    void fileNameChanged(const QString& oldName, const QString& newName);
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
 };
 
