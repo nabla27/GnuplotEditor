@@ -26,44 +26,37 @@ FileTreeWidget::FileTreeWidget(QWidget *parent)
 
 void FileTreeWidget::initializeContextMenu()
 {
-    {
         if(!fileMenu) delete fileMenu;
+        if(!dirMenu) delete dirMenu;
+        if(!rootMenu) delete rootMenu;
 
         fileMenu = new QMenu(this);
+        dirMenu = new QMenu(this);
+        rootMenu = new QMenu(this);
 
         QAction *actRename = new QAction("Rename", fileMenu);
         QAction *actRemove = new QAction("Remove", fileMenu);
         QAction *actExport = new QAction("Export", fileMenu);
-
-        fileMenu->addAction(actRename);
-        fileMenu->addAction(actRemove);
-        fileMenu->addAction(actExport);
+        QAction *actAdd = new QAction("Add", dirMenu);
+        QAction *actNew = new QAction("New", dirMenu);
 
         connect(actRename, &QAction::triggered, this, &FileTreeWidget::renameFile);
         connect(actRemove, &QAction::triggered, this, &FileTreeWidget::removeFile);
         connect(actExport, &QAction::triggered, this, &FileTreeWidget::exportFile);
-    }
+        connect(actAdd, &QAction::triggered, this, &FileTreeWidget::addFile);
+        connect(actNew, &QAction::triggered, this, &FileTreeWidget::newFile);
 
-    {
-        if(!dirMenu) delete dirMenu;
-
-        dirMenu = new QMenu(this);
-
-        QAction *actAdd = new QAction("Add", dirMenu);
-        QAction *actNew = new QAction("New", dirMenu);
-        QAction *actRename = new QAction("Rename", dirMenu);
-        QAction *actRemove = new QAction("Remove", dirMenu);
+        fileMenu->addAction(actRename);
+        fileMenu->addAction(actRemove);
+        fileMenu->addAction(actExport);
 
         dirMenu->addAction(actAdd);
         dirMenu->addAction(actNew);
         dirMenu->addAction(actRename);
         dirMenu->addAction(actRemove);
 
-        connect(actAdd, &QAction::triggered, this, &FileTreeWidget::addFile);
-        connect(actNew, &QAction::triggered, this, &FileTreeWidget::newFile);
-        connect(actRename, &QAction::triggered, this, &FileTreeWidget::renameFile);
-        connect(actRemove, &QAction::triggered, this, &FileTreeWidget::removeFile);
-    }
+        rootMenu->addAction(actAdd);
+        rootMenu->addAction(actNew);
 }
 
 void FileTreeWidget::onCustomContextMenu(const QPoint& pos)
@@ -82,6 +75,11 @@ void FileTreeWidget::onCustomContextMenu(const QPoint& pos)
     case TreeItemType::Dir:
     {
         dirMenu->exec(viewport()->mapToGlobal(pos));
+        break;
+    }
+    case TreeItemType::Root:
+    {
+        rootMenu->exec(viewport()->mapToGlobal(pos));
         break;
     }
     case TreeItemType::ScriptFolder:
@@ -107,6 +105,7 @@ void FileTreeWidget::selectItem(QTreeWidgetItem *item, int)
         emit otherSelected(static_cast<TreeFileItem*>(item));
         break;
     case TreeItemType::Dir:
+    case TreeItemType::Root:
     case TreeItemType::ScriptFolder:
     case TreeItemType::SheetFolder:
     case TreeItemType::OtherFolder:
@@ -130,7 +129,7 @@ void FileTreeWidget::loadFileTree()
 
     setHeaderHidden(true);
 
-    rootTreeItem = new TreeFileItem(this, (int)TreeItemType::Dir);
+    rootTreeItem = new TreeFileItem(this, (int)TreeItemType::Root);
     rootTreeItem->setText(0, folderPath.sliced(folderPath.lastIndexOf('/')));
     rootTreeItem->setToolTip(0, folderPath);
     rootTreeItem->setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
