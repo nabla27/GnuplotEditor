@@ -76,8 +76,8 @@ private slots:
     void renameFile(); //File & Dir
     void removeFile(); //File & Dir
     void exportFile(); //File
-    void addFile(); //Dir
-    void newFile(); //Dir
+    void addFile(); //Dir & Root
+    void newFile(); //Dir & Root
 
 private:
     void initializeContextMenu();
@@ -88,7 +88,7 @@ private:
     void copyDirectoryRecursively(const QString& fromPath, const QString& toPath);
 
 private:
-    enum class TreeItemType { Script = 1000, Sheet, Other, Dir, ScriptFolder, SheetFolder, OtherFolder };
+    enum class TreeItemType { Script = 1000, Sheet, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
     enum class FileTreeModel { FileSystem, Gnuplot };
 
     FileTreeModel treeModel;
@@ -102,6 +102,7 @@ private:
 
     QMenu *fileMenu;
     QMenu *dirMenu;
+    QMenu *rootMenu;
 
 signals:
     void scriptSelected(TreeScriptItem *item);
