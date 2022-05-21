@@ -124,7 +124,7 @@ void FileTreeWidget::selectItem(QTreeWidgetItem *item, int)
 void FileTreeWidget::loadFileTree()
 {
     /* treeをクリア */
-    clear();
+    clear(); //子TreeItemはdeleteされる(nullptrにはなっていない)
 
     TreeFileItem::list.clear();
 
@@ -287,6 +287,60 @@ void FileTreeWidget::setFolderPath(const QString& folderPath)
 
 
 
+void FileTreeWidget::saveAllFile()
+{
+    foreach(TreeFileItem *item, TreeFileItem::list)
+        item->save();
+}
+
+/* ローカルのフォルダーを選択し、選択されたフォルダーごと、再帰的にコピーしてもってくる */
+void FileTreeWidget::addFolder()
+{
+    /* フォルダー選択 */
+    const QString& folder = QFileDialog::getExistingDirectory(this);
+
+    if(folder.isEmpty()) return;
+
+    /* 再帰的にコピー */
+    copyDirectoryRecursively(folder, folderPath);
+}
+
+void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QString &toPath)
+{
+    QDir dir(fromPath);
+    const QFileInfoList fileInfoList = dir.entryInfoList(QDir::Filter::NoDotAndDotDot |
+                                                         QDir::Filter::Files |
+                                                         QDir::Filter::Dirs);
+
+    for(const QFileInfo& info : fileInfoList)
+    {
+        const QString absPath = info.absoluteFilePath(); //コピーもとのパス
+        const QString makePath = toPath + QDir::separator() + info.fileName(); //コピー先のパス
+
+        if(info.isFile())
+        {
+            const bool ok = QFile::copy(absPath, makePath);
+            if(!ok) emit errorCaused("Could not copy a file \"" + absPath + "\".", BrowserWidget::MessageType::FileSystemErr);
+        }
+        else if(info.isDir())
+        {
+            QDir dir(toPath);
+            const bool ok = dir.mkdir(makePath);
+            if(!ok) emit errorCaused("Could not copy a directory \"" + absPath + "\".", BrowserWidget::MessageType::FileSystemErr);
+
+            copyDirectoryRecursively(absPath, makePath);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
 void FileTreeWidget::renameFile()
 {
     if(selectedItems().count() < 1) return;
@@ -336,7 +390,7 @@ void FileTreeWidget::removeFile()
 
     if(!item) return;
 
-    QMessageBox::StandardButton reply = QMessageBox::question(this, "Remove", "Do you remove this \"" + item->text(0) + "\"??",
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "Remove", "Do you remove this \"" + item->info.fileName() + "\"??",
                                                               QMessageBox::Yes | QMessageBox::No);
     if(reply != QMessageBox::Yes) return;
 
@@ -358,7 +412,7 @@ void FileTreeWidget::removeFile()
 
     if(!ok)
     {
-        emit errorCaused("Failed to remove the file : " + item->text(0), BrowserWidget::MessageType::FileSystemErr);
+        emit errorCaused("Failed to remove the file : " + item->info.fileName(), BrowserWidget::MessageType::FileSystemErr);
         return;
     }
 
@@ -386,6 +440,7 @@ void FileTreeWidget::exportFile()
 
     if(!ok) emit errorCaused("Could not copy a file \"" + item->info.fileName() + "\"", BrowserWidget::MessageType::FileSystemErr);
 
+    /* 削除するか確認する */
     removeFile();
 }
 

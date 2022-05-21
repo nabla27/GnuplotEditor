@@ -61,10 +61,11 @@ public:
 public slots:
     void setFolderPath(const QString& folderPath);
     void updateFileTree();
-    void addFolder(){};
+    void saveAllFile();
+    //void saveAllScript(){};
+    //void saveAllSheet(){};
+    void addFolder();
     void saveFolder(){};
-    void saveAllScript(){};
-    void saveAllSheet(){};
 
 private slots:
     void onCustomContextMenu(const QPoint& pos);
@@ -83,6 +84,8 @@ private:
 
     void updateGnuplotModelTree(const QString& path);
     void updateFileSystemModelTree(const QString& path, QTreeWidgetItem *parent);
+
+    void copyDirectoryRecursively(const QString& fromPath, const QString& toPath);
 
 private:
     enum class TreeItemType { Script = 1000, Sheet, Other, Dir, ScriptFolder, SheetFolder, OtherFolder };
