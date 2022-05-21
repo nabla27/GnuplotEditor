@@ -3,7 +3,7 @@ HEADERS += \
     $$PWD/consolewidget.h \
     $$PWD/editorsettingwidget.h \
     $$PWD/editorsyntaxhighlighter.h \
-    $$PWD/filetree.h \
+    $$PWD/filetreewidget.h \
     $$PWD/gnuplot.h \
     $$PWD/gnuplotcpl.h \
     $$PWD/gnuploteditor.h \
@@ -20,7 +20,7 @@ SOURCES += \
     $$PWD/consolewidget.cpp \
     $$PWD/editorsettingwidget.cpp \
     $$PWD/editorsyntaxhighlighter.cpp \
-    $$PWD/filetree.cpp \
+    $$PWD/filetreewidget.cpp \
     $$PWD/gnuplot.cpp \
     $$PWD/gnuplotcpl.cpp \
     $$PWD/gnuploteditor.cpp \
