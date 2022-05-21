@@ -341,15 +341,19 @@ void FileTreeWidget::removeFile()
     if(reply != QMessageBox::Yes) return;
 
     bool ok = false;
+    const QString absPath = item->info.absoluteFilePath();
     if(item->type() == (int)TreeItemType::Dir)
     {   //ディレクトリの場合の削除
-        QDir dir(item->info.absoluteFilePath());
+        dirWatcher->removePath(absPath);
+        QDir dir(absPath);
         ok = dir.removeRecursively();
+        if(!ok)
+            dirWatcher->addPath(absPath);
     }
     else
     {   //ファイルの場合の削除
         QDir dir(item->info.absolutePath());
-        ok = dir.remove(item->info.absoluteFilePath());
+        ok = dir.remove(absPath);
     }
 
     if(!ok)
@@ -360,4 +364,27 @@ void FileTreeWidget::removeFile()
 
     TreeFileItem::list.remove(item->info.absoluteFilePath());
     selectedItems().takeAt(0)->parent()->removeChild(selectedItems().takeAt(0));
+}
+
+void FileTreeWidget::exportFile()
+{
+    if(selectedItems().count() < 1) return;
+
+    /* 保存するフォルダーパスをダイアログから取得 */
+    const QString pathForSave = QFileDialog::getExistingDirectory(this);
+
+    if(pathForSave.isEmpty()) return;
+
+    TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
+
+    if(!item) return;
+
+    item->save();
+
+    const bool ok = QFile::copy(item->info.absoluteFilePath(),
+                                pathForSave + '/' + item->info.fileName());
+
+    if(!ok) emit errorCaused("Could not copy a file \"" + item->info.fileName() + "\"", BrowserWidget::MessageType::FileSystemErr);
+
+    removeFile();
 }

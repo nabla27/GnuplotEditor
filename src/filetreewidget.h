@@ -15,6 +15,7 @@ public:
         : QTreeWidgetItem(parent, type) {}
 
 public:
+    virtual void save() {};
     static QHash<QString, TreeFileItem*> list;
     QFileInfo info;
 };
@@ -69,11 +70,11 @@ private slots:
 
     void loadFileTree();
 
-    void renameFile();
-    void removeFile();
-    void exportFile(){};
-    void addFile(){};
-    void newFile(){};
+    void renameFile(); //File & Dir
+    void removeFile(); //File & Dir
+    void exportFile(); //File
+    void addFile(){}; //Dir
+    void newFile(){}; //Dir
 
 private:
     void initializeContextMenu();
