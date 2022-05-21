@@ -15,7 +15,7 @@ public:
         : QTreeWidgetItem(parent, type) {}
 
 public:
-    static QSet<QString> list;
+    static QHash<QString, TreeFileItem*> list;
     QFileInfo info;
 };
 
@@ -70,7 +70,7 @@ private slots:
     void loadFileTree();
 
     void renameFile();
-    void removeFile(){};
+    void removeFile();
     void exportFile(){};
     void addFile(){};
     void newFile(){};

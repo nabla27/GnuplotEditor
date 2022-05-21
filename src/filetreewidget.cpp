@@ -3,7 +3,7 @@
 
 QStringList TreeScriptItem::suffix = QStringList() << "txt";
 QStringList TreeSheetItem::suffix = QStringList() << "csv";
-QSet<QString> TreeFileItem::list = QSet<QString>();
+QHash<QString, TreeFileItem*> TreeFileItem::list = QHash<QString, TreeFileItem*>();
 
 FileTreeWidget::FileTreeWidget(QWidget *parent)
     : QTreeWidget(parent)
@@ -176,33 +176,30 @@ void FileTreeWidget::updateGnuplotModelTree(const QString &path)
     for(const QFileInfo& info : infoList)
     {
         const QString absPath = info.absoluteFilePath();
-        if(TreeFileItem::list.contains(absPath)) continue;
 
         if(info.isFile())
-        {   
+        {
+            if(TreeFileItem::list.contains(absPath)) continue;
+
+            TreeFileItem *item;
+
             if(TreeScriptItem::suffix.contains(info.suffix()))
-            {
-                TreeScriptItem *item = new TreeScriptItem(scriptFolderItem, (int)TreeItemType::Script);
-                item->setText(0, info.fileName());
-                item->info = info;
-            }
+                item = new TreeScriptItem(scriptFolderItem, (int)TreeItemType::Script);
             else if(TreeSheetItem::suffix.contains(info.suffix()))
-            {
-                TreeSheetItem *item = new TreeSheetItem(sheetFolderItem, (int)TreeItemType::Sheet);
-                item->setText(0, info.fileName());
-                item->info = info;
-            }
+                item = new TreeSheetItem(sheetFolderItem, (int)TreeItemType::Sheet);
             else
-            {
-                TreeFileItem *item = new TreeFileItem(otherFolderItem, (int)TreeItemType::Other);
-                item->setText(0, info.fileName());
-                item->info = info;
-            }
+                item = new TreeFileItem(otherFolderItem, (int)TreeItemType::Other);
+
+            item->setText(0, info.fileName());
+            item->info = info;
+            TreeFileItem::list.insert(absPath, item);
         }
         else if(info.isDir())
         {
+            dirWatcher->addPath(absPath);
+
             //再帰的にサブディレクトリについても設定する
-            updateGnuplotModelTree(info.absoluteFilePath());
+            updateGnuplotModelTree(absPath);
         }
     }
 }
@@ -217,10 +214,11 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
     for(const QFileInfo& info : infoList)
     {
         const QString absPath = info.absoluteFilePath();
-        if(TreeFileItem::list.contains(absPath)) continue;
 
         if(info.isFile())
         {   
+            if(TreeFileItem::list.contains(absPath)) continue;
+
             TreeFileItem *item;
 
             if(TreeScriptItem::suffix.contains(info.suffix()))
@@ -232,17 +230,23 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
 
             item->setText(0, info.fileName());
             item->info = info;
-            TreeFileItem::list << absPath;
+            TreeFileItem::list.insert(absPath, item);
         }
         else if(info.isDir())
         {
+            if(!TreeFileItem::list.contains(absPath))
+            {
+                TreeFileItem *item = new TreeFileItem(parent, (int)TreeItemType::Dir);
+                item->setText(0, info.fileName());
+                item->info = info;
+                item->setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
+                TreeFileItem::list.insert(absPath, item);
+            }
+
+            dirWatcher->addPath(absPath);
+
             //再帰的にサブディレクトリについても設定する
-            TreeFileItem *item = new TreeFileItem(parent, (int)TreeItemType::Dir);
-            item->setText(0, info.fileName());
-            item->info = info;
-            item->setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
-            updateFileSystemModelTree(info.absoluteFilePath(), item);
-            TreeFileItem::list << absPath;
+            updateFileSystemModelTree(absPath, TreeFileItem::list.value(absPath));
         }
     }
 }
@@ -267,8 +271,10 @@ void FileTreeWidget::setFolderPath(const QString& folderPath)
     //saveAllScript();
     //saveAllSheet();
 
-    if(this->folderPath.isEmpty())
-        dirWatcher->removePath(this->folderPath);
+    /* 以前の監視対象のディレクトリをクリアする */
+    const QStringList previousDirList = dirWatcher->directories();
+    if(!previousDirList.isEmpty())
+        dirWatcher->removePaths(previousDirList);
 
     this->folderPath = folderPath;
     dirWatcher->addPath(folderPath);
@@ -317,7 +323,41 @@ void FileTreeWidget::renameFile()
     }
 
     TreeFileItem::list.remove(item->info.absoluteFilePath());
-    TreeFileItem::list << newAbsoluteFilePath;
+    TreeFileItem::list.insert(newAbsoluteFilePath, item);
     item->info.setFile(newAbsoluteFilePath);
     item->setText(0, item->info.fileName());
+}
+
+void FileTreeWidget::removeFile()
+{
+    if(selectedItems().count() < 1) return;
+
+    TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
+
+    if(!item) return;
+
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "Remove", "Do you remove this \"" + item->text(0) + "\"??",
+                                                              QMessageBox::Yes | QMessageBox::No);
+    if(reply != QMessageBox::Yes) return;
+
+    bool ok = false;
+    if(item->type() == (int)TreeItemType::Dir)
+    {   //ディレクトリの場合の削除
+        QDir dir(item->info.absoluteFilePath());
+        ok = dir.removeRecursively();
+    }
+    else
+    {   //ファイルの場合の削除
+        QDir dir(item->info.absolutePath());
+        ok = dir.remove(item->info.absoluteFilePath());
+    }
+
+    if(!ok)
+    {
+        emit errorCaused("Failed to remove the file : " + item->text(0), BrowserWidget::MessageType::FileSystemErr);
+        return;
+    }
+
+    TreeFileItem::list.remove(item->info.absoluteFilePath());
+    selectedItems().takeAt(0)->parent()->removeChild(selectedItems().takeAt(0));
 }
