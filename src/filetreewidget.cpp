@@ -275,8 +275,7 @@ void FileTreeWidget::updateFileTree()
 
 void FileTreeWidget::setFolderPath(const QString& folderPath)
 {
-    //saveAllScript();
-    //saveAllSheet();
+    saveAllFile();
 
     /* 以前の監視対象のディレクトリをクリアする */
     const QStringList previousDirList = dirWatcher->directories();
