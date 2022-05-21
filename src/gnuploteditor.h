@@ -9,7 +9,7 @@
 
 #include "menubar.h"
 #include "utility.h"
-#include "filetree.h"
+#include "filetreewidget.h"
 #include "texteditor.h"
 #include "gnuplottable.h"
 #include "browserwidget.h"
@@ -34,9 +34,9 @@ private:
     void postProcessing();
 
 private slots:
-    void setEditorWidget(const QString& fileName, const ScriptInfo* info);
-    void setSheetWidget(const QString& fileName, const SheetInfo* info);
-    void setOtherWidget(const QString& fileName, const OtherInfo* info);
+    void setEditorWidget(TreeScriptItem *item);
+    void setSheetWidget(TreeSheetItem *item);
+    void setOtherWidget(TreeFileItem *item);
     void setMenuBarTitle(const QString& oldName, const QString& newName);
 
     void executeGnuplot();
@@ -66,7 +66,9 @@ private:
     GnuplotSettingWidget *gnuplotSetting;
     TemplateCustomWidget *templateCustom;
 
-    FileTree *fileTree;
+    QComboBox *treeModelCombo;
+    QWidget *fileTreeContents;
+    FileTreeWidget *fileTree;
     QTabWidget *editorTab;
     QTabWidget *displayTab;
     QStackedWidget *gnuplotWidget;
