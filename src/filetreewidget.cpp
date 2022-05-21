@@ -301,7 +301,29 @@ void FileTreeWidget::addFolder()
     if(folder.isEmpty()) return;
 
     /* 再帰的にコピー */
-    copyDirectoryRecursively(folder, folderPath);
+    const QString toPath = folderPath + QDir::separator() + folder.sliced(folder.lastIndexOf('/') + 1);
+    QDir dir(toPath);
+    if(dir.mkdir(toPath))
+        copyDirectoryRecursively(folder, toPath);
+    else
+        QMessageBox::critical(this, "Error", "Could not add a folder.");
+}
+
+/* 作業ディレクトリごと指定したディレクトリ下に保存する */
+void FileTreeWidget::saveFolder()
+{
+    /* フォルダー選択 */
+    const QString& folder = QFileDialog::getExistingDirectory(this);
+
+    if(folder.isEmpty()) return;
+
+    /* 再帰的にコピー */
+    const QString toPath = folder + QDir::separator() + folderPath.sliced(folderPath.lastIndexOf('/') + 1);
+    QDir dir(toPath);
+    if(dir.mkdir(toPath))
+        copyDirectoryRecursively(folderPath, toPath);
+    else
+        QMessageBox::critical(this, "Error", "Could not save a folder.");
 }
 
 void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QString &toPath)
@@ -342,6 +364,7 @@ void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QSt
 
 void FileTreeWidget::renameFile()
 {
+    saveFolder(); return;
     if(selectedItems().count() < 1) return;
 
     TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
