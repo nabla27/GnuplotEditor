@@ -65,7 +65,7 @@ public slots:
     //void saveAllScript(){};
     //void saveAllSheet(){};
     void addFolder();
-    void saveFolder(){};
+    void saveFolder();
 
 private slots:
     void onCustomContextMenu(const QPoint& pos);
