@@ -17,6 +17,7 @@ class ConsoleWidget : public QPlainTextEdit
 
 public:
     ConsoleWidget(QWidget *parent);
+    QSize minimumSizeHint() const override { return QSize(0, 0); }
 
 public:
     void setCompleter(QCompleter *c);

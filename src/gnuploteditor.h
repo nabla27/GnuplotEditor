@@ -20,6 +20,18 @@
 #include "gnuplotsettingwidget.h"
 #include "templatecustomwidget.h"
 
+
+
+class TabWidget : public QTabWidget
+{
+    Q_OBJECT
+public:
+    explicit TabWidget(QWidget *parent) : QTabWidget(parent) {}
+
+    QSize minimumSizeHint() const override { return QSize(0, 0); }
+};
+
+
 class GnuplotEditor : public QMainWindow
 {
     Q_OBJECT
@@ -50,9 +62,6 @@ private slots:
     void importTemplate(const QString& script);
     void saveAsTemplate();
 
-    void setFileTreeWidth(const int dx);
-    void setDisplayTabHeight(const int dy);
-
     void reboot();
 
 private:
@@ -66,11 +75,10 @@ private:
     GnuplotSettingWidget *gnuplotSetting;
     TemplateCustomWidget *templateCustom;
 
-    QComboBox *treeModelCombo;
-    QWidget *fileTreeContents;
+    TreeModelCombo *treeModelCombo;
     FileTreeWidget *fileTree;
-    QTabWidget *editorTab;
-    QTabWidget *displayTab;
+    TabWidget *editorTab;
+    TabWidget *displayTab;
     QStackedWidget *gnuplotWidget;
     QStackedWidget *sheetWidget;
     ConsoleWidget *consoleWidget;

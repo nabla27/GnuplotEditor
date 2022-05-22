@@ -1,6 +1,7 @@
 #include "gnuploteditor.h"
 #include "imagedisplay.h"
 #include <QMessageBox>
+#include <QSplitter>
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
@@ -106,70 +107,70 @@ void GnuplotEditor::initializeLayout()
 
     /* ウィンドウ内の大枠となるレイアウトとウィジェットの初期化 */
     QHBoxLayout *hLayout = new QHBoxLayout;
+    QSplitter *mainSplitter = new QSplitter(Qt::Horizontal, centralWidget());
+    QSplitter *editorSplitter = new QSplitter(Qt::Vertical, mainSplitter);
+
+    //左側のファイルツリー
+    QWidget *fileTreeContents = new QWidget(mainSplitter);
     QVBoxLayout *treeLayout = new QVBoxLayout;
-    fileTreeContents = new QWidget(centralWidget());
-    treeModelCombo = new QComboBox(fileTreeContents);
+    treeModelCombo = new TreeModelCombo(fileTreeContents);
     fileTree = new FileTreeWidget(fileTreeContents);
-    VerticalDragBar *fileTreeDragBar = new VerticalDragBar(centralWidget());
+
+    //右側のエディター
     QVBoxLayout *vLayout = new QVBoxLayout;
-    editorTab = new QTabWidget(this);
-    HorizontalDragBar *displayTabDragBar = new HorizontalDragBar(centralWidget());
-    displayTab = new QTabWidget(centralWidget());
+    editorTab = new TabWidget(editorSplitter);
+    displayTab = new TabWidget(editorSplitter);
 
     /* 配置 */
     centralWidget()->setLayout(hLayout);
-    hLayout->addLayout(treeLayout);
-    hLayout->addWidget(fileTreeContents);
+    hLayout->addWidget(mainSplitter);
+    mainSplitter->addWidget(fileTreeContents);
+    mainSplitter->addWidget(editorSplitter);
+
+    //右側のファイルツリー
     fileTreeContents->setLayout(treeLayout);
     treeLayout->addWidget(treeModelCombo);
     treeLayout->addWidget(fileTree);
-    hLayout->addWidget(fileTreeDragBar);
-    hLayout->addLayout(vLayout);
-    vLayout->addWidget(editorTab);
-    vLayout->addWidget(displayTabDragBar);
-    vLayout->addWidget(displayTab);
-    /* 設定 */
+
+    //左側のファイルツリー
+    editorSplitter->addWidget(editorTab);
+    editorSplitter->addWidget(displayTab);
+
     hLayout->setSpacing(0);
-    fileTree->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Expanding);
-    fileTreeContents->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Expanding);
-    fileTreeContents->setMaximumWidth(150);
     vLayout->setSpacing(0);
+    treeLayout->setSpacing(0);
+    hLayout->setContentsMargins(0, 0, 0, 0);
+    mainSplitter->setContentsMargins(0, 0, 0, 0);
+    editorSplitter->setContentsMargins(0, 0, 0, 0);
+    fileTreeContents->setContentsMargins(0, 0, 0, 0);
+    treeLayout->setContentsMargins(0, 0, 0, 0);
+    vLayout->setContentsMargins(0, 0, 0, 0);
+
+    /* widgetサイズの初期化 */
+    const int windowWidth = geometry().width();
+    const int windowHeight = geometry().height();
+    mainSplitter->setSizes(QList<int>() << windowWidth * 0.2 << windowWidth * 0.7);
+    editorSplitter->setSizes(QList<int>() << windowHeight * 0.75 << windowHeight * 0.25);
+
 
     /* 各ウィジェット内のアイテムの初期化 */
     gnuplotWidget = new QStackedWidget(editorTab);
     sheetWidget = new QStackedWidget(editorTab);
     consoleWidget = new ConsoleWidget(displayTab);
     browserWidget = new BrowserWidget(displayTab);
-    /* 配置 */
+
     editorTab->addTab(gnuplotWidget, "&Gnuplot");
     editorTab->addTab(sheetWidget, "&Sheet");
     displayTab->addTab(consoleWidget, "&Console");
     displayTab->addTab(browserWidget, "&Output");
-    /* 設定 */
-    displayTab->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
-    displayTab->setMaximumHeight(150);
-    editorTab->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    centralWidget()->layout()->setContentsMargins(0, 0, 0, 0);
+
     displayTab->setTabPosition(QTabWidget::TabPosition::South);
 
-    treeModelCombo->addItems(enumToStrings(FileTreeWidget::FileTreeModel(0)));
-
-    /* 配色設定 */
-    //setPalette(QPalette(QPalette::Window, Qt::black));
-    //fileTree->setPalette(QPalette(QPalette::Window, Qt::white));
-    //for(int i = 0; i < editorTab->count(); ++i) editorTab->tabBar()->setTabTextColor(i, Qt::black);
-    //for(int i = 0; i < displayTab->count(); ++i) displayTab->tabBar()->setTabTextColor(i, Qt::black);
-    //sheetWidget->setPalette(QPalette(QPalette::Window, Qt::white));
-    //browserWidget->setPalette(QPalette(QPalette::Window, Qt::white));
-
     connect(treeModelCombo, &QComboBox::currentIndexChanged, fileTree, &FileTreeWidget::setTreeModel);
-    connect(fileTreeDragBar, &VerticalDragBar::barDraged, this, &GnuplotEditor::setFileTreeWidth);
-    connect(displayTabDragBar, &HorizontalDragBar::barDraged, this, &GnuplotEditor::setDisplayTabHeight);
 }
 
 void GnuplotEditor::connectEditorSetting(TextEdit *const editor)
 {
-    //editor->setWorkingDirectory(fileTree->currentFolderPath());
     connect(editorSetting, &EditorSettingWidget::backgroundColorSet, editor, &TextEdit::setBackgroundColor);
     connect(editorSetting, &EditorSettingWidget::textColorSet, editor, &TextEdit::setTextColor);
     connect(editorSetting, &EditorSettingWidget::textSizeSet, editor, &TextEdit::setTextSize);
@@ -356,23 +357,6 @@ void GnuplotEditor::saveAsTemplate()
     }
 
     templateCustom->addTemplate(currentEditor->toPlainText());
-}
-
-void GnuplotEditor::setFileTreeWidth(const int dx)
-{
-    const int nextWidth = fileTreeContents->maximumWidth() - dx;
-    if(nextWidth < 0 || nextWidth > 260) return;
-    fileTreeContents->setMaximumWidth(nextWidth);
-    fileTree->setMaximumWidth(nextWidth);
-    treeModelCombo->setMaximumWidth(nextWidth);
-    fileTree->setColumnWidth(0, nextWidth + 50);
-}
-
-void GnuplotEditor::setDisplayTabHeight(const int dy)
-{
-    const int nextHeight = displayTab->maximumHeight() + dy;
-    if(nextHeight < 0 || nextHeight > 600) return;
-    displayTab->setMaximumHeight(nextHeight);
 }
 
 void GnuplotEditor::reboot()

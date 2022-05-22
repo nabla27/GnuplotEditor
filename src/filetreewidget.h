@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QTreeWidgetItem>
 #include <QFileSystemWatcher>
+#include <QComboBox>
 #include "texteditor.h"
 #include "gnuplottable.h"
 #include "browserwidget.h"
@@ -83,6 +84,7 @@ public:
 
 
 
+
 class FileTreeWidget : public QTreeWidget
 {
     Q_OBJECT
@@ -93,6 +95,7 @@ public:
     Q_ENUM(FileTreeModel)
     void setTreeModel(const int type);
     QString currentFolderPath() const { return folderPath; }
+    QSize minimumSizeHint() const override { return QSize(0, 0); }
 
 public slots:
     void setFolderPath(const QString& folderPath);
@@ -147,5 +150,23 @@ signals:
     void fileNameChanged(const QString& oldName, const QString& newName);
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
 };
+
+
+
+
+class TreeModelCombo : public QComboBox
+{
+    Q_OBJECT
+public:
+    explicit TreeModelCombo(QWidget *parent) : QComboBox(parent)
+    {
+        addItems(enumToStrings(FileTreeWidget::FileTreeModel(0)));
+    }
+
+    QSize minimumSizeHint() const override { return QSize(0, 0); }
+};
+
+
+
 
 #endif // FILETREEWIDGET_H
