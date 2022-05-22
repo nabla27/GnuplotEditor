@@ -8,6 +8,10 @@ QStringList TreeScriptItem::suffix = QStringList() << "txt";
 QStringList TreeSheetItem::suffix = QStringList() << "csv";
 QHash<QString, TreeFileItem*> TreeFileItem::list = QHash<QString, TreeFileItem*>();
 
+/* Qtのファイルシステム系の関数はすべて、パスの区切りに'/'を使用している。
+ * しかし、QDir::separator()はWindowsでは'\'を返すため、QDir::separator()を使わずに'/'を使った方が良い
+ */
+
 FileTreeWidget::FileTreeWidget(QWidget *parent)
     : QTreeWidget(parent)
     , treeModel(FileTreeModel::FileSystem)
@@ -197,7 +201,8 @@ void FileTreeWidget::updateGnuplotModelTree(const QString &path)
             else
                 item = new TreeFileItem(otherFolderItem, (int)TreeItemType::Other);
 
-            item->setText(0, info.fileName());
+            const QString rootFolderName = rootTreeItem->info.fileName();
+            item->setText(0, absPath.sliced(absPath.lastIndexOf(rootFolderName) + rootFolderName.count() + 1)); //作業ディレクトリからの相対パスを表示する
             item->info = info;
             TreeFileItem::list.insert(absPath, item);
         }
@@ -314,7 +319,7 @@ void FileTreeWidget::addFolder()
     if(folder.isEmpty()) return;
 
     /* 再帰的にコピー */
-    const QString toPath = folderPath + QDir::separator() + folder.sliced(folder.lastIndexOf('/') + 1);
+    const QString toPath = folderPath + '/' + folder.sliced(folder.lastIndexOf('/') + 1);
     QDir dir(toPath);
     if(dir.mkdir(toPath))
         copyDirectoryRecursively(folder, toPath);
@@ -331,7 +336,7 @@ void FileTreeWidget::saveFolder()
     if(folder.isEmpty()) return;
 
     /* 再帰的にコピー */
-    const QString toPath = folder + QDir::separator() + folderPath.sliced(folderPath.lastIndexOf('/') + 1);
+    const QString toPath = folder + '/' + folderPath.sliced(folderPath.lastIndexOf('/') + 1);
     QDir dir(toPath);
     if(dir.mkdir(toPath))
         copyDirectoryRecursively(folderPath, toPath);
@@ -349,7 +354,7 @@ void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QSt
     for(const QFileInfo& info : fileInfoList)
     {
         const QString absPath = info.absoluteFilePath(); //コピーもとのパス
-        const QString makePath = toPath + QDir::separator() + info.fileName(); //コピー先のパス
+        const QString makePath = toPath + '/' + info.fileName(); //コピー先のパス
 
         if(info.isFile())
         {
