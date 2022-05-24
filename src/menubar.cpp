@@ -192,7 +192,7 @@ void MenuBarWidget::initializeMenu()
 
 void MenuBarWidget::changeAutoUpdateSheetMenuText(const bool isAuto)
 {
-    if(isAuto)
+    if(!isAuto)
         autoUpdateAction->setText("Enable auto updating");
     else
         autoUpdateAction->setText("Disable auto updating");
