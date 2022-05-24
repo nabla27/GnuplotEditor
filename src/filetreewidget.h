@@ -11,8 +11,9 @@
 #include "browserwidget.h"
 #include "iofile.h"
 
-class TreeFileItem : public QTreeWidgetItem
+class TreeFileItem : public QObject, public QTreeWidgetItem
 {
+    Q_OBJECT
 public:
     explicit TreeFileItem(QTreeWidgetItem *parent, int type)
         : QTreeWidgetItem(parent, type) {}
@@ -25,7 +26,14 @@ public:
 
     static QHash<QString, TreeFileItem*> list;
     QFileInfo info;
+
+signals:
+    void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
 };
+
+
+
+
 
 class TreeScriptItem : public TreeFileItem
 {
@@ -33,10 +41,7 @@ public:
     explicit TreeScriptItem(QTreeWidgetItem *parent, int type)
         : TreeFileItem(parent, type)
         , editor(nullptr)
-        , process(new QProcess(nullptr))
-    {
-        setText(1, "T");
-    }
+        , process(new QProcess(nullptr)) {}
 
     ~TreeScriptItem()
     {
@@ -46,16 +51,39 @@ public:
     }
 
     void save() override
-    { if(editor) toFileTxt(info.absoluteFilePath(), editor->toPlainText()); }
+    {
+        if(editor)
+        {
+            bool ok = false;
+            toFileTxt(info.absoluteFilePath(), editor->toPlainText(), &ok);
+            if(!ok)
+                emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
+                                 BrowserWidget::MessageType::FileSystemErr);
+        }
+
+    }
 
     void load() override
-    { if(editor) editor->setPlainText(readFileTxt(info.absoluteFilePath())); }
+    {
+        if(editor)
+        {
+            bool ok = false;
+            editor->setPlainText(readFileTxt(info.absoluteFilePath(), &ok));
+            if(!ok)
+                emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
+                                 BrowserWidget::MessageType::FileSystemErr);
+        }
+    }
 
 public:
     static QStringList suffix;
     TextEdit *editor;
     QProcess *process;
 };
+
+
+
+
 
 class TreeSheetItem : public TreeFileItem
 {
@@ -69,10 +97,28 @@ public:
     }
 
     void save() override
-    { if(table) toFileCsv(info.absoluteFilePath(), table->getData<QString>()); }
+    {
+        if(table)
+        {
+            bool ok = false;
+            toFileCsv(info.absoluteFilePath(), table->getData<QString>(), &ok);
+            if(!ok)
+                emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
+                                 BrowserWidget::MessageType::FileSystemErr);
+        }
+    }
 
     void load() override
-    { if(table) table->setData(readFileCsv(info.absoluteFilePath())); }
+    {
+        if(table)
+        {
+            bool ok = false;
+            table->setData(readFileCsv(info.absoluteFilePath(), &ok));
+            if(!ok)
+                emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
+                                 BrowserWidget::MessageType::FileSystemErr);
+        }
+    }
 
 public:
     static QStringList suffix;
