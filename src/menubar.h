@@ -4,6 +4,7 @@
 #include <QAction>
 #include <QFileDialog>
 #include <QPushButton>
+#include "filetreewidget.h"
 #include "layoutparts.h"
 
 
@@ -68,15 +69,16 @@ public:
     explicit MenuBarWidget(QWidget *parent = nullptr);
 
 public:
-    void setScript(const QFileInfo& info);
-    void setSheet(const QFileInfo& info);
+    void setScript(TreeFileItem *item);
+    void setSheet(TreeFileItem *item);
     void changeAutoUpdateSheetMenuText(const bool isAuto);
 
-    QString scriptName() const { return scriptButton->text(); }
-    QString sheetName() const { return sheetButton->text(); }
 
 private slots:
     void initializeMenu();
+    void setName(TreeFileItem *item);
+    void removeScript();
+    void removeSheet();
 
 private:
     const QString activeButtonSheet = "QPushButton { background: transparent; text-align: left; } QPushButton:hover { background-color: rgb(231, 241, 255); }";
@@ -95,6 +97,11 @@ private:
     QMenu *scriptMenu;
     QMenu *sheetMenu;
     QAction *autoUpdateAction;
+
+    QMetaObject::Connection renameScriptConnection;
+    QMetaObject::Connection removeScriptConnection;
+    QMetaObject::Connection renameSheetConnection;
+    QMetaObject::Connection removeSheetConnection;
 
 signals:
     void closeProcessRequested();

@@ -12,7 +12,7 @@
     </textColor>
     <textSize>15</textSize>
     <tabSpace>20</tabSpace>
-    <wrap>true</wrap>
+    <wrap>false</wrap>
     <itaric>false</itaric>
     <bold>false</bold>
     <mainCmdColor>

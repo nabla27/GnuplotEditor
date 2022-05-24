@@ -33,8 +33,6 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     connect(fileTree, &FileTreeWidget::scriptSelected, this, &GnuplotEditor::setEditorWidget);
     connect(fileTree, &FileTreeWidget::sheetSelected, this, &GnuplotEditor::setSheetWidget);
     connect(fileTree, &FileTreeWidget::otherSelected, this, &GnuplotEditor::setOtherWidget);
-    connect(fileTree, &FileTreeWidget::fileRenamed, this, &GnuplotEditor::renameItem);
-    connect(fileTree, &FileTreeWidget::fileRemoved, this, &GnuplotEditor::clearItem);
     connect(fileTree, &FileTreeWidget::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(gnuplot, &Gnuplot::standardOutputPassed, this, &GnuplotEditor::receiveGnuplotStdOut);
     connect(gnuplot, &Gnuplot::standardErrorPassed, this, &GnuplotEditor::receiveGnuplotStdErr);
@@ -212,7 +210,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     editorTab->setCurrentIndex(0);
 
     /* メニューバーの名前変更 */
-    menuBarWidget->setScript(item->info);
+    menuBarWidget->setScript(item);
 }
 
 void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
@@ -240,7 +238,7 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     editorTab->setCurrentIndex(1);
 
     /* メニューバーの名前変更 */
-    menuBarWidget->setSheet(item->info);
+    menuBarWidget->setSheet(item);
     menuBarWidget->changeAutoUpdateSheetMenuText(item->table->isEnablenotifyUpdating());
 
     connect(item->table, &GnuplotTable::tableUpdated, this, &GnuplotEditor::executeGnuplot);
@@ -261,34 +259,10 @@ void GnuplotEditor::setOtherWidget(TreeFileItem *item)
     }
 }
 
-void GnuplotEditor::renameItem(TreeFileItem *item)
-{
-    if(!item) return;
-
-    if(currentScript == item)
-        menuBarWidget->setScript(item->info);
-    else if(currentSheet == item)
-        menuBarWidget->setSheet(item->info);
-}
-
-void GnuplotEditor::clearItem(TreeFileItem *item)
-{
-    if(!item) return;
-
-    if(currentScript == item)
-    {
-        menuBarWidget->setScript(QFileInfo());
-        currentScript = nullptr;
-    }
-    else
-    {
-        menuBarWidget->setSheet(QFileInfo());
-        currentSheet = nullptr;
-    }
-}
-
 void GnuplotEditor::executeGnuplot()
 {
+    if(!currentScript) return;
+
     /* browserの過去の出力をグレイアウト */
     browserWidget->grayOutAll();
 
@@ -299,14 +273,14 @@ void GnuplotEditor::executeGnuplot()
     }
 
     /* エラー行のリセット */
-    qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->setErrorLineNumber(-1);
-    qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->highlightLine();
+    qobject_cast<TextEdit*>(gnuplotWidget->currentWidget())->setErrorLineNumber(-1);
+    qobject_cast<TextEdit*>(gnuplotWidget->currentWidget())->highlightLine();
 
     /* ファイルの保存 */
     fileTree->saveAllFile();
 
     /* gnuplotにコマンドを渡す */
-    gnuplot->exc(gnuplotProcess, QList<QString>() << "load '" + menuBarWidget->scriptName() + "'");
+    gnuplot->exc(gnuplotProcess, QList<QString>() << "load '" + currentScript->info.absoluteFilePath() + "'");
 }
 
 void GnuplotEditor::receiveGnuplotStdOut(const QString& text)
@@ -337,8 +311,8 @@ void GnuplotEditor::moveSheetToNewWindow()
     {
         widget->setParent(nullptr);
         widget->show();
-        widget->setWindowTitle("GnuplotEditor  " + menuBarWidget->sheetName());
-        menuBarWidget->setSheet(QFileInfo());
+        widget->setWindowTitle("GnuplotEditor  " + currentSheet->info.fileName());
+        menuBarWidget->setSheet(nullptr);
     }
 }
 
