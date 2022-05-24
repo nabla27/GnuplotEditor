@@ -61,23 +61,15 @@ void GnuplotEditor::initializeMenuBar()
 
     WindowMenuBar *menuBar = new WindowMenuBar(this);
 
-    FileMenu *const fileMenu = new FileMenu("File", menuBar);
-    WidgetMenu *const widgetMenu = new WidgetMenu("Widget", menuBar);
-    HelpMenu *const helpMenu = new HelpMenu("Help", menuBar);
-    QAction *const blank1 = new QAction("         ", menuBar);
-    scriptMenu = new ScriptMenu("      ", menuBar);
-    sheetMenu = new SheetMenu("     ", menuBar);
-    QAction *const blank2 = new QAction("         ", menuBar);
-    QAction *const runAction = new QAction("&Run", menuBar);
+    FileMenu *fileMenu = new FileMenu("File", menuBar);
+    WidgetMenu *widgetMenu = new WidgetMenu("Widget", menuBar);
+    HelpMenu *helpMenu = new HelpMenu("Help", menuBar);
+    menuBarWidget = new MenuBarWidget(menuBar);
 
     menuBar->addMenu(fileMenu);
     menuBar->addMenu(widgetMenu);
     menuBar->addMenu(helpMenu);
-    menuBar->addAction(blank1);
-    menuBar->addMenu(scriptMenu);
-    menuBar->addMenu(sheetMenu);
-    menuBar->addAction(blank2);
-    menuBar->addAction(runAction);
+    menuBar->setCornerWidget(menuBarWidget);
 
     setMenuBar(menuBar);
 
@@ -92,11 +84,12 @@ void GnuplotEditor::initializeMenuBar()
     connect(widgetMenu, &WidgetMenu::openGnuplotSettingRequested, gnuplotSetting, &GnuplotSettingWidget::show);
     connect(widgetMenu, &WidgetMenu::openTemplateCustomRequested, templateCustom, &TemplateCustomWidget::show);
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
-    connect(scriptMenu, &ScriptMenu::closeProcessRequested, this, &GnuplotEditor::closeCurrentProcess);
-    connect(scriptMenu, &ScriptMenu::saveAsTemplateRequested, this, &GnuplotEditor::saveAsTemplate);
-    connect(sheetMenu, &SheetMenu::openInNewWindowRequested, this, &GnuplotEditor::moveSheetToNewWindow);
-    connect(sheetMenu, &SheetMenu::autoTableUpdateRequested, this, &GnuplotEditor::changeSheetAutoUpdating);
-    connect(runAction, &QAction::triggered, this, &GnuplotEditor::executeGnuplot);
+
+    connect(menuBarWidget, &MenuBarWidget::closeProcessRequested, this, &GnuplotEditor::closeCurrentProcess);
+    connect(menuBarWidget, &MenuBarWidget::saveAsTemplateRequested, this, &GnuplotEditor::saveAsTemplate);
+    connect(menuBarWidget, &MenuBarWidget::openInNewWindowRequested, this, &GnuplotEditor::moveSheetToNewWindow);
+    connect(menuBarWidget, &MenuBarWidget::autoSheetUpdateRequested, this, &GnuplotEditor::changeSheetAutoUpdating);
+    connect(menuBarWidget, &MenuBarWidget::runRequested, this, &GnuplotEditor::executeGnuplot);
 }
 
 void GnuplotEditor::initializeLayout()
@@ -216,7 +209,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     editorTab->setCurrentIndex(0);
 
     /* メニューバーの名前変更 */
-    scriptMenu->setTitle(item->info.fileName());
+    menuBarWidget->setScriptName(item->info.fileName());
 }
 
 void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
@@ -242,8 +235,8 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     editorTab->setCurrentIndex(1);
 
     /* メニューバーの名前変更 */
-    sheetMenu->setTitle(item->info.fileName());
-    sheetMenu->setAutoUpdateMenuText(item->table->isEnablenotifyUpdating());
+    menuBarWidget->setSheetName(item->info.fileName());
+    menuBarWidget->changeAutoUpdateSheetMenuText(item->table->isEnablenotifyUpdating());
 
     connect(item->table, &GnuplotTable::tableUpdated, this, &GnuplotEditor::executeGnuplot);
     connect(gnuplotSetting, &GnuplotSettingWidget::autoCompileMsecSet, item->table, &GnuplotTable::setUpdateMsec);
@@ -265,8 +258,8 @@ void GnuplotEditor::setOtherWidget(TreeFileItem *item)
 
 void GnuplotEditor::setMenuBarTitle(const QString& oldName, const QString& newName)
 {
-    if(scriptMenu->title() == oldName) scriptMenu->setTitle(newName);
-    else if(sheetMenu->title() == oldName) sheetMenu->setTitle(newName);
+    //if(scriptMenu->title() == oldName) scriptMenu->setTitle(newName);
+    //else if(sheetMenu->title() == oldName) sheetMenu->setTitle(newName);
 }
 
 void GnuplotEditor::executeGnuplot()
@@ -288,7 +281,7 @@ void GnuplotEditor::executeGnuplot()
     fileTree->saveAllFile();
 
     /* gnuplotにコマンドを渡す */
-    gnuplot->exc(gnuplotProcess, QList<QString>() << "load '" + scriptMenu->title() + "'");
+    gnuplot->exc(gnuplotProcess, QList<QString>() << "load '" + menuBarWidget->scriptName() + "'");
 }
 
 void GnuplotEditor::receiveGnuplotStdOut(const QString& text)
@@ -319,8 +312,8 @@ void GnuplotEditor::moveSheetToNewWindow()
     {
         widget->setParent(nullptr);
         widget->show();
-        widget->setWindowTitle("GnuplotEditor  " + sheetMenu->title());
-        sheetMenu->setTitle("");
+        widget->setWindowTitle("GnuplotEditor  " + menuBarWidget->sheetName());
+        menuBarWidget->setSheetName("");
     }
 }
 
@@ -329,7 +322,7 @@ void GnuplotEditor::changeSheetAutoUpdating()
     if(GnuplotTable *table = qobject_cast<GnuplotTable*>(sheetWidget->currentWidget()))
     {
         table->changeUpdateNotification();
-        sheetMenu->setAutoUpdateMenuText(table->isEnablenotifyUpdating());
+        menuBarWidget->changeAutoUpdateSheetMenuText(table->isEnablenotifyUpdating());
     }
 }
 
