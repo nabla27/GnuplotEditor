@@ -16,9 +16,9 @@ class TreeFileItem : public QObject, public QTreeWidgetItem
     Q_OBJECT
 public:
     explicit TreeFileItem(QTreeWidgetItem *parent, int type)
-        : QTreeWidgetItem(parent, type) {}
+        : QTreeWidgetItem(parent, type) { setFileIcon(); }
     explicit TreeFileItem(QTreeWidget *parent, int type)
-        : QTreeWidgetItem(parent, type) {}
+        : QTreeWidgetItem(parent, type) { setFileIcon(); }
 
 public:
     virtual void save() {}
@@ -32,6 +32,13 @@ public:
 
     static QHash<QString, TreeFileItem*> list;
     QFileInfo info;
+
+private:
+    const QPixmap scriptIcon = QPixmap(":/icon/file_code");
+    const QPixmap sheetIcon = QPixmap(":/icon/file_doc");
+    const QPixmap otherIcon = QPixmap(":/icon/file_normal");
+    const QIcon folderIcon = QApplication::style()->standardIcon(QStyle::SP_DirIcon);
+    void setFileIcon();
 
 signals:
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
@@ -48,10 +55,7 @@ public:
     explicit TreeScriptItem(QTreeWidgetItem *parent, int type)
         : TreeFileItem(parent, type)
         , editor(nullptr)
-        , process(new QProcess(nullptr))
-    {
-        setIcon(0, QPixmap(":/icon/icon_code"));
-    }
+        , process(new QProcess(nullptr)) {}
 
     ~TreeScriptItem()
     {
@@ -100,10 +104,7 @@ class TreeSheetItem : public TreeFileItem
 public:
     explicit TreeSheetItem(QTreeWidgetItem *parent, int type)
         : TreeFileItem(parent, type)
-        , table(nullptr)
-    {
-        setIcon(0, QPixmap(":/icon/icon_doc"));
-    }
+        , table(nullptr) {}
 
     ~TreeSheetItem()
     {
@@ -192,6 +193,10 @@ private:
     QTreeWidgetItem *scriptFolderItem;
     QTreeWidgetItem *sheetFolderItem;
     QTreeWidgetItem *otherFolderItem;
+
+    const QPixmap scriptIcon = QPixmap(":/icon/file_code");
+    const QPixmap sheetIcon = QPixmap(":/icon/file_doc");
+    const QPixmap otherIcon = QPixmap(":/icon/file_normal");
 
     QString folderPath;
     QFileSystemWatcher *dirWatcher;

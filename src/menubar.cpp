@@ -123,8 +123,8 @@ MenuBarWidget::MenuBarWidget(QWidget *parent)
 
     initializeMenu();
 
-    scriptIcon->setPixmap(QPixmap(":/icon/icon_code").scaled(barHeight, barHeight));
-    sheetIcon->setPixmap(QPixmap(":/icon/icon_doc").scaled(barHeight, barHeight));
+    scriptIcon->setPixmap(QPixmap(":/icon/file_code").scaled(barHeight, barHeight));
+    sheetIcon->setPixmap(QPixmap(":/icon/file_doc").scaled(barHeight, barHeight));
 
     scriptButton->setFixedHeight(barHeight);
     sheetButton->setFixedHeight(barHeight);

@@ -8,8 +8,36 @@ QStringList TreeScriptItem::suffix = QStringList() << "txt";
 QStringList TreeSheetItem::suffix = QStringList() << "csv";
 QHash<QString, TreeFileItem*> TreeFileItem::list = QHash<QString, TreeFileItem*>();
 
+void TreeFileItem::setFileIcon()
+{
+    switch (FileTreeWidget::TreeItemType(type()))
+    {
+    case FileTreeWidget::TreeItemType::Script:
+        setIcon(0, scriptIcon); break;
+    case FileTreeWidget::TreeItemType::Sheet:
+        setIcon(0, sheetIcon); break;
+    case FileTreeWidget::TreeItemType::Other:
+        setIcon(0, otherIcon); break;
+    case FileTreeWidget::TreeItemType::Dir:
+    case FileTreeWidget::TreeItemType::Root:
+    case FileTreeWidget::TreeItemType::ScriptFolder:
+    case FileTreeWidget::TreeItemType::SheetFolder:
+    case FileTreeWidget::TreeItemType::OtherFolder:
+        setIcon(0, folderIcon);
+        break;
+    default:
+        break;
+    }
+}
+
+
+
+
 /* Qtのファイルシステム系の関数はすべて、パスの区切りに'/'を使用している。
  * しかし、QDir::separator()はWindowsでは'\'を返すため、QDir::separator()を使わずに'/'を使った方が良い
+ *
+ * FileTreeのアイテムはすべてTreeFileItemかその派生を使う。アイコンがコンストラクタで設定される。
+ * QTreeWidgetItemを直接使わない。
  */
 
 FileTreeWidget::FileTreeWidget(QWidget *parent)
@@ -144,7 +172,6 @@ void FileTreeWidget::loadFileTree()
     rootTreeItem = new TreeFileItem(this, (int)TreeItemType::Root);
     rootTreeItem->setText(0, folderPath.sliced(folderPath.lastIndexOf('/')));
     rootTreeItem->setToolTip(0, folderPath);
-    rootTreeItem->setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
     rootTreeItem->info = QFileInfo(folderPath);
     TreeFileItem::list.insert(folderPath, rootTreeItem);
 
@@ -157,17 +184,13 @@ void FileTreeWidget::loadFileTree()
     }
     case FileTreeModel::Gnuplot:
     {
-        scriptFolderItem = new QTreeWidgetItem(rootTreeItem, (int)TreeItemType::ScriptFolder);
-        sheetFolderItem = new QTreeWidgetItem(rootTreeItem, (int)TreeItemType::SheetFolder);
-        otherFolderItem = new QTreeWidgetItem(rootTreeItem, (int)TreeItemType::OtherFolder);
+        scriptFolderItem = new TreeFileItem(rootTreeItem, (int)TreeItemType::ScriptFolder);
+        sheetFolderItem = new TreeFileItem(rootTreeItem, (int)TreeItemType::SheetFolder);
+        otherFolderItem = new TreeFileItem(rootTreeItem, (int)TreeItemType::OtherFolder);
 
         scriptFolderItem->setText(0, "Script");
         sheetFolderItem->setText(0, "Sheet");
         otherFolderItem->setText(0, "Other");
-
-        scriptFolderItem->setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
-        sheetFolderItem->setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
-        otherFolderItem->setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
 
         updateGnuplotModelTree(folderPath);
         break;
@@ -251,7 +274,6 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
                 TreeFileItem *item = new TreeFileItem(parent, (int)TreeItemType::Dir);
                 item->setText(0, info.fileName());
                 item->info = info;
-                item->setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
                 TreeFileItem::list.insert(absPath, item);
             }
 
