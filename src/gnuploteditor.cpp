@@ -33,6 +33,8 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     connect(fileTree, &FileTreeWidget::scriptSelected, this, &GnuplotEditor::setEditorWidget);
     connect(fileTree, &FileTreeWidget::sheetSelected, this, &GnuplotEditor::setSheetWidget);
     connect(fileTree, &FileTreeWidget::otherSelected, this, &GnuplotEditor::setOtherWidget);
+    connect(fileTree, &FileTreeWidget::fileRenamed, this, &GnuplotEditor::renameItem);
+    connect(fileTree, &FileTreeWidget::fileRemoved, this, &GnuplotEditor::clearItem);
     connect(fileTree, &FileTreeWidget::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(gnuplot, &Gnuplot::standardOutputPassed, this, &GnuplotEditor::receiveGnuplotStdOut);
     connect(gnuplot, &Gnuplot::standardErrorPassed, this, &GnuplotEditor::receiveGnuplotStdErr);
@@ -181,6 +183,7 @@ void GnuplotEditor::connectEditorSetting(TextEdit *const editor)
 void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
 {
     if(!item) return;
+    currentScript = item;
 
     /* 前にセットされてたものは削除 */
     if(QWidget *w = gnuplotWidget->widget(gnuplotWidget->currentIndex()))
@@ -189,7 +192,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     /* 初めて表示する場合 */
     if(!item->editor)
     {
-        connect(item, &TreeScriptItem::errorCaused, browserWidget, &BrowserWidget::outputText);
+        connect(currentScript, &TreeFileItem::errorCaused, browserWidget, &BrowserWidget::outputText);
         item->editor = new TextEdit(gnuplotWidget);
         item->load();
     }
@@ -215,6 +218,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
 void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
 {
     if(!item) return;
+    currentSheet = item;
 
     /* 前にセットされてたものは削除 */
     if(QWidget *w = sheetWidget->widget(sheetWidget->currentIndex()))
@@ -223,7 +227,7 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     /* 初めて表示する場合 */
     if(!item->table)
     {
-        connect(item, &TreeSheetItem::errorCaused, browserWidget, &BrowserWidget::outputText);
+        connect(currentSheet, &TreeFileItem::errorCaused, browserWidget, &BrowserWidget::outputText);
         item->table = new GnuplotTable(sheetWidget);
         item->load();
     }
@@ -254,6 +258,32 @@ void GnuplotEditor::setOtherWidget(TreeFileItem *item)
         ImageDisplay *imageDisplay = new ImageDisplay(nullptr);  //ウィンドウ閉じたら自動でdeleteされるよ!
         imageDisplay->setImageFile(item->info.absoluteFilePath());
         imageDisplay->show();
+    }
+}
+
+void GnuplotEditor::renameItem(TreeFileItem *item)
+{
+    if(!item) return;
+
+    if(currentScript == item)
+        menuBarWidget->setScript(item->info);
+    else if(currentSheet == item)
+        menuBarWidget->setSheet(item->info);
+}
+
+void GnuplotEditor::clearItem(TreeFileItem *item)
+{
+    if(!item) return;
+
+    if(currentScript == item)
+    {
+        menuBarWidget->setScript(QFileInfo());
+        currentScript = nullptr;
+    }
+    else
+    {
+        menuBarWidget->setSheet(QFileInfo());
+        currentSheet = nullptr;
     }
 }
 

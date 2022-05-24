@@ -419,6 +419,8 @@ void FileTreeWidget::renameFile()
     TreeFileItem::list.insert(newAbsoluteFilePath, item);
     item->info.setFile(newAbsoluteFilePath);
     item->setText(0, item->info.fileName());
+
+    emit fileRenamed(item);
 }
 
 void FileTreeWidget::removeFile()
@@ -454,6 +456,8 @@ void FileTreeWidget::removeFile()
         emit errorCaused("Failed to remove the file : " + item->info.fileName(), BrowserWidget::MessageType::FileSystemErr);
         return;
     }
+
+    emit fileRemoved(item); //nullptrになる前に送る
 
     TreeFileItem::list.remove(item->info.absoluteFilePath());
     selectedItems().takeAt(0)->parent()->removeChild(item);

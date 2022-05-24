@@ -138,6 +138,7 @@ public:
     FileTreeWidget(QWidget *parent);
 
     enum class FileTreeModel { FileSystem, Gnuplot };
+    enum class TreeItemType { Script = 1000, Sheet, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
     Q_ENUM(FileTreeModel)
     void setTreeModel(const int type);
     QString currentFolderPath() const { return folderPath; }
@@ -172,8 +173,6 @@ private:
     void copyDirectoryRecursively(const QString& fromPath, const QString& toPath);
 
 private:
-    enum class TreeItemType { Script = 1000, Sheet, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
-
     FileTreeModel treeModel;
     TreeFileItem *rootTreeItem;
     QTreeWidgetItem *scriptFolderItem;
@@ -191,6 +190,8 @@ signals:
     void scriptSelected(TreeScriptItem *item);
     void sheetSelected(TreeSheetItem *item);
     void otherSelected(TreeFileItem *item);
+    void fileRenamed(TreeFileItem *item);
+    void fileRemoved(TreeFileItem *item);
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
 };
 

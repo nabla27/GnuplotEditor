@@ -48,6 +48,8 @@ private slots:
     void setEditorWidget(TreeScriptItem *item);
     void setSheetWidget(TreeSheetItem *item);
     void setOtherWidget(TreeFileItem *item);
+    void renameItem(TreeFileItem *item);
+    void clearItem(TreeFileItem *item);
 
     void executeGnuplot();
     void receiveGnuplotStdOut(const QString& text);
@@ -80,6 +82,9 @@ private:
     QStackedWidget *sheetWidget;
     ConsoleWidget *consoleWidget;
     BrowserWidget *browserWidget;
+
+    TreeFileItem *currentScript = nullptr;
+    TreeFileItem *currentSheet = nullptr;
 
 signals:
     void workingDirectoryChanged(const QString& path);
