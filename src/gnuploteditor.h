@@ -21,7 +21,6 @@
 #include "templatecustomwidget.h"
 
 
-
 class TabWidget : public QTabWidget
 {
     Q_OBJECT
@@ -65,8 +64,7 @@ private slots:
     void reboot();
 
 private:
-    ScriptMenu *scriptMenu;
-    SheetMenu *sheetMenu;
+    MenuBarWidget *menuBarWidget;
 
     Gnuplot *gnuplot;
     QProcess *gnuplotProcess;

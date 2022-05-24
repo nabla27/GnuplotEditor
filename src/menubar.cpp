@@ -82,80 +82,125 @@ HelpMenu::HelpMenu(const QString& title, QWidget *parent)
 
 
 
-ScriptMenu::ScriptMenu(const QString& title, QWidget *parent)
-    : QMenu(title, parent)
-{
-    QAction *const closeProcess = new QAction("Close this process", this);
-    addAction(closeProcess);
-    connect(closeProcess, &QAction::triggered, this, &ScriptMenu::closeProcessRequested);
 
-    QAction *const saveAsTemplate = new QAction("Save as template", this);
-    addAction(saveAsTemplate);
-    connect(saveAsTemplate, &QAction::triggered, this, &ScriptMenu::saveAsTemplateRequested);
+
+
+
+
+
+
+MenuBarWidget::MenuBarWidget(QWidget *parent)
+    : QWidget(parent)
+    , scriptButton(new QPushButton(this))
+    , sheetButton(new QPushButton(this))
+    , scriptIcon(new mlayout::IconLabel(this))
+    , sheetIcon(new mlayout::IconLabel(this))
+    , spacer(new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed))
+    , runButton(new QPushButton(this))
+    , emptyMenu(new QMenu(this))
+    , scriptMenu(new QMenu(scriptButton))
+    , sheetMenu(new QMenu(sheetButton))
+{
+    QHBoxLayout *hLayout = new QHBoxLayout(this);
+    setLayout(hLayout);
+
+    hLayout->addWidget(scriptIcon);
+    hLayout->addWidget(scriptButton);
+    hLayout->addWidget(sheetIcon);
+    hLayout->addWidget(sheetButton);
+    hLayout->addItem(spacer);
+    hLayout->addWidget(runButton);
+
+    hLayout->setSpacing(0);
+    hLayout->setContentsMargins(0, 0, 0, 0);
+
+    runButton->setText("&Run");
+
+    scriptButton->setStyleSheet(emptyButtonSheet);
+    sheetButton->setStyleSheet(emptyButtonSheet);
+
+    connect(runButton, &QPushButton::released, this, &MenuBarWidget::runRequested);
+
+    initializeMenu();
+
+    scriptIcon->setPixmap(QPixmap(":/icon/icon_code").scaled(barHeight, barHeight));
+    sheetIcon->setPixmap(QPixmap(":/icon/icon_doc").scaled(barHeight, barHeight));
+
+    scriptButton->resize(0, barHeight);
+    sheetButton->resize(0, barHeight);
+    runButton->setFixedHeight(barHeight);
+    parentWidget()->adjustSize();
 }
 
-
-
-
-
-
-SheetMenu::SheetMenu(const QString& title, QWidget *parent)
-    : QMenu(title, parent)
+void MenuBarWidget::setScriptName(const QString &name)
 {
-    QAction *openInNewWindowAction = new QAction("Open in new window", this);
-    addAction(openInNewWindowAction);
-    connect(openInNewWindowAction, &QAction::triggered, this, &SheetMenu::openInNewWindowRequested);
-
-    autoUpdateAction = new QAction("Enable auto updating", this);
-    addAction(autoUpdateAction);
-    connect(autoUpdateAction, &QAction::triggered, this, &SheetMenu::autoTableUpdateRequested);
-}
-
-void SheetMenu::setAutoUpdateMenuText(const bool isEnable)
-{
-    if(isEnable)
-        autoUpdateAction->setText("Disable auto updating");
+    if(name.isEmpty())
+    {
+        scriptButton->setMenu(emptyMenu);
+        scriptButton->setStyleSheet(emptyButtonSheet);
+    }
     else
-        autoUpdateAction->setText("Enable auto updating");
+    {
+        scriptButton->setMenu(scriptMenu);
+        scriptButton->setStyleSheet(activeButtonSheet);
+    }
+
+    scriptButton->setText(name);
+    parentWidget()->adjustSize();
 }
 
+void MenuBarWidget::setSheetName(const QString &name)
+{
+    if(name.isEmpty())
+    {
+        sheetButton->setMenu(emptyMenu);
+        sheetButton->setStyleSheet(emptyButtonSheet);
+    }
+    else
+    {
+        sheetButton->setMenu(sheetMenu);
+        sheetButton->setStyleSheet(activeButtonSheet);
+    }
+
+    sheetButton->setText(name);
+    parentWidget()->adjustSize();
+}
+
+void MenuBarWidget::rename(const QString &oldName, const QString &newName)
+{
+    if(scriptButton->text() == oldName) scriptButton->setText(newName);
+    else if(sheetButton->text() == oldName) sheetButton->setText(newName);
+}
+
+void MenuBarWidget::initializeMenu()
+{
+    QAction *closeProcess = new QAction("Close this process", scriptMenu);
+    QAction *saveAsTemplate = new QAction("Save as template", scriptMenu);
+
+    scriptMenu->addAction(closeProcess);
+    scriptMenu->addAction(saveAsTemplate);
+
+    connect(closeProcess, &QAction::triggered, this, &MenuBarWidget::closeProcessRequested);
+    connect(saveAsTemplate, &QAction::triggered, this, &MenuBarWidget::saveAsTemplateRequested);
 
 
+    QAction *openInNewWindow = new QAction("Open in new window.", this);
+    autoUpdateAction = new QAction("Enable auto updating", this);
 
+    sheetMenu->addAction(openInNewWindow);
+    sheetMenu->addAction(autoUpdateAction);
 
+    connect(openInNewWindow, &QAction::triggered, this, &MenuBarWidget::openInNewWindowRequested);
+    connect(autoUpdateAction, &QAction::triggered, this, &MenuBarWidget::autoSheetUpdateRequested);
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void MenuBarWidget::changeAutoUpdateSheetMenuText(const bool isAuto)
+{
+    if(isAuto)
+        autoUpdateAction->setText("Enable auto updating");
+    else
+        autoUpdateAction->setText("Disable auto updating");
+}
 
 
 

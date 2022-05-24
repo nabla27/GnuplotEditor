@@ -13,7 +13,8 @@ HEADERS += \
     $$PWD/menubar.h \
     $$PWD/templatecustomwidget.h \
     $$PWD/texteditor.h \
-    $$PWD/windowmenubar.h
+    $$PWD/windowmenubar.h \
+    $$PWD/windowscontents.h
 
 SOURCES += \
     $$PWD/browserwidget.cpp \
@@ -31,4 +32,5 @@ SOURCES += \
     $$PWD/menubar.cpp \
     $$PWD/templatecustomwidget.cpp \
     $$PWD/texteditor.cpp \
-    $$PWD/windowmenubar.cpp
+    $$PWD/windowmenubar.cpp \
+    $$PWD/windowscontents.cpp

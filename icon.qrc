@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file alias="icon_code">bin/release/icon/icon_code.png</file>
+        <file alias="icon_doc">bin/release/icon/icon_doc.png</file>
+    </qresource>
+</RCC>

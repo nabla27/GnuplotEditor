@@ -12,40 +12,19 @@ SOURCES += \
     ../LabQHome/layoutparts.cpp \
     ../LabQHome/tablewidget.cpp \
     ../LabQHome/utility.cpp \
-    #browserwidget.cpp \
-    #consolewidget.cpp \
-    #editorsettingwidget.cpp \
-    #editorsyntaxhighlighter.cpp \
-    #filetree.cpp \
-    #gnuplot.cpp \
-    #gnuplotcpl.cpp \
-    #gnuploteditor.cpp \
-    #gnuplottable.cpp \
-    #main.cpp \
-    #menubar.cpp \
-    #texteditor.cpp \
-    #windowmenubar.cpp
 
 HEADERS += \
     ../LabQHome/iofile.h \
     ../LabQHome/layoutparts.h \
     ../LabQHome/tablewidget.h \
     ../LabQHome/utility.h \
-    #browserwidget.h \
-    #consolewidget.h \
-    #editorsettingwidget.h \
-    #editorsyntaxhighlighter.h \
-    #filetree.h \
-    #gnuplot.h \
-    #gnuplotcpl.h \
-    #gnuploteditor.h \
-    #gnuplottable.h \
-    #menubar.h \
-    #texteditor.h \
-    #windowmenubar.h
 
-INCLUDEPATH += E:/boost_1_76_0/boost_1_76_0 \
-               E:/repos/qt_project/LabQ/LabQHome \
+INCLUDEPATH += E:/boost_1_76_0/boost_1_76_0 \        #boostLib for xml parser
+               E:/repos/qt_project/LabQ/LabQHome \   #utility tool for Qt project
+
+
+LIBS += "C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.19041.0\\um\\x64\\kernel32.lib" \  #WinAPI
+        "C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.19041.0\\um\\x64\\user32.lib"      #WinAPI
 
 include(src/src.pri)
 
@@ -53,3 +32,6 @@ include(src/src.pri)
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    icon.qrc

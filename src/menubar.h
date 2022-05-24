@@ -3,6 +3,9 @@
 #include <QMenu>
 #include <QAction>
 #include <QFileDialog>
+#include <QPushButton>
+#include "layoutparts.h"
+
 
 class FileMenu : public QMenu
 {
@@ -51,42 +54,56 @@ signals:
 };
 
 
-class ScriptMenu : public QMenu
+
+
+
+
+
+
+
+class MenuBarWidget : public QWidget
 {
     Q_OBJECT
+public:
+    explicit MenuBarWidget(QWidget *parent = nullptr);
 
 public:
-    ScriptMenu(const QString& title, QWidget *parent);
+    void setScriptName(const QString& name);
+    void setSheetName(const QString& name);
+    void rename(const QString& oldName, const QString& newName);
+    void changeAutoUpdateSheetMenuText(const bool isAuto);
+
+    QString scriptName() const { return scriptButton->text(); }
+    QString sheetName() const { return sheetButton->text(); }
+
+private slots:
+    void initializeMenu();
+
+private:
+    const QString activeButtonSheet = "QPushButton { background: transparent; text-align: left; } QPushButton:hover { background-color: rgb(231, 241, 255); }";
+    const QString emptyButtonSheet = "QPushButton { background:transparent; }";
+
+    const int barHeight = 20;
+
+    QPushButton *scriptButton;
+    QPushButton *sheetButton;
+    mlayout::IconLabel *scriptIcon;
+    mlayout::IconLabel *sheetIcon;
+    QSpacerItem *spacer;
+    QPushButton *runButton;
+
+    QMenu *emptyMenu;
+    QMenu *scriptMenu;
+    QMenu *sheetMenu;
+    QAction *autoUpdateAction;
 
 signals:
     void closeProcessRequested();
     void saveAsTemplateRequested();
-};
-
-
-class SheetMenu : public QMenu
-{
-    Q_OBJECT
-
-public:
-    SheetMenu(const QString& title, QWidget *parent);
-
-    void setAutoUpdateMenuText(const bool isEnable);
-
-private:
-    QAction *autoUpdateAction;
-
-signals:
     void openInNewWindowRequested();
-    void autoTableUpdateRequested();
+    void autoSheetUpdateRequested();
+    void runRequested();
 };
-
-
-
-
-
-
-
 
 
 
