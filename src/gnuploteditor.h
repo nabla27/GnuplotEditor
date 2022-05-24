@@ -48,7 +48,6 @@ private slots:
     void setEditorWidget(TreeScriptItem *item);
     void setSheetWidget(TreeSheetItem *item);
     void setOtherWidget(TreeFileItem *item);
-    void setMenuBarTitle(const QString& oldName, const QString& newName);
 
     void executeGnuplot();
     void receiveGnuplotStdOut(const QString& text);

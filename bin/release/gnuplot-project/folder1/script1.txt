@@ -1,1 +1,1 @@
-plot sin(x) with lines
+plot "sheet_spectrum_co7_4h.csv" using 1:2 with lines

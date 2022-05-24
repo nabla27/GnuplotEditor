@@ -415,8 +415,6 @@ void FileTreeWidget::renameFile()
         return;
     }
 
-    emit fileNameChanged(item->info.fileName(), newFileName + '.' + item->info.suffix());
-
     TreeFileItem::list.remove(item->info.absoluteFilePath());
     TreeFileItem::list.insert(newAbsoluteFilePath, item);
     item->info.setFile(newAbsoluteFilePath);

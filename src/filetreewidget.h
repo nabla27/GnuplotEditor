@@ -148,8 +148,6 @@ public slots:
     void updateFileTree();
     void saveAllFile();
     void saveAndLoad();
-    //void saveAllScript(){};
-    //void saveAllSheet(){};
     void addFolder();
     void saveFolder();
 
@@ -193,7 +191,6 @@ signals:
     void scriptSelected(TreeScriptItem *item);
     void sheetSelected(TreeSheetItem *item);
     void otherSelected(TreeFileItem *item);
-    void fileNameChanged(const QString& oldName, const QString& newName);
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
 };
 
