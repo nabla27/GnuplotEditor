@@ -132,9 +132,9 @@ MenuBarWidget::MenuBarWidget(QWidget *parent)
     parentWidget()->adjustSize();
 }
 
-void MenuBarWidget::setScriptName(const QString &name)
+void MenuBarWidget::setScript(const QFileInfo& info)
 {
-    if(name.isEmpty())
+    if(info.fileName().isEmpty())
     {
         scriptButton->setMenu(emptyMenu);
         scriptButton->setStyleSheet(emptyButtonSheet);
@@ -145,13 +145,14 @@ void MenuBarWidget::setScriptName(const QString &name)
         scriptButton->setStyleSheet(activeButtonSheet);
     }
 
-    scriptButton->setText(name);
+    scriptButton->setText(info.fileName());
+    scriptButton->setToolTip(info.absoluteFilePath());
     parentWidget()->adjustSize();
 }
 
-void MenuBarWidget::setSheetName(const QString &name)
+void MenuBarWidget::setSheet(const QFileInfo& info)
 {
-    if(name.isEmpty())
+    if(info.fileName().isEmpty())
     {
         sheetButton->setMenu(emptyMenu);
         sheetButton->setStyleSheet(emptyButtonSheet);
@@ -162,14 +163,9 @@ void MenuBarWidget::setSheetName(const QString &name)
         sheetButton->setStyleSheet(activeButtonSheet);
     }
 
-    sheetButton->setText(name);
+    sheetButton->setText(info.fileName());
+    sheetButton->setToolTip(info.absoluteFilePath());
     parentWidget()->adjustSize();
-}
-
-void MenuBarWidget::rename(const QString &oldName, const QString &newName)
-{
-    if(scriptButton->text() == oldName) scriptButton->setText(newName);
-    else if(sheetButton->text() == oldName) sheetButton->setText(newName);
 }
 
 void MenuBarWidget::initializeMenu()

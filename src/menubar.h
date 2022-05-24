@@ -68,9 +68,8 @@ public:
     explicit MenuBarWidget(QWidget *parent = nullptr);
 
 public:
-    void setScriptName(const QString& name);
-    void setSheetName(const QString& name);
-    void rename(const QString& oldName, const QString& newName);
+    void setScript(const QFileInfo& info);
+    void setSheet(const QFileInfo& info);
     void changeAutoUpdateSheetMenuText(const bool isAuto);
 
     QString scriptName() const { return scriptButton->text(); }

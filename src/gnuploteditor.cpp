@@ -33,7 +33,6 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     connect(fileTree, &FileTreeWidget::scriptSelected, this, &GnuplotEditor::setEditorWidget);
     connect(fileTree, &FileTreeWidget::sheetSelected, this, &GnuplotEditor::setSheetWidget);
     connect(fileTree, &FileTreeWidget::otherSelected, this, &GnuplotEditor::setOtherWidget);
-    connect(fileTree, &FileTreeWidget::fileNameChanged, this, &GnuplotEditor::setMenuBarTitle);
     connect(fileTree, &FileTreeWidget::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(gnuplot, &Gnuplot::standardOutputPassed, this, &GnuplotEditor::receiveGnuplotStdOut);
     connect(gnuplot, &Gnuplot::standardErrorPassed, this, &GnuplotEditor::receiveGnuplotStdErr);
@@ -210,7 +209,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     editorTab->setCurrentIndex(0);
 
     /* メニューバーの名前変更 */
-    menuBarWidget->setScriptName(item->info.fileName());
+    menuBarWidget->setScript(item->info);
 }
 
 void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
@@ -237,7 +236,7 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     editorTab->setCurrentIndex(1);
 
     /* メニューバーの名前変更 */
-    menuBarWidget->setSheetName(item->info.fileName());
+    menuBarWidget->setSheet(item->info);
     menuBarWidget->changeAutoUpdateSheetMenuText(item->table->isEnablenotifyUpdating());
 
     connect(item->table, &GnuplotTable::tableUpdated, this, &GnuplotEditor::executeGnuplot);
@@ -256,12 +255,6 @@ void GnuplotEditor::setOtherWidget(TreeFileItem *item)
         imageDisplay->setImageFile(item->info.absoluteFilePath());
         imageDisplay->show();
     }
-}
-
-void GnuplotEditor::setMenuBarTitle(const QString& oldName, const QString& newName)
-{
-    //if(scriptMenu->title() == oldName) scriptMenu->setTitle(newName);
-    //else if(sheetMenu->title() == oldName) sheetMenu->setTitle(newName);
 }
 
 void GnuplotEditor::executeGnuplot()
@@ -315,7 +308,7 @@ void GnuplotEditor::moveSheetToNewWindow()
         widget->setParent(nullptr);
         widget->show();
         widget->setWindowTitle("GnuplotEditor  " + menuBarWidget->sheetName());
-        menuBarWidget->setSheetName("");
+        menuBarWidget->setSheet(QFileInfo());
     }
 }
 
