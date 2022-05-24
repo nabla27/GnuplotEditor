@@ -41,7 +41,10 @@ public:
     explicit TreeScriptItem(QTreeWidgetItem *parent, int type)
         : TreeFileItem(parent, type)
         , editor(nullptr)
-        , process(new QProcess(nullptr)) {}
+        , process(new QProcess(nullptr))
+    {
+        setIcon(0, QPixmap(":/icon/icon_code"));
+    }
 
     ~TreeScriptItem()
     {
@@ -90,7 +93,11 @@ class TreeSheetItem : public TreeFileItem
 public:
     explicit TreeSheetItem(QTreeWidgetItem *parent, int type)
         : TreeFileItem(parent, type)
-        , table(nullptr) {}
+        , table(nullptr)
+    {
+        setIcon(0, QPixmap(":/icon/icon_doc"));
+    }
+
     ~TreeSheetItem()
     {
         delete table; table = nullptr;
