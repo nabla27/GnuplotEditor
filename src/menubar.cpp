@@ -132,40 +132,38 @@ MenuBarWidget::MenuBarWidget(QWidget *parent)
     parentWidget()->adjustSize();
 }
 
-void MenuBarWidget::setScript(const QFileInfo& info)
+void MenuBarWidget::setScript(TreeFileItem *item)
 {
-    if(info.fileName().isEmpty())
+    if(!item)
     {
-        scriptButton->setMenu(emptyMenu);
-        scriptButton->setStyleSheet(emptyButtonSheet);
-    }
-    else
-    {
-        scriptButton->setMenu(scriptMenu);
-        scriptButton->setStyleSheet(activeButtonSheet);
+        removeScript();
+        return;
     }
 
-    scriptButton->setText(info.fileName());
-    scriptButton->setToolTip(info.absoluteFilePath());
-    parentWidget()->adjustSize();
+    setName(item);
+
+    disconnect(renameScriptConnection);
+    disconnect(removeScriptConnection);
+
+    renameScriptConnection = connect(item, &TreeFileItem::renamed, this, &MenuBarWidget::setName);
+    removeScriptConnection = connect(item, &TreeFileItem::destroyed, this, &MenuBarWidget::removeScript);
 }
 
-void MenuBarWidget::setSheet(const QFileInfo& info)
+void MenuBarWidget::setSheet(TreeFileItem *item)
 {
-    if(info.fileName().isEmpty())
+    if(!item)
     {
-        sheetButton->setMenu(emptyMenu);
-        sheetButton->setStyleSheet(emptyButtonSheet);
-    }
-    else
-    {
-        sheetButton->setMenu(sheetMenu);
-        sheetButton->setStyleSheet(activeButtonSheet);
+        removeSheet();
+        return;
     }
 
-    sheetButton->setText(info.fileName());
-    sheetButton->setToolTip(info.absoluteFilePath());
-    parentWidget()->adjustSize();
+    setName(item);
+
+    disconnect(renameSheetConnection);
+    disconnect(removeSheetConnection);
+
+    renameSheetConnection = connect(item, &TreeFileItem::renamed, this, &MenuBarWidget::setName);
+    removeSheetConnection = connect(item, &TreeFileItem::destroyed, this, &MenuBarWidget::removeSheet);
 }
 
 void MenuBarWidget::initializeMenu()
@@ -188,6 +186,51 @@ void MenuBarWidget::initializeMenu()
 
     connect(openInNewWindow, &QAction::triggered, this, &MenuBarWidget::openInNewWindowRequested);
     connect(autoUpdateAction, &QAction::triggered, this, &MenuBarWidget::autoSheetUpdateRequested);
+}
+
+void MenuBarWidget::setName(TreeFileItem *item)
+{
+    switch(FileTreeWidget::TreeItemType(item->type()))
+    {
+    case FileTreeWidget::TreeItemType::Script:
+    {
+        scriptButton->setMenu(scriptMenu);
+        scriptButton->setStyleSheet(activeButtonSheet);
+        scriptButton->setText(item->info.fileName());
+        scriptButton->setToolTip(item->info.absoluteFilePath());
+        break;
+    }
+    case FileTreeWidget::TreeItemType::Sheet:
+    {
+        sheetButton->setMenu(sheetMenu);
+        sheetButton->setStyleSheet(activeButtonSheet);
+        sheetButton->setText(item->info.fileName());
+        sheetButton->setToolTip(item->info.absoluteFilePath());
+        break;
+    }
+    default:
+        return;
+    }
+
+    parentWidget()->adjustSize();
+}
+
+void MenuBarWidget::removeScript()
+{
+    scriptButton->setMenu(emptyMenu);
+    scriptButton->setStyleSheet(emptyButtonSheet);
+    scriptButton->setText("");
+    scriptButton->setToolTip("");
+    parentWidget()->adjustSize();
+}
+
+void MenuBarWidget::removeSheet()
+{
+    sheetButton->setMenu(emptyMenu);
+    sheetButton->setStyleSheet(emptyButtonSheet);
+    sheetButton->setText("");
+    sheetButton->setToolTip("");
+    parentWidget()->adjustSize();
 }
 
 void MenuBarWidget::changeAutoUpdateSheetMenuText(const bool isAuto)

@@ -23,12 +23,19 @@ public:
 public:
     virtual void save() {}
     virtual void load() {}
+    void setText(int column, const QString& text)
+    {
+        QTreeWidgetItem::setText(column, text);
+        if(column == 0)
+            emit renamed(this);
+    }
 
     static QHash<QString, TreeFileItem*> list;
     QFileInfo info;
 
 signals:
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
+    void renamed(TreeFileItem *item);
 };
 
 
@@ -197,8 +204,6 @@ signals:
     void scriptSelected(TreeScriptItem *item);
     void sheetSelected(TreeSheetItem *item);
     void otherSelected(TreeFileItem *item);
-    void fileRenamed(TreeFileItem *item);
-    void fileRemoved(TreeFileItem *item);
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
 };
 
