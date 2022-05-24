@@ -190,6 +190,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     /* 初めて表示する場合 */
     if(!item->editor)
     {
+        connect(item, &TreeScriptItem::errorCaused, browserWidget, &BrowserWidget::outputText);
         item->editor = new TextEdit(gnuplotWidget);
         item->load();
     }
@@ -223,6 +224,7 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     /* 初めて表示する場合 */
     if(!item->table)
     {
+        connect(item, &TreeSheetItem::errorCaused, browserWidget, &BrowserWidget::outputText);
         item->table = new GnuplotTable(sheetWidget);
         item->load();
     }
