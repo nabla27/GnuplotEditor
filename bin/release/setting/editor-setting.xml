@@ -10,29 +10,32 @@
         <g>255</g>
         <b>255</b>
     </textColor>
-    <textSize>15</textSize>
+    <textFont>
+        <family>00000272FCE75670</family>
+        <pointSize>12</pointSize>
+        <weight>400</weight>
+        <italic>false</italic>
+    </textFont>
     <tabSpace>20</tabSpace>
-    <wrap>false</wrap>
-    <itaric>false</itaric>
-    <bold>false</bold>
+    <wrap>true</wrap>
     <mainCmdColor>
         <r>0</r>
         <g>255</g>
         <b>255</b>
     </mainCmdColor>
-    <commentColor>
+    <commentCmdColor>
         <r>192</r>
         <g>192</g>
         <b>192</b>
-    </commentColor>
+    </commentCmdColor>
+    <doubleQuoteColor>
+        <r>255</r>
+        <g>200</g>
+        <b>0</b>
+    </doubleQuoteColor>
     <cursorLineColor>
         <r>50</r>
         <g>50</g>
         <b>50</b>
     </cursorLineColor>
-    <stringColor>
-        <r>255</r>
-        <g>200</g>
-        <b>0</b>
-    </stringColor>
 </root>

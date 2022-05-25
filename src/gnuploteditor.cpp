@@ -6,7 +6,7 @@
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
     , gnuplot(new Gnuplot(this))
-    , editorSetting(new EditorSettingWidget(nullptr))
+    , editorSetting(new EditorSetting(nullptr))
     , gnuplotSetting(new GnuplotSettingWidget(gnuplot, nullptr))
     , templateCustom(new TemplateCustomWidget(this))
 {
@@ -79,7 +79,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(fileMenu, &FileMenu::reloadFolderPushed, fileTree, &FileTreeWidget::saveAndLoad);
     connect(widgetMenu, &WidgetMenu::clearOutputWindowRequested, browserWidget, &BrowserWidget::clear);
     //connect(widgetMenu, &WidgetMenu::clearConsoleWindowPushed, consoleWidget, &);
-    connect(widgetMenu, &WidgetMenu::openEditorSettingRequested, editorSetting, &EditorSettingWidget::show);
+    connect(widgetMenu, &WidgetMenu::openEditorSettingRequested, editorSetting, &EditorSetting::show);
     connect(widgetMenu, &WidgetMenu::openGnuplotSettingRequested, gnuplotSetting, &GnuplotSettingWidget::show);
     connect(widgetMenu, &WidgetMenu::openTemplateCustomRequested, templateCustom, &TemplateCustomWidget::show);
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
@@ -161,23 +161,6 @@ void GnuplotEditor::initializeLayout()
     connect(treeModelCombo, &QComboBox::currentIndexChanged, fileTree, &FileTreeWidget::setTreeModel);
 }
 
-void GnuplotEditor::connectEditorSetting(TextEdit *const editor)
-{
-    connect(editorSetting, &EditorSettingWidget::backgroundColorSet, editor, &TextEdit::setBackgroundColor);
-    connect(editorSetting, &EditorSettingWidget::textColorSet, editor, &TextEdit::setTextColor);
-    connect(editorSetting, &EditorSettingWidget::textSizeSet, editor, &TextEdit::setTextSize);
-    connect(editorSetting, &EditorSettingWidget::tabSpaceSet, editor, &TextEdit::setTabSpace);
-    connect(editorSetting, &EditorSettingWidget::checkWrapSet, editor, &TextEdit::setWrap);
-    connect(editorSetting, &EditorSettingWidget::checkItaricSet, editor, &TextEdit::setItaric);
-    connect(editorSetting, &EditorSettingWidget::checkBoldSet, editor, &TextEdit::setBold);
-    connect(editorSetting, &EditorSettingWidget::mainCmdColorSet, editor, &TextEdit::setMainCmdColor);
-    connect(editorSetting, &EditorSettingWidget::commentColorSet, editor, &TextEdit::setCommentColor);
-    connect(editorSetting, &EditorSettingWidget::cursorLineColorSet, editor, &TextEdit::setCursorLineColor);
-    connect(editorSetting, &EditorSettingWidget::stringColorSet, editor, &TextEdit::setStringColor);
-    connect(editor, &TextEdit::fontSizeChanged, editorSetting, &EditorSettingWidget::setTextSize);
-    editorSetting->set(editor);
-}
-
 void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
 {
     if(!item) return;
@@ -193,11 +176,12 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
         connect(currentScript, &TreeFileItem::errorCaused, browserWidget, &BrowserWidget::outputText);
         item->editor = new TextEdit(gnuplotWidget);
         item->load();
+        connect(item->editor, &TextEdit::fontSizeChanged, editorSetting, &EditorSetting::setTextSize);
     }
 
     /* 新しくセット */
     gnuplotWidget->addWidget(item->editor);       //editorのparentは自動的にgnuplotWidgetとなる
-    connectEditorSetting(item->editor);
+    editorSetting->setCurrentEditor(item->editor);
 
     /* 選択されているスクリプトの親ディレクトリを作業用ディレクトリに設定する */
     item->editor->setWorkingDirectory(item->info.absolutePath());

@@ -41,7 +41,6 @@ public:
 private:
     void initializeMenuBar();
     void initializeLayout();
-    void connectEditorSetting(TextEdit *const editor);
     void postProcessing();
 
 private slots:
@@ -68,7 +67,7 @@ private:
     Gnuplot *gnuplot;
     QProcess *gnuplotProcess;
 
-    EditorSettingWidget *editorSetting;
+    EditorSetting *editorSetting;
     GnuplotSettingWidget *gnuplotSetting;
     TemplateCustomWidget *templateCustom;
 
