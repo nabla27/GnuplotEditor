@@ -54,19 +54,21 @@ void GnuplotTable::mousePressEvent(QMouseEvent *event)
     const int cursorX = event->pos().x();
     const int cursorY = event->pos().y();
 
+    /* 一番右下のセルの右下隅の座標(tableWidgetのローカル座標) */
     const int rowLastIndex = rowCount() - 1;
     const int colLastIndex = columnCount() - 1;
+    const int tableWidth = (rowLastIndex < 0) ? 0 : columnViewportPosition(colLastIndex) + columnWidth(colLastIndex);
+    const int tableHeight = (colLastIndex < 0) ? 0 : rowViewportPosition(rowLastIndex) + rowHeight(rowLastIndex);
 
-    /* 一番右下のセルの右下隅の座標(tableWidgetのローカル座標) */
-    const int tableWidth = columnViewportPosition(colLastIndex) + columnWidth(colLastIndex);
-    const int tableHeight = rowViewportPosition(rowLastIndex) + rowHeight(rowLastIndex);
-
-    /* セル右下角とカーソル位置が4ピクセル以下 */
+    /* セル右下角とカーソル位置が4ピクセル以下でマウスが押された場合に有効 */
     if(std::abs(cursorX - tableWidth) < 4 && std::abs(cursorY - tableHeight) < 4)
     {
         startDragPoint = event->pos();
         startDragTableSize = QPoint(columnCount(), rowCount());
-        startDragCellSize = QPoint(columnWidth(colLastIndex), rowHeight(rowLastIndex));
+        if(rowLastIndex < 0 || colLastIndex < 0)
+            startDragCellSize = QPoint(100, 30);  //セルがない場合は、デフォルトの(100,30)でセルサイズを指定
+        else
+            startDragCellSize = QPoint(columnWidth(colLastIndex), rowHeight(rowLastIndex)); //右端のセルのサイズを追加するセルのサイズにする
     }
 }
 
