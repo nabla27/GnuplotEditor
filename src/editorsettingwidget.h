@@ -4,67 +4,71 @@
 #include <QWidget>
 #include <QFile>
 #include <QDir>
-#include "layoutparts.h"
-#include "utility.h"
+#include <QColorDialog>
+#include <QFontDialog>
+#include <QDoubleSpinBox>
+#include <QCheckBox>
 #include "browserwidget.h"
 #include "texteditor.h"
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
 #include <QApplication>
 
-class EditorSettingWidget : public QWidget
+class EditorSetting : public QWidget
 {
     Q_OBJECT
-
 public:
-    explicit EditorSettingWidget(QWidget *parent = nullptr);
-    ~EditorSettingWidget();
+    explicit EditorSetting(QWidget *parent = nullptr);
+    ~EditorSetting();
+
     void loadXmlSetting();
     void saveXmlSetting();
-    void setTextSize(const int ps) { textSizeSpin->setSpinBoxValue(ps); }
-    void set(TextEdit *const editor);
+    void setTextSize(const int ps);
+    void setCurrentEditor(TextEdit *const editor);
+
+private slots:
+    void setBackgroundColor(const QColor& color);
+    void setTextColor(const QColor& color);
+    void setTextFont(const QFont& font);
+    void setTabSpace(const double& tabSpace);
+    void setWrap(const bool wrap);
+    void setMainCmdColor(const QColor& color);
+    void setCommentCmdColor(const QColor& color);
+    void setDoubleQuoteColor(const QColor& color);
+    void setCursorLineColor(const QColor& color);
 
 private:
     void initializeLayout();
-    //void showEvent(QShowEvent*) override { loadXmlSetting(); }
-    void closeEvent(QCloseEvent*) override { saveXmlSetting(); }
+    void closeEvent(QCloseEvent* event) override { saveXmlSetting(); QWidget::closeEvent(event); }
     void loadDefaultSetting();
 
     const QString settingFolderPath = QApplication::applicationDirPath() + "/setting";
     const QString settingFileName = "editor-setting.xml";
 
 private:
-    ComboEditLayout *backgroundColorCombo;
-    RGBEditLayout *backgroundColorRgb;
-    ComboEditLayout *textColorCombo;
-    RGBEditLayout *textColorRgb;
-    SpinBoxEditLayout *textSizeSpin;
-    LineEditLayout *tabSpaceEdit;
-    CheckBoxLayout *checkWrap;
-    CheckBoxLayout *checkItaric;
-    CheckBoxLayout *checkBold;
-    ComboEditLayout *mainCmdColorCombo;
-    RGBEditLayout *mainCmdColorRgb;
-    ComboEditLayout *commentColorCombo;
-    RGBEditLayout *commentColorRgb;
-    ComboEditLayout *cursorLineColorCombo;
-    RGBEditLayout *cursorLineColorRgb;
-    ComboEditLayout *stringColorCombo;
-    RGBEditLayout *stringColorRgb;
+    QColorDialog *backgroundColorDialog;
+    QPushButton *backgroundColorButton;
+    QColorDialog *textColorDialog;
+    QPushButton *textColorButton;
+    QFontDialog *textFontDialog;
+    QPushButton *textFontButton;
+    QDoubleSpinBox *tabSpaceSpin;
+    QCheckBox *wrapCheckBox;
+    QColorDialog *mainCmdColorDialog;
+    QPushButton *mainCmdColorButton;
+    QColorDialog *commentCmdColorDialog;
+    QPushButton *commentCmdColorButton;
+    QColorDialog *doubleQuoteColorDialog;
+    QPushButton *doubleQuoteColorButton;
+    QColorDialog *cursorLineColorDialog;
+    QPushButton *cursorLineColorButton;
+
+    QPushButton *setDefaultButton;
+
+    TextEdit *editor = nullptr;
 
 signals:
-    void backgroundColorSet(const QColor& color);
-    void textColorSet(const QColor& color);
-    void textSizeSet(const int ps);
-    void tabSpaceSet(const double& space);
-    void checkWrapSet(const bool wrap);
-    void checkItaricSet(const bool iraric);
-    void checkBoldSet(const bool bold);
-    void mainCmdColorSet(const QColor& color);
-    void commentColorSet(const QColor& color);
-    void cursorLineColorSet(const QColor& color);
-    void stringColorSet(const QColor& color);
-    void errorCaused(const QString& text, const BrowserWidget::MessageType type);
+    void errorCaused(const QString& text, const BrowserWidget::MessageType& type);
 };
 
 #endif // EDITORSETTINGWIDGET_H

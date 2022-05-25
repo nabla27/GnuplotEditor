@@ -22,11 +22,8 @@ public:
 public slots:
     void setBackgroundColor(const QColor& color) { QPalette palette = this->palette(); palette.setColor(QPalette::Base, color); setPalette(palette); }
     void setTextColor(const QColor& color) { QPalette palette = this->palette(); palette.setColor(QPalette::Text, color); setPalette(palette); }
-    void setTextSize(const int ps) { QFont font = this->font(); font.setPointSize(ps); setFont(font); }
     void setTabSpace(const double& space) { setTabStopDistance(space); }
     void setWrap(const bool wrap) { setLineWrapMode(QPlainTextEdit::LineWrapMode(wrap)); }
-    void setItaric(const bool itaric) { QFont font = this->font(); font.setItalic(itaric); setFont(font); }
-    void setBold(const bool bold) { QFont font = this->font(); font.setBold(bold); setFont(font); }
     void setMainCmdColor(const QColor& color) { textHighlight->setFirstCmdColor(color); }
     void setCommentColor(const QColor& color) { textHighlight->setCommentColor(color); }
     void setStringColor(const QColor& color) { textHighlight->setStringColor(color); }
