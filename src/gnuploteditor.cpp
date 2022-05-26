@@ -177,11 +177,12 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
         item->editor = new TextEdit(gnuplotWidget);
         item->load();
         connect(item->editor, &TextEdit::fontSizeChanged, editorSetting, &EditorSetting::setTextSize);
+        editorSetting->setEditor(item->editor);
     }
 
     /* 新しくセット */
     gnuplotWidget->addWidget(item->editor);       //editorのparentは自動的にgnuplotWidgetとなる
-    editorSetting->setCurrentEditor(item->editor);
+    //editorSetting->setCurrentEditor(item->editor);
 
     /* 選択されているスクリプトの親ディレクトリを作業用ディレクトリに設定する */
     item->editor->setWorkingDirectory(item->info.absolutePath());
