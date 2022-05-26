@@ -24,7 +24,7 @@ public:
     void loadXmlSetting();
     void saveXmlSetting();
     void setTextSize(const int ps);
-    void setCurrentEditor(TextEdit *const editor);
+    void setEditor(TextEdit *const editor);
 
 private slots:
     void setBackgroundColor(const QColor& color);

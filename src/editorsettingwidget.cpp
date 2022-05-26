@@ -136,7 +136,7 @@ void EditorSetting::setTextSize(const int ps)
     textFontDialog->setCurrentFont(font);
 }
 
-void EditorSetting::setCurrentEditor(TextEdit *editor)
+void EditorSetting::setEditor(TextEdit *editor)
 {
     if(!editor) return;
 
