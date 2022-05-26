@@ -27,7 +27,7 @@ public slots:
     void setMainCmdColor(const QColor& color) { textHighlight->setFirstCmdColor(color); }
     void setCommentColor(const QColor& color) { textHighlight->setCommentColor(color); }
     void setStringColor(const QColor& color) { textHighlight->setStringColor(color); }
-    void setWorkingDirectory(const QString& path) { workingDirectory = path; }
+    void setParentFolderPath(const QString& path);
 
 protected:
     void wheelEvent(QWheelEvent *event) override;
@@ -51,6 +51,7 @@ private:
     void bracketCompletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar); //括弧の補完 [ ( ' "
     void bracketDeletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar);   //括弧の削除
     void changeCompleterModel();                                //入力コマンドから予測変換候補を変更
+    void getFilesRecursively(const QString& parentPath, const QString& folderPath, QStringList& list); //folderPath内のファイルについて、parentPathからの相対パスをlistに追加する。
 
 private:
     QCompleter *c = nullptr;
@@ -58,8 +59,7 @@ private:
     QString firstCmd = "";
     QString beforeCmd = "";
     QString currentCmd = "";
-    QString workingDirectory;
-
+    QStringList currentDirFileList;
 
     /* lineNumer */
 public:

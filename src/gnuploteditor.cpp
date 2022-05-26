@@ -166,7 +166,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     if(!item) return;
     currentScript = item;
 
-    /* 前にセットされてたものは削除 */
+    /* 前にセットされてたものは取り除く */
     if(QWidget *w = gnuplotWidget->widget(gnuplotWidget->currentIndex()))
         gnuplotWidget->removeWidget(w);
 
@@ -178,15 +178,12 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
         item->load();
         connect(item->editor, &TextEdit::fontSizeChanged, editorSetting, &EditorSetting::setTextSize);
         editorSetting->setEditor(item->editor);
+        gnuplot->setWorkingDirectory(item->info.absolutePath());
+        item->editor->setParentFolderPath(item->info.absolutePath());
     }
 
     /* 新しくセット */
     gnuplotWidget->addWidget(item->editor);       //editorのparentは自動的にgnuplotWidgetとなる
-    //editorSetting->setCurrentEditor(item->editor);
-
-    /* 選択されているスクリプトの親ディレクトリを作業用ディレクトリに設定する */
-    item->editor->setWorkingDirectory(item->info.absolutePath());
-    gnuplot->setWorkingDirectory(item->info.absolutePath());
 
     /* プロセスをセット */
     gnuplotProcess = item->process;

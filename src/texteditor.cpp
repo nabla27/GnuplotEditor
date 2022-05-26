@@ -35,6 +35,30 @@ TextEdit::~TextEdit()
 {
 }
 
+void TextEdit::setParentFolderPath(const QString& path)
+{
+    currentDirFileList.clear();
+    /*path下のファイル再帰的に取得し、そのpathからの相対パスをcurrentDirFileListに追加する。
+     * currentDirFileListはファイル名の補完機能で使われる。*/
+    getFilesRecursively(path, path, currentDirFileList);
+}
+
+void TextEdit::getFilesRecursively(const QString& parentPath, const QString &folderPath, QStringList &list)
+{
+    QDir parent(parentPath);
+    QDir dir(folderPath);
+
+    const QList<QFileInfo> infoList = dir.entryInfoList(QDir::Filter::NoDotAndDotDot | QDir::Filter::Files | QDir::Filter::Dirs);
+
+    for(const QFileInfo& info : infoList)
+    {
+        if(info.isFile())
+            list << parent.relativeFilePath(info.absoluteFilePath());
+        else
+            getFilesRecursively(parentPath, info.absoluteFilePath(), list);
+    }
+}
+
 /* 右クリックしながらホイールで文字サイズ変更 */
 void TextEdit::wheelEvent(QWheelEvent *event)
 {
@@ -105,16 +129,9 @@ void TextEdit::changeCompleterModel()
         firstCmd == "splot" ||
         firstCmd == "load" ||
         firstCmd == "cd" ||
-        firstCmd == "fit") && currentCmd.size() >= 1 && currentCmd.front() == '\"')          //currenCmdがダブルクォーテーションから始まるとき
+        firstCmd == "fit") && currentCmd.size() >= 1 && currentCmd.front() == '\"')         //currenCmdがダブルクォーテーションから始まるとき
     {
-        QDir dir(workingDirectory);
-        dir.setNameFilters(QStringList() << "[a-zA-Z0-9]*");
-        QFileInfoList fileList = dir.entryInfoList();                                       //workingDirectoryディレクトリのファイル情報を取得
-        QStringList fileNameList;
-        for(const QFileInfo& fileInfo : fileList){
-            fileNameList << fileInfo.fileName();                                            //workingDirectoryPath内のファイル名をリストに格納
-        }
-        c->setModel(getCompleter(fileNameList));                                            //ファイル名一覧を予測変換候補に設定
+        c->setModel(getCompleter(currentDirFileList));                                      //ファイル名一覧を予測変換候補に設定
 
         cursorMoveCount = 1;                                                                //予測変換決定後のカーソル移動数を1にする(ダブルクォーテーションをまたぐ)
         return;
