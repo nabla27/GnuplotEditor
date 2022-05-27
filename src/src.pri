@@ -5,6 +5,7 @@ HEADERS += \
     $$PWD/editorsyntaxhighlighter.h \
     $$PWD/filetreewidget.h \
     $$PWD/gnuplot.h \
+    $$PWD/gnuplotcompletion.h \
     $$PWD/gnuplotcpl.h \
     $$PWD/gnuploteditor.h \
     $$PWD/gnuplotsettingwidget.h \
@@ -23,6 +24,7 @@ SOURCES += \
     $$PWD/editorsyntaxhighlighter.cpp \
     $$PWD/filetreewidget.cpp \
     $$PWD/gnuplot.cpp \
+    $$PWD/gnuplotcompletion.cpp \
     $$PWD/gnuplotcpl.cpp \
     $$PWD/gnuploteditor.cpp \
     $$PWD/gnuplotsettingwidget.cpp \
