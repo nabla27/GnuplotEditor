@@ -4,6 +4,7 @@
 
 TextEdit::TextEdit(QWidget *parent)
     : QPlainTextEdit(parent)
+    , toolTipTimer(new QTimer(this))
 {
     {
         connect(this, &TextEdit::blockCountChanged,
@@ -39,6 +40,10 @@ TextEdit::TextEdit(QWidget *parent)
     }
     {//ハイライトの初期設定
         textHighlight = new EditorSyntaxHighlighter(document());
+    }
+    {
+        connect(toolTipTimer, &QTimer::timeout, this, &TextEdit::showToolTipForCursor);
+        toolTipTimer->start(2000);
     }
 }
 
@@ -334,18 +339,65 @@ void TextEdit::setCompletionToolTip(const QString &text)
         return;
     }
 
-    //popup内でハイライトされている表示されている画面上でのインデックス(始点0)
-    const int viewRowIndex = c->popup()->currentIndex().row() - c->popup()->verticalScrollBar()->value();
+    if(c->popup()->isVisible())
+    {
+        //popup内でハイライトされている表示されている画面上でのインデックス(始点0)
+        const int viewRowIndex = c->popup()->currentIndex().row() - c->popup()->verticalScrollBar()->value();
 
-    if(viewRowIndex < 0) return; //ハイライトされたテキストがない場合、-1となって非表示とする
+        if(viewRowIndex < 0) return; //ハイライトされたテキストがない場合、-1となって非表示とする
 
-    /* 因子15はpopup()のtopLeftの座標とtoolTipのtopLeftの位置がずれを補正するたものもの
-     * なんらかの正しい変換で改善できるかも*/
-    const QPoint pos = c->popup()->pos() + QPoint(c->popup()->width(), viewRowIndex * c->popup()->sizeHintForRow(0) - 15);
+        /* 因子15はpopup()のtopLeftの座標とtoolTipのtopLeftの位置がずれを補正するたものもの
+         * なんらかの正しい変換で改善できるかも*/
+        const QPoint pos = c->popup()->pos() + QPoint(c->popup()->width(), viewRowIndex * c->popup()->sizeHintForRow(0) - 15);
 
-    QToolTip::showText(pos, "-");  //toolTipが前と同じであれば、位置が変化しないので、一度リセットするために
-    QToolTip::showText(pos, text);
+        QToolTip::showText(pos, "-");  //toolTipが前と同じであれば、位置が変化しないので、一度リセットするために
+        QToolTip::showText(pos, text);
+    }
+    else
+    {
+        QToolTip::showText(cursor().pos(), text);
+    }
 }
+
+void TextEdit::showToolTipForCursor()
+{
+    toolTipTimer->start(2000);
+
+    if(isActiveWindow()) //表示させているものだけ
+    {
+        static QString previousFirstCmdForToolTip = "";
+        static QString previousTextForToolTip = "";
+
+        QTextCursor tc = cursorForPosition(mapFromGlobal(viewport()->cursor().pos()));
+
+        tc.movePosition(QTextCursor::MoveOperation::WordLeft, QTextCursor::MoveAnchor);
+        tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
+        const QString textForToolTip = tc.selectedText();
+
+        tc.movePosition(QTextCursor::MoveOperation::StartOfLine, QTextCursor::MoveAnchor);
+        tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
+        const QString firstCmdForToolTip = tc.selectedText();
+
+        if(textForToolTip != previousTextForToolTip ||
+           firstCmdForToolTip != previousFirstCmdForToolTip)
+        {
+            emit toolTipRequested(textForToolTip, firstCmdForToolTip);
+
+            previousTextForToolTip = textForToolTip;
+            previousFirstCmdForToolTip = firstCmdForToolTip;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
