@@ -32,18 +32,16 @@ TextEdit::TextEdit(QWidget *parent)
         connect(this, &TextEdit::toolTipRequested, gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::setToolTip);
         connect(gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::completionListSet, this, &TextEdit::setCompletionList);
         connect(gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::toolTipSet, this, &TextEdit::setCompletionToolTip);
+        connect(toolTipTimer, &QTimer::timeout, this, &TextEdit::requestToolTipForCursor);
         gnuplotcpl->moveToThread(&completionThread);
         completionThread.start();
+        toolTipTimer->start(2000);
     }
     {//completerの初期設定
         setCompleter(new QCompleter());
     }
     {//ハイライトの初期設定
         textHighlight = new EditorSyntaxHighlighter(document());
-    }
-    {
-        connect(toolTipTimer, &QTimer::timeout, this, &TextEdit::showToolTipForCursor);
-        toolTipTimer->start(2000);
     }
 }
 
@@ -359,7 +357,7 @@ void TextEdit::setCompletionToolTip(const QString &text)
     }
 }
 
-void TextEdit::showToolTipForCursor()
+void TextEdit::requestToolTipForCursor()
 {
     toolTipTimer->start(2000);
 
