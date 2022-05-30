@@ -64,10 +64,11 @@ private:
 
     gnuplot_cpl::GnuplotCompletionModel *gnuplotcpl;
     QThread completionThread;
+    void requestSettingToopTip(const QString& text);
 
 signals:
     void completionRequested(const QString& firstCmd, const QString& preCmd, const int index);
-    void toolTipRequested(const QString& text);
+    void toolTipRequested(const QString& text, const QString& firstCmd);
     void currentFolderChanged(const QString& path);
 
 private slots:

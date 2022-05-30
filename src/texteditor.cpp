@@ -28,6 +28,7 @@ TextEdit::TextEdit(QWidget *parent)
         gnuplotcpl = new gnuplot_cpl::GnuplotCompletionModel(nullptr);
         connect(this, &TextEdit::completionRequested, gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::setCompletionList);
         connect(this, &TextEdit::currentFolderChanged, gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::setParentFolder);
+        connect(this, &TextEdit::toolTipRequested, gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::setToolTip);
         connect(gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::completionListSet, this, &TextEdit::setCompletionList);
         connect(gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::toolTipSet, this, &TextEdit::setCompletionToolTip);
         gnuplotcpl->moveToThread(&completionThread);
@@ -64,6 +65,10 @@ void TextEdit::wheelEvent(QWheelEvent *event)
     QPlainTextEdit::wheelEvent(event);
 }
 
+void TextEdit::requestSettingToopTip(const QString &text)
+{
+    emit toolTipRequested(text, firstCmd);
+}
 
 void TextEdit::changeCompleterModel()
 {
@@ -132,7 +137,7 @@ void TextEdit::setCompleter(QCompleter *completer)
     c->setCaseSensitivity(Qt::CaseInsensitive);          //マッチングのケース感度の設定
 
     QObject::connect(c, QOverload<const QString&>::of(&QCompleter::activated), this, &TextEdit::insertCompletion);
-    QObject::connect(c, QOverload<const QString&>::of(&QCompleter::highlighted), gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::setToolTip);
+    QObject::connect(c, QOverload<const QString&>::of(&QCompleter::highlighted), this, &TextEdit::requestSettingToopTip);
 }
 
 QCompleter* TextEdit::completer() const

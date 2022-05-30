@@ -43,7 +43,7 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
                 if(!modifiers().contains(preCmd)) list << modifiers();
                 if(preCmd != "unitweights") list << "unitweights";
                 if(preCmd != "error") list << "error";
-                if(preCmd != "xerror") list << "xerror";
+                if(preCmd != "xerror") list << "yerror";
                 if(preCmd != "xyerror") list << "xyerror";
                 if(preCmd != "zerror") list << "zerror";
                 if(preCmd != "via") list << "via";
@@ -64,7 +64,7 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
                 if(!modifiers().contains(preCmd)) list << modifiers();
                 if(preCmd != "unitweights") list << "unitweights";
                 if(preCmd != "error") list << "error";
-                if(preCmd != "xerror") list << "xerror";
+                if(preCmd != "xerror") list << "yerror";
                 if(preCmd != "xyerror") list << "xyerror";
                 if(preCmd != "zerror") list << "zerror";
                 if(preCmd != "via") list << "via";
@@ -323,7 +323,7 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
 
 
 
-void GnuplotCompletionModel::setToolTip(const QString& command)
+void GnuplotCompletionModel::setToolTip(const QString& command, const QString& firstCmd)
 {
     QString toolTip;
 
@@ -335,9 +335,14 @@ void GnuplotCompletionModel::setToolTip(const QString& command)
     else if(command == "do") toolTip =  "do for <InterationSpec> { }";
     else if(command == "eval") toolTip =  "eval <\"StringExpression\">";
     else if(command == "exit") toolTip =  "exit \n""exit message <\"ErrorMessage\"> \n""exit status <ErrorCode>";
-    else if(command == "fit") toolTip =  "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {unitweights} via <Var1>{,<Var2>,...}\n"
-                                         "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {{x|xy|z}error} via <Var1>{,<Var2>,...}\n"
-                                         "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {error <Var1>{,<Var2>,...}} via <Var1>{,<Var2>,...}";
+    else if(command == "fit")
+    {
+        if(firstCmd.isEmpty()) toolTip =  "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {unitweights} via <Var1>{,<Var2>,...}\n"
+                                          "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {{x|xy|z}error} via <Var1>{,<Var2>,...}\n"
+                                          "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {error <Var1>{,<Var2>,...}} via <Var1>{,<Var2>,...}";
+        else if(firstCmd == "save") toolTip = "fit <\"FileName\">\n"
+                                              "-----\nSave fitting parameters to file.";
+    }
     else if(command == "help") toolTip =  "help <Contents>";
     else if(command == "history") toolTip =  "history\n"
                                          "history {<Count>} <\"OutFile\"> {append}\n"
@@ -353,9 +358,9 @@ void GnuplotCompletionModel::setToolTip(const QString& command)
     else if(command == "pause") toolTip =  "pause <Time> {<\"Message\">}";
     else if(command == "pause") toolTip =  "pause mouse {<EndCondition>}{, <EndCondition>...} {<\"Message\">}";
     else if(command == "plot") toolTip =  "plot {<Ranges>} <Definition> {ases <Axes>} {<TitleSpec>} {with <Style>}\n"
-                                      "plot {<Ranges>} {sampling-range} <Function> {axes <Axes>} {<TitleSpec>} {with <Style>}\n"
-                                      "plot {<Ranges>} <DataSource> {<Modifier>} {axes <Axes>} {<TitleSpec>} {with <Style>}\n"
-                                      "plot {<Ranges>} keyentry {axes <Axes>} {<TitleSpec>} {with <Style>}";
+                                          "plot {<Ranges>} {sampling-range} <Function> {axes <Axes>} {<TitleSpec>} {with <Style>}\n"
+                                          "plot {<Ranges>} <DataSource> {<Modifier>} {axes <Axes>} {<TitleSpec>} {with <Style>}\n"
+                                          "plot {<Ranges>} keyentry {axes <Axes>} {<TitleSpec>} {with <Style>}";
     else if(command == "print") toolTip =  "print <Formula> {, <Formula>, ...}";
     else if(command == "printerr") toolTip =  "print <Formula> {, <Formula>, ...}";
     else if(command == "pwd") toolTip =  "pwd";
@@ -366,7 +371,12 @@ void GnuplotCompletionModel::setToolTip(const QString& command)
     else if(command == "reread") toolTip =  "reread";
     else if(command == "reset") toolTip =  "reset";
     else if(command == "save") toolTip =  "save {<SaveCmd> {<SaveCmd>,}...} <\"FileName\">";
-    else if(command == "set") toolTip =  "set <Option>";
+    else if(command == "set")
+    {
+        if(firstCmd.isEmpty()) toolTip =  "set <Option>";
+        else if(firstCmd == "set") toolTip = "set <\"FileName\">\n"
+                                             "-----\nSave setting options to file.";
+    }
     else if(command == "show") toolTip =  "show <Option>";
     else if(command == "shell") toolTip =  "shell";
     else if(command == "splot") toolTip =  "splot {<Ranges>} <Function> {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
@@ -384,6 +394,103 @@ void GnuplotCompletionModel::setToolTip(const QString& command)
     else if(command == "unset") toolTip =  "unset <Option>";
     else if(command == "update") toolTip =  "update <\"FileName\"> {<\"FileName\">}";
     else if(command == "while") toolTip =  "while (<Expression>) {}";
+
+    else if(command == "message") toolTip = "message <\"Message\">\n"
+                                            "-----\nSpecify a error message.";
+    else if(command == "status") toolTip = "status <ExitCode>\n"
+                                           "-----\nSpecify an integer error code.";
+    else if(command == "unitweights")
+    {
+        if(firstCmd == "fit") toolTip = "-----\n This assumes that all data points have equal weights.";
+    }
+    else if(command == "yerror" ||
+            command == "xyerror" ||
+            command == "zerror" ||
+            command == "error")
+    {
+        if(firstCmd == "fit") toolTip = "-----\nConsider the standard deviation s of the variable and use it to calculate a weight of 1/s**2 for each piece of data.";
+    }
+    else if(command == "errors")
+    {
+        if(firstCmd == "fit") toolTip = "errors <Var1>{, <Var2>, ...}\n"
+                                        "-----\nSpecify which variable error the input is.";
+    }
+    else if(command == "via")
+    {
+        if(firstCmd == "fit") toolTip = "via <\"ParameterFile\">\n"
+                                        "via <Var1>{, <Var2>, ...}\n"
+                                        "-----\nSpecify what to refer to to optimize the parameters.";
+    }
+    else if(command == "mouse")
+    {
+        if(firstCmd == "pause") toolTip = "mouse {<EndCondition>}{, <EndCondition>} {<\"<Message>\"}\n"
+                                          "-----\nWait until there is a mouse click or ctrl-C is pressed.";
+    }
+    else if(command == "keyentry")
+    {
+        if(firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = "-----\n"
+                                          "Replacing filenames or functions with keyentries allows you to add extra lines for legend customization.";
+    }
+    else if(command == "axes")
+    {
+        if(firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = "axes x1y1|x2y2|x1y2|x2y1\n"
+                                          "-----\nSpecify which axis to scale to.";
+    }
+    else if(command == "with")
+    {
+        if(firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = "with <PlotStyle> {<Option>}\n"
+                                          "-----\nChoose a style for displaying functions and data.";
+    }
+    else if(command == "functions")
+    {
+        if(firstCmd == "save") toolTip = "terminal <\"FileName\">\n"
+                                         "-----\nSave functions to file.";
+    }
+    else if(command == "variables")
+    {
+        if(firstCmd == "save") toolTip = "variables <\"FileName\">\n"
+                                         "-----\nSave variables to file.";
+    }
+    else if(command == "terminal")
+    {
+        if(firstCmd == "save") toolTip = "terminal <\"FileName\">\n"
+                                         "-----\nSave the terminal information to file.";
+        else if(firstCmd == "test") toolTip = "-----\nGenerates a line type, point type, or other drawing available for the terminal in use.";
+    }
+    else if(command == "matrix")
+    {
+        if(firstCmd == "stats") toolTip = "-----\nSpecify the all matrix elements of data file to get statistics.";
+    }
+    else if(command == "using")
+    {
+        if(firstCmd == "stats") toolTip = "using N{:M}\n"
+                                          "-----\nSpecify the column to get statistics.";
+    }
+    else if(command == "name")
+    {
+        if(firstCmd == "stats") toolTip = "name <\"Prefix\">\n"
+                                          "-----\nYou can replace the default prefix of variables, \"STATS\" to user option name.";
+    }
+    else if(command == "nooutput")
+    {
+        if(firstCmd == "stats") toolTip = "-----\nAvoid output.";
+    }
+    else if(command == "output")
+    {
+        if(firstCmd == "stats") toolTip = "-----\nOutput to a screen or file.";
+    }
+    else if(command == "palette")
+    {
+        if(firstCmd == "test") toolTip = "-----\nDraw the state of rgb.";
+    }
+    else if(command == "all")
+    {
+        if(firstCmd == "toggle") toolTip = "-----\nActs on all valid graphs.";
+    }
+
 
     emit toolTipSet(toolTip);
 }

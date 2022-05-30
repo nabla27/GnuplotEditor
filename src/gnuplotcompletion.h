@@ -58,7 +58,7 @@ public:
 
 public slots:
     void setCompletionList(const QString& firstCmd, const QString& preCmd, const int index);
-    void setToolTip(const QString& text);
+    void setToolTip(const QString& text, const QString& firstCmd);
     void setParentFolder(const QString& folderPath);
 
 private:
