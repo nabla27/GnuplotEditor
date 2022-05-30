@@ -12,6 +12,9 @@
 #include "gnuplotcpl.h"
 #include "utility.h"
 
+#include "gnuplotcompletion.h"
+#include <QThread>
+
 class TextEdit : public QPlainTextEdit
 {
     Q_OBJECT
@@ -60,6 +63,16 @@ private:
     QString beforeCmd = "";
     QString currentCmd = "";
     QStringList currentDirFileList;
+
+    gnuplot_cpl::GnuplotCompletionModel *gnuplotcpl;
+    QThread completionThread;
+
+signals:
+    void completionRequested(const QString& firstCmd, const QString& preCmd, const int index);
+    void toolTipRequested(const QString& text);
+private slots:
+    void setCompletionList(const QStringList& list);
+    void setCompletionToolTip(const QString& text);
 
     /* lineNumer */
 public:
