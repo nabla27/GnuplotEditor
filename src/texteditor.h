@@ -61,13 +61,12 @@ private:
     QString firstCmd = "";
     QString beforeCmd = "";
     QString currentCmd = "";
-    QString cursorAfter = "";
 
     QTimer *toolTipTimer;
 
     gnuplot_cpl::GnuplotCompletionModel *gnuplotcpl;
     QThread completionThread;
-    void requestSettingToopTip(const QString& text);
+    void requestToopTipForCompletion(const QString& text);
     void requestToolTipForCursor();
 
 signals:

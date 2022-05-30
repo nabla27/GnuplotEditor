@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
     <path>E:/Program Files/gnuplot/bin/gnuplot.exe</path>
-    <initCmd>set datafile separator &apos;,&apos;</initCmd>
+    <initCmd>set datafile separator &apos;,&apos;
+pause mouse </initCmd>
 </root>
