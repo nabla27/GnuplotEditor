@@ -68,7 +68,7 @@ private:
     gnuplot_cpl::GnuplotCompletionModel *gnuplotcpl;
     QThread completionThread;
     void requestSettingToopTip(const QString& text);
-    void showToolTipForCursor();
+    void requestToolTipForCursor();
 
 signals:
     void completionRequested(const QString& firstCmd, const QString& preCmd, const int index);
