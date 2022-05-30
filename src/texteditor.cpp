@@ -23,6 +23,14 @@ TextEdit::TextEdit(QWidget *parent)
         palette.setColor(QPalette::Text, Qt::GlobalColor::white);
         setPalette(palette);
     }
+    {
+        gnuplotcpl = new gnuplot_cpl::GnuplotCompletionModel(nullptr);
+        connect(this, &TextEdit::completionRequested, gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::setCompletionList);
+        connect(gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::completionListSet, this, &TextEdit::setCompletionList);
+        connect(gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::toolTipSet, this, &TextEdit::setCompletionToolTip);
+        gnuplotcpl->moveToThread(&completionThread);
+        completionThread.start();
+    }
     {//completerの初期設定
         setCompleter(new QCompleter());
     }
@@ -33,6 +41,8 @@ TextEdit::TextEdit(QWidget *parent)
 
 TextEdit::~TextEdit()
 {
+    completionThread.quit();
+    completionThread.wait();
 }
 
 void TextEdit::setParentFolderPath(const QString& path)
@@ -137,19 +147,28 @@ void TextEdit::changeCompleterModel()
         return;
     }
 
-    /* カーソルが行頭にあるとき、予測変換を無効にする */
-    if(positionInBlock == 0){
-        completer()->setModel(getEditCompleter_non()); return;
+    {
+        emit completionRequested(firstCmd, beforeCmd, textForwardCursor.size() - 1);
+        //QStringListModel *model = new QStringListModel();
+        //gnuplot_cpl::GnuplotCompletionModel a(nullptr);
+        //model->setStringList(QStringList() << "plot" << "pause" << "print");
+        //completer()->setModel(model);
     }
-    else
-        completer()->setModel(getEditCompleter_first());
 
-    /* カーソル行に空白を含むとき、一旦予測変換を無効にする */
-    if(currentBlockText.contains(' '))
-        completer()->setModel(getEditCompleter_non());
 
-    /* 先頭コマンドfirstCmdと直前のコマンドbeforeCmdをもとに予測変換を変更する */
-    changeGnuplotCompleter(completer(), firstCmd, beforeCmd);
+    ///* カーソルが行頭にあるとき、予測変換を無効にする */
+    //if(positionInBlock == 0){
+    //    completer()->setModel(getEditCompleter_non()); return;
+    //}
+    //else
+    //    completer()->setModel(getEditCompleter_first());
+
+    ///* カーソル行に空白を含むとき、一旦予測変換を無効にする */
+    //if(currentBlockText.contains(' '))
+    //    completer()->setModel(getEditCompleter_non());
+
+    ///* 先頭コマンドfirstCmdと直前のコマンドbeforeCmdをもとに予測変換を変更する */
+    //changeGnuplotCompleter(completer(), firstCmd, beforeCmd);
 }
 
 
@@ -160,13 +179,13 @@ void TextEdit::setCompleter(QCompleter *completer)
     c = completer;
 
     if(!c) return;
-
+    qDebug() << __LINE__ << "aaa";
     c->setWidget(this);
     c->setCompletionMode(QCompleter::PopupCompletion);   //変換候補をポップアップウィンドウで表示させる
     c->setCaseSensitivity(Qt::CaseInsensitive);          //マッチングのケース感度の設定
 
-    QObject::connect(c, QOverload<const QString&>::of(&QCompleter::activated),
-                     this, &TextEdit::insertCompletion);
+    QObject::connect(c, QOverload<const QString&>::of(&QCompleter::activated), this, &TextEdit::insertCompletion);
+    QObject::connect(c, QOverload<const QString&>::of(&QCompleter::highlighted), gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::setToolTip);
 }
 
 QCompleter* TextEdit::completer() const
@@ -355,6 +374,62 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
     cr.setWidth(c->popup()->sizeHintForColumn(0) + 10 + c->popup()->verticalScrollBar()->sizeHint().width());
     c->complete(cr);
 }
+
+void TextEdit::setCompletionList(const QStringList& list)
+{
+    if(!c) return;
+
+    QStringListModel *model = new QStringListModel();
+    model->setStringList(list);
+
+    completer()->setModel(model);
+
+    c->setCompletionPrefix(textUnderCursor());
+    c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
+
+    /* 予測変換ボックスのサイズ設定
+     * popup()->sizeHintForColumn(0)でpopupの0列目、つまり変換候補の
+     * 横幅(最大)を取得できる。+10しているのは、ぴったりであると、見えない場合があるため。*/
+    QRect cr = cursorRect();
+    cr.setWidth(c->popup()->sizeHintForColumn(0) + 10 + c->popup()->verticalScrollBar()->sizeHint().width());
+    c->complete(cr);
+}
+#include <QToolTip>
+void TextEdit::setCompletionToolTip(const QString &text)
+{
+    if(text.isEmpty())
+    {
+        QToolTip::hideText();
+        return;
+    }
+
+    //popup内でハイライトされている表示されている画面上でのインデックス(始点0)
+    const int viewRowIndex = c->popup()->currentIndex().row() - c->popup()->verticalScrollBar()->value();
+
+    if(viewRowIndex < 0) return; //ハイライトされたテキストがない場合、-1となって非表示とする
+
+    /* 因子15はpopup()のtopLeftの座標とtoolTipのtopLeftの位置がずれを補正するたものもの
+     * なんらかの正しい変換で改善できるかも*/
+    const QPoint pos = c->popup()->pos() + QPoint(c->popup()->width(), viewRowIndex * c->popup()->sizeHintForRow(0) - 15);
+
+    QToolTip::showText(pos, "-");  //toolTipが前と同じであれば、位置が変化しないので、一度リセットするために
+    QToolTip::showText(pos, text);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* 行番号の表示幅を決定 */
 int TextEdit::lineNumberAreaWidth()
