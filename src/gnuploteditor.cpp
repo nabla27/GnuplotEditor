@@ -177,6 +177,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
         item->editor = new TextEdit(gnuplotWidget);
         item->load();
         connect(item->editor, &TextEdit::fontSizeChanged, editorSetting, &EditorSetting::setTextSize);
+        connect(item->editor, &TextEdit::commandHelpRequested, this, &GnuplotEditor::showCommandHelp);
         editorSetting->setEditor(item->editor);
         gnuplot->setWorkingDirectory(item->info.absolutePath());
         item->editor->setParentFolderPath(item->info.absolutePath());
@@ -331,6 +332,11 @@ void GnuplotEditor::saveAsTemplate()
     }
 
     templateCustom->addTemplate(currentEditor->toPlainText());
+}
+
+void GnuplotEditor::showCommandHelp(const QString& command)
+{
+    gnuplot->exc(gnuplotProcess, QList<QString>() << "help " + command + "\n", false);
 }
 
 void GnuplotEditor::reboot()
