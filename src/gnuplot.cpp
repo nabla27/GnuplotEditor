@@ -5,7 +5,7 @@ Gnuplot::Gnuplot(QObject *parent)
 {
 }
 
-void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist)
+void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist, const bool preHandling)
 {
     if(!process)  return;
 
@@ -38,18 +38,21 @@ void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist)
     process->write((moveDirCmd + "\n").toUtf8().constData());
     emit cmdPushed(moveDirCmd);
 
-    /* 初期コマンドの実行 */
-    for(const QString& initCmd : initCmdList)
+    if(preHandling)
     {
-        process->write((initCmd + "\n").toUtf8().constData());
-        emit cmdPushed(initCmd);
-    }
+        /* 初期コマンドの実行 */
+        for(const QString& initCmd : initCmdList)
+        {
+            process->write((initCmd + "\n").toUtf8().constData());
+            emit cmdPushed(initCmd);
+        }
 
-    /* 事前コマンドの実行 */
-    for(const QString& preCmd : preCmdList)
-    {
-        process->write((preCmd + "\n").toUtf8().constData());
-        emit cmdPushed(preCmd);
+        /* 事前コマンドの実行 */
+        for(const QString& preCmd : preCmdList)
+        {
+            process->write((preCmd + "\n").toUtf8().constData());
+            emit cmdPushed(preCmd);
+        }
     }
 
     /* コマンドの実行 */

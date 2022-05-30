@@ -59,6 +59,8 @@ private slots:
     void importTemplate(const QString& script);
     void saveAsTemplate();
 
+    void showCommandHelp(const QString& command);
+
     void reboot();
 
 private:

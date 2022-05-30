@@ -38,6 +38,7 @@ protected:
 
 private:
     EditorSyntaxHighlighter *textHighlight;
+    void requestCommandHelp();
 
 
     /* completer */
@@ -102,6 +103,7 @@ private:
 
 signals:
     void fontSizeChanged(const int ps);
+    void commandHelpRequested(const QString& command);
 };
 
 

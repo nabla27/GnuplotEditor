@@ -1,6 +1,7 @@
 #include "texteditor.h"
 #include <QScrollBar>
 #include <QToolTip>
+#include <QShortcut>
 
 TextEdit::TextEdit(QWidget *parent)
     : QPlainTextEdit(parent)
@@ -42,6 +43,10 @@ TextEdit::TextEdit(QWidget *parent)
     }
     {//ハイライトの初期設定
         textHighlight = new EditorSyntaxHighlighter(document());
+    }
+    {//ショートカット
+        QShortcut *showCommandHelp = new QShortcut(QKeySequence(Qt::Key::Key_F1), this);
+        connect(showCommandHelp, &QShortcut::activated, this, &TextEdit::requestCommandHelp);
     }
 }
 
@@ -378,6 +383,18 @@ void TextEdit::requestToolTipForCursor()
             previousFirstCmdForToolTip = firstCmdForToolTip;
         }
     }
+}
+
+void TextEdit::requestCommandHelp()
+{
+    QTextCursor tc = cursorForPosition(mapFromGlobal(viewport()->cursor().pos()));
+
+    tc.movePosition(QTextCursor::MoveOperation::WordLeft, QTextCursor::MoveAnchor);
+    tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
+
+    const QString textUnderCursor = tc.selectedText();
+    if(!textUnderCursor.isEmpty())
+        emit commandHelpRequested(textUnderCursor);
 }
 
 
