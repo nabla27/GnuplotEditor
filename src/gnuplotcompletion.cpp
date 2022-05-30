@@ -490,7 +490,102 @@ void GnuplotCompletionModel::setToolTip(const QString& command, const QString& f
     {
         if(firstCmd == "toggle") toolTip = "-----\nActs on all valid graphs.";
     }
-
+    else if(command == "boxerrorbars")
+    {
+        toolTip = "-----\n2D box errorbars. (x,y,dy)or(x,y,dy,dx)or(x,y,low,high)or(x,y,low,high,dx)";
+    }
+    else if(command == "boxes")
+    {
+        toolTip = "-----\n2D boxes. (x,y)or(x,y,x_width)";
+    }
+    else if(command == "boxplot")
+    {
+        toolTip = "-----\n2D boxplot. (x,y)or(x,y,width)or(x,y,width,count)";
+    }
+    else if(command == "boxxyerror")
+    {
+        toolTip = "-----\n2D box xy error. (x,y,dx,dy)or(x,y,xlow,xhigh,ylow,yhigh)";
+    }
+    else if(command == "candlesticks")
+    {
+        toolTip = "-----\n2D candle sticks. (date,open,low,high,close)or(x,box_min,whisker_min,whisker_high,box_high)";
+    }
+    else if(command == "circles")
+    {
+        toolTip = "-----\nDraw circle to each points. (x,y,r,start_angle,end_angle,color). Minimum columnCount is 2.";
+    }
+    else if(command == "ellipses")
+    {
+        toolTip = "-----\nDrow ellipses to each points. (x,y,major_diam, minor_diam, angle). Minimum columnCount is 2.";
+    }
+    else if(command == "dots")
+    {
+        toolTip = "-----\n2D or 3D. Draw dots to (x,y,z)";
+    }
+    else if(command == "filledcurves")
+    {
+        toolTip = "filledcurves <Option>\n"
+                  "-----\n2D. (x,y)or(x,y1,y2)";
+    }
+    else if(command == "financebars")
+    {
+        toolTip = "-----\n2D. (date,open,low,high,close)or(data,open,low,high,close,color)";
+    }
+    else if(command == "fsteps" ||
+            command == "fillsteps" ||
+            command == "histeps" ||
+            command == "steps")
+    {
+        toolTip = "-----\n2D. (x,y)";
+    }
+    else if(command == "impulses")
+    {
+        toolTip = "-----\n2D or 3D. (y)or(x,y)or(x,y,z)";
+    }
+    else if(command == "labels")
+    {
+        toolTip = "-----\n2D or 3D. (x,y,string)or(x,y,z,string)";
+    }
+    else if(command == "lines")
+    {
+        toolTip = "-----\n2D or 3D. (y)or(x,y)or(z)or(x,y,z)";
+    }
+    else if(command == "parallelaxes")
+    {
+        toolTip = "-----\nVisualize multidimensional data correlations.";
+    }
+    else if(command == "vectors")
+    {
+        toolTip = "-----\n2D or 3D.(x,y,dx,dy)or(x,y,z,dx,dy,dz)";
+    }
+    else if(command == "xerrorbars")
+    {
+        toolTip = "-----\n2D. (x,y,dx)or(x,y,low,high)";
+    }
+    else if(command == "xyerrorbars")
+    {
+        toolTip = "-----\n2D. (x,y,dx,dy)or(x,y,xlow,xhigh,ylow,yhigh)";
+    }
+    else if(command == "yerrorbars")
+    {
+        toolTip = "-----\n2D. (y,dy)or(x,y,dy)or(x,y,low,high)";
+    }
+    else if(command == "xerrorlines")
+    {
+        toolTip = "-----\n2D. (x,y,dx)or(x,y,low,high)";
+    }
+    else if(command == "xyerrorlines")
+    {
+        toolTip = "-----\n2D. (x,y,dx,dy)or(x,y,xlow,xhigh,ylow,yhigh)";
+    }
+    else if(command == "yerrorlines")
+    {
+        toolTip = "-----\n2D. (x,y,dy)or(x,y,low,high)";
+    }
+    else if(command == "zerrorfill")
+    {
+        toolTip = "-----\n3D. (x,y,z,dz)or(x,y,z,low,high)";
+    }
 
     emit toolTipSet(toolTip);
 }
