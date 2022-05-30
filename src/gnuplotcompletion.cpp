@@ -1,5 +1,6 @@
 #include "gnuplotcompletion.h"
-
+#include <QDir>
+#include <QFileInfo>
 
 namespace gnuplot_cpl
 {
@@ -11,11 +12,11 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
     if(index == 0) list << mainCmd();
     else if(firstCmd == "cd")
     {
-        if(index == 1) list << dirName();
+        if(index == 1) list << dirList;
     }
     else if(firstCmd == "call")
     {
-        if(index == 1) list << fileName();
+        if(index == 1) list << fileList;
         else if(index >= 2) list << parameter();
     }
     else if(firstCmd == "do")
@@ -29,7 +30,7 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
     else if(firstCmd == "fit")
     {
         if(index == 1) list << expression();
-        else if(index == 2) list << expression() << fileName();
+        else if(index == 2) list << expression() << fileList;
         else if(index == 3) list << modifiers() << "unitweights" << "error" << "yerror" << "xyerror" << "zerror" << "via";
         else if(index >= 4)
         {
@@ -54,7 +55,7 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
     }
     else if(firstCmd == "load")
     {
-        if(index == 1) list << fileName();
+        if(index == 1) list << fileList;
     }
     else if(firstCmd == "pause")
     {
@@ -62,8 +63,8 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
     }
     else if(firstCmd == "plot")
     {
-        if(index == 1) list << expression() << fileName() << "keyentry";
-        else if(index == 2) list << expression() << fileName() << "keyentry" << titleSpec() << modifiers() << "matrix" << "name" << "nooutput" << "output" << "using" << "name";
+        if(index == 1) list << expression() << fileList << "keyentry";
+        else if(index == 2) list << expression() << fileList << "keyentry" << titleSpec() << modifiers() << "matrix" << "name" << "nooutput" << "output" << "using" << "name";
         else if(index >= 3)
         {
             if(preCmd == "axes") list << axes();
@@ -223,8 +224,8 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
     }
     else if(firstCmd == "splot")
     {
-        if(index == 1) list << expression() << fileName() << "keyentry";
-        else if(index == 2) list << expression() << fileName() << "keyentry" << titleSpec() << modifiers() << "matrix" << "name" << "nooutput" << "output" << "using" << "with";
+        if(index == 1) list << expression() << fileList << "keyentry";
+        else if(index == 2) list << expression() << fileList << "keyentry" << titleSpec() << modifiers() << "matrix" << "name" << "nooutput" << "output" << "using" << "with";
         else if(index >= 3)
         {
             if(preCmd == "with") list << d3style();
@@ -233,8 +234,8 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
     }
     else if(firstCmd == "stats")
     {
-        if(index == 1) list << fileName() << "nooutput" << "output";
-        else if(index == 2) list << fileName() << "matrix" << "using" << "name";
+        if(index == 1) list << fileList << "nooutput" << "output";
+        else if(index == 2) list << fileList << "matrix" << "using" << "name";
     }
     else if(firstCmd == "test")
     {
@@ -250,7 +251,7 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
     }
     else if(firstCmd == "update")
     {
-        list << fileName();
+        list << fileList;
     }
 
     emit completionListSet(list);
@@ -321,6 +322,33 @@ void GnuplotCompletionModel::setToolTip(const QString& command)
     else if(command == "while") toolTip =  "while (<Expression>) {}";
 
     emit toolTipSet(toolTip);
+}
+
+
+void GnuplotCompletionModel::setParentFolder(const QString& folderPath)
+{
+    dirList.clear();
+    fileList.clear();
+    getFilesRecursively(folderPath, folderPath);
+}
+
+void GnuplotCompletionModel::getFilesRecursively(const QString &parentPath, const QString &folderPath)
+{
+    QDir parent(parentPath);
+    QDir dir(folderPath);
+
+    const QList<QFileInfo> infoList = dir.entryInfoList(QDir::Filter::NoDotAndDotDot | QDir::Filter::Files | QDir::Filter::Dirs);
+
+    for(const QFileInfo& info : infoList)
+    {
+        if(info.isFile())
+            fileList << "\"" + parent.relativeFilePath(info.absoluteFilePath()) + "\"";
+        else
+        {
+            dirList << "\"" + parent.relativeFilePath(info.absoluteFilePath()) + "\"";   //parentPathからのfolderPathの相対パス
+            getFilesRecursively(parentPath, info.absoluteFilePath());                    //フォルダー内を再帰
+        }
+    }
 }
 
 

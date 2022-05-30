@@ -1,5 +1,6 @@
 #include "texteditor.h"
 #include <QScrollBar>
+#include <QToolTip>
 
 TextEdit::TextEdit(QWidget *parent)
     : QPlainTextEdit(parent)
@@ -26,6 +27,7 @@ TextEdit::TextEdit(QWidget *parent)
     {
         gnuplotcpl = new gnuplot_cpl::GnuplotCompletionModel(nullptr);
         connect(this, &TextEdit::completionRequested, gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::setCompletionList);
+        connect(this, &TextEdit::currentFolderChanged, gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::setParentFolder);
         connect(gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::completionListSet, this, &TextEdit::setCompletionList);
         connect(gnuplotcpl, &gnuplot_cpl::GnuplotCompletionModel::toolTipSet, this, &TextEdit::setCompletionToolTip);
         gnuplotcpl->moveToThread(&completionThread);
@@ -43,30 +45,6 @@ TextEdit::~TextEdit()
 {
     completionThread.quit();
     completionThread.wait();
-}
-
-void TextEdit::setParentFolderPath(const QString& path)
-{
-    currentDirFileList.clear();
-    /*path下のファイル再帰的に取得し、そのpathからの相対パスをcurrentDirFileListに追加する。
-     * currentDirFileListはファイル名の補完機能で使われる。*/
-    getFilesRecursively(path, path, currentDirFileList);
-}
-
-void TextEdit::getFilesRecursively(const QString& parentPath, const QString &folderPath, QStringList &list)
-{
-    QDir parent(parentPath);
-    QDir dir(folderPath);
-
-    const QList<QFileInfo> infoList = dir.entryInfoList(QDir::Filter::NoDotAndDotDot | QDir::Filter::Files | QDir::Filter::Dirs);
-
-    for(const QFileInfo& info : infoList)
-    {
-        if(info.isFile())
-            list << parent.relativeFilePath(info.absoluteFilePath());
-        else
-            getFilesRecursively(parentPath, info.absoluteFilePath(), list);
-    }
 }
 
 /* 右クリックしながらホイールで文字サイズ変更 */
@@ -91,15 +69,17 @@ void TextEdit::changeCompleterModel()
 {
     firstCmd.clear(); beforeCmd.clear(); currentCmd.clear();
 
-    const QString script = toPlainText().remove('\t');                                          //エディタの文字列をタブ文字を削除して取得
-    const QList<QString> blockTextList = script.split('\n');                                    //各行ごとに文字列を取得(改行文字で分割)
-    const int currentBlockNumber = textCursor().blockNumber();                                  //カーソル行の行数
-    const QString currentBlockText = blockTextList.at(currentBlockNumber);                      //カーソル行の文字列
-    const int positionInBlock = qMin(textCursor().positionInBlock(), currentBlockText.size());  //行頭からの位置(タブを消去しているので調整する)
+    const QString script = toPlainText().remove('\t');                                                //エディタの文字列をタブ文字を削除して取得
+    const QList<QString> blockTextList = script.split('\n');                                          //各行ごとに文字列を取得(改行文字で分割)
+    const int currentBlockNumber = textCursor().blockNumber();                                        //カーソル行の行数
+    const QString currentBlockText = blockTextList.at(currentBlockNumber);                            //カーソル行の文字列
+    const int positionInBlock = qMin(textCursor().positionInBlock(), currentBlockText.size());        //行頭からの位置(タブを消去しているので調整する)
     const QList<QString> textForwardCursor = (currentBlockText.isEmpty())
             ? QList<QString>()
-            : currentBlockText.first(positionInBlock).split(' ');                               //カーソル行のカーソル以前の文字列(空白で区切ってコマンドごとに分割される)
-    QList<QString> firstCmdBlock;                                                               //firstCmdを参照する行の文字列(コマンドごとに分割される)
+            : currentBlockText.first(positionInBlock).split(' ');                                     //カーソル行のカーソル以前の文字列(空白で区切ってコマンドごとに分割される)
+    QList<QString> firstCmdBlock;                                                                     //firstCmdを参照する行の文字列(コマンドごとに分割される)
+    const QList<QString> afterCursorText
+            = currentBlockText.last(currentBlockText.size() - positionInBlock).split(' ');            //カーソル行のカーソル以降の文字
 
     /* firstCmdを決定するために参照する行の文字列firstCmdBlockを決定する */
     if(currentBlockNumber == 0)                                                                         //エディタの行数が1のとき
@@ -125,6 +105,7 @@ void TextEdit::changeCompleterModel()
     const qsizetype currentCmdCount = textForwardCursor.size();
     beforeCmd = (currentCmdCount >= 2) ? textForwardCursor.at(currentCmdCount - 2) : "";
     currentCmd = (currentCmdCount > 0) ? textForwardCursor.at(currentCmdCount - 1) : "";
+    cursorAfter = (afterCursorText.size() > 0) ? afterCursorText.at(0) : "";
 
     /* コメント中では予測変換を無効にする */
     const qsizetype commentsStartPoint = currentBlockText.indexOf('#');                     //コメントのスタート位置
@@ -134,41 +115,7 @@ void TextEdit::changeCompleterModel()
         }
     }
 
-    /* ファイル名の予測変換 */
-    if((firstCmd == "plot" ||
-        firstCmd == "splot" ||
-        firstCmd == "load" ||
-        firstCmd == "cd" ||
-        firstCmd == "fit") && currentCmd.size() >= 1 && currentCmd.front() == '\"')         //currenCmdがダブルクォーテーションから始まるとき
-    {
-        c->setModel(getCompleter(currentDirFileList));                                      //ファイル名一覧を予測変換候補に設定
-
-        cursorMoveCount = 1;                                                                //予測変換決定後のカーソル移動数を1にする(ダブルクォーテーションをまたぐ)
-        return;
-    }
-
-    {
-        emit completionRequested(firstCmd, beforeCmd, textForwardCursor.size() - 1);
-        //QStringListModel *model = new QStringListModel();
-        //gnuplot_cpl::GnuplotCompletionModel a(nullptr);
-        //model->setStringList(QStringList() << "plot" << "pause" << "print");
-        //completer()->setModel(model);
-    }
-
-
-    ///* カーソルが行頭にあるとき、予測変換を無効にする */
-    //if(positionInBlock == 0){
-    //    completer()->setModel(getEditCompleter_non()); return;
-    //}
-    //else
-    //    completer()->setModel(getEditCompleter_first());
-
-    ///* カーソル行に空白を含むとき、一旦予測変換を無効にする */
-    //if(currentBlockText.contains(' '))
-    //    completer()->setModel(getEditCompleter_non());
-
-    ///* 先頭コマンドfirstCmdと直前のコマンドbeforeCmdをもとに予測変換を変更する */
-    //changeGnuplotCompleter(completer(), firstCmd, beforeCmd);
+    emit completionRequested(firstCmd, beforeCmd, textForwardCursor.size() - 1);
 }
 
 
@@ -179,7 +126,7 @@ void TextEdit::setCompleter(QCompleter *completer)
     c = completer;
 
     if(!c) return;
-    qDebug() << __LINE__ << "aaa";
+
     c->setWidget(this);
     c->setCompletionMode(QCompleter::PopupCompletion);   //変換候補をポップアップウィンドウで表示させる
     c->setCaseSensitivity(Qt::CaseInsensitive);          //マッチングのケース感度の設定
@@ -193,34 +140,29 @@ QCompleter* TextEdit::completer() const
     return c;
 }
 
-void TextEdit::insertCompletion(const QString &completion)
+void TextEdit::insertCompletion(QString completion)
 {
     if(c->widget() != this) return;
 
-    QTextCursor tc = textCursor();
+    const QString prefix = c->completionPrefix().remove('"').remove('\'');
+    completion.remove('"').remove('\'');
+    const int extra = completion.length() - prefix.length();
 
-    const int extra = completion.length() - c->completionPrefix().length();
-
-    /* クォーテーションで囲まれる文字が入力される際には、カーソルを右に一つ移動させる */
-    if(currentCmd.size() > 1 && (currentCmd.front() == '\'' || currentCmd.front() == '\"')){
-        cursorMoveCount = 1;
-    }
+    const int cursorMoveCount = cursorAfter.length(); //カーソルの右側にある文字数だけ、completionを挿入後、カーソルを移動させる
 
     /* 予測変換入力後のカーソルの移動と挿入 */
+    QTextCursor tc = textCursor();
     tc.movePosition(QTextCursor::Left);
     tc.setPosition(textCursor().position());
     tc.insertText(completion.right(extra));
-    tc.movePosition(QTextCursor::Right,
-                    QTextCursor::MoveMode::MoveAnchor,
-                    cursorMoveCount);
+    tc.movePosition(QTextCursor::Right, QTextCursor::MoveMode::MoveAnchor, cursorMoveCount);
     setTextCursor(tc);
 }
 
 /* 予測玄関の候補を出すために参照するテキスト */
 QString TextEdit::textUnderCursor() const
 {
-    QString text = currentCmd;
-    return text.remove('\'').remove('\"');
+    return currentCmd;
 }
 
 void TextEdit::focusInEvent(QFocusEvent *e)
@@ -312,12 +254,9 @@ void TextEdit::bracketDeletion(QKeyEvent *e, const QChar beforeChar, const QChar
 /* キーが入力された再の予測変換ボックスの設定 */
 void TextEdit::keyPressEvent(QKeyEvent *e)
 {
-    /* completer挿入時のカーソル移動数をリセット */
-    if(!c->popup()->isVisible()) cursorMoveCount = 0;
-
+    /* 予測変換中でのキー入力無効。editorを変化させない */
     if(c && c->popup()->isVisible() && c->popup()->currentIndex().row() >= 0)
     {
-        /* 予測変換中で以下のキー入力ではeditorを変化させない */
         switch (e->key()) {
         case Qt::Key_Enter:
         case Qt::Key_Return:
@@ -348,12 +287,8 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
                               e->modifiers().testFlag(Qt::ShiftModifier));
     if(!c || (ctr10rShift && e->text().isEmpty())) return;
 
-    /* 予測変換候補を変更 */
-    changeCompleterModel();
-
     static QString eow("~!@#$%{}|:<>?,./;\\"); //入力された時に予測変換を非表示にする文字
     const bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctr10rShift;
-    const QString completionPrefix = textUnderCursor();
 
     /* 予測変換を非表示にする場合 */
     if(!isShortcut && (hasModifier ||
@@ -362,17 +297,8 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
         return;
     }
 
-    if(completionPrefix != c->completionPrefix()){
-        c->setCompletionPrefix(completionPrefix);
-        c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
-    }
-
-    /* 予測変換ボックスのサイズ設定
-     * popup()->sizeHintForColumn(0)でpopupの0列目、つまり変換候補の
-     * 横幅(最大)を取得できる。+10しているのは、ぴったりであると、見えない場合があるため。*/
-    QRect cr = cursorRect();
-    cr.setWidth(c->popup()->sizeHintForColumn(0) + 10 + c->popup()->verticalScrollBar()->sizeHint().width());
-    c->complete(cr);
+    /* 予測変換候補を変更 */
+    changeCompleterModel();
 }
 
 void TextEdit::setCompletionList(const QStringList& list)
@@ -394,7 +320,7 @@ void TextEdit::setCompletionList(const QStringList& list)
     cr.setWidth(c->popup()->sizeHintForColumn(0) + 10 + c->popup()->verticalScrollBar()->sizeHint().width());
     c->complete(cr);
 }
-#include <QToolTip>
+
 void TextEdit::setCompletionToolTip(const QString &text)
 {
     if(text.isEmpty())
