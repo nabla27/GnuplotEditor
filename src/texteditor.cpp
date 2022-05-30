@@ -68,15 +68,13 @@ void TextEdit::wheelEvent(QWheelEvent *event)
     QPlainTextEdit::wheelEvent(event);
 }
 
-void TextEdit::requestSettingToopTip(const QString &text)
+void TextEdit::requestToopTipForCompletion(const QString &text)
 {
     emit toolTipRequested(text, firstCmd);
 }
 
 void TextEdit::changeCompleterModel()
 {
-    firstCmd.clear(); beforeCmd.clear(); currentCmd.clear();
-
     const QString script = toPlainText().remove('\t');                                                //エディタの文字列をタブ文字を削除して取得
     const QList<QString> blockTextList = script.split('\n');                                          //各行ごとに文字列を取得(改行文字で分割)
     const int currentBlockNumber = textCursor().blockNumber();                                        //カーソル行の行数
@@ -85,9 +83,7 @@ void TextEdit::changeCompleterModel()
     const QList<QString> textForwardCursor = (currentBlockText.isEmpty())
             ? QList<QString>()
             : currentBlockText.first(positionInBlock).split(' ');                                     //カーソル行のカーソル以前の文字列(空白で区切ってコマンドごとに分割される)
-    QList<QString> firstCmdBlock;                                                                     //firstCmdを参照する行の文字列(コマンドごとに分割される)
-    const QList<QString> afterCursorText
-            = currentBlockText.last(currentBlockText.size() - positionInBlock).split(' ');            //カーソル行のカーソル以降の文字
+    QList<QString> firstCmdBlock;                                                                     //firstCmdを参照する行の文
 
     /* firstCmdを決定するために参照する行の文字列firstCmdBlockを決定する */
     if(currentBlockNumber == 0)                                                                         //エディタの行数が1のとき
@@ -113,7 +109,6 @@ void TextEdit::changeCompleterModel()
     const qsizetype currentCmdCount = textForwardCursor.size();
     beforeCmd = (currentCmdCount >= 2) ? textForwardCursor.at(currentCmdCount - 2) : "";
     currentCmd = (currentCmdCount > 0) ? textForwardCursor.at(currentCmdCount - 1) : "";
-    cursorAfter = (afterCursorText.size() > 0) ? afterCursorText.at(0) : "";
 
     /* コメント中では予測変換を無効にする */
     const qsizetype commentsStartPoint = currentBlockText.indexOf('#');                     //コメントのスタート位置
@@ -140,7 +135,7 @@ void TextEdit::setCompleter(QCompleter *completer)
     c->setCaseSensitivity(Qt::CaseInsensitive);          //マッチングのケース感度の設定
 
     QObject::connect(c, QOverload<const QString&>::of(&QCompleter::activated), this, &TextEdit::insertCompletion);
-    QObject::connect(c, QOverload<const QString&>::of(&QCompleter::highlighted), this, &TextEdit::requestSettingToopTip);
+    QObject::connect(c, QOverload<const QString&>::of(&QCompleter::highlighted), this, &TextEdit::requestToopTipForCompletion);
 }
 
 QCompleter* TextEdit::completer() const
@@ -156,14 +151,12 @@ void TextEdit::insertCompletion(QString completion)
     completion.remove('"').remove('\'');
     const int extra = completion.length() - prefix.length();
 
-    const int cursorMoveCount = cursorAfter.length(); //カーソルの右側にある文字数だけ、completionを挿入後、カーソルを移動させる
-
     /* 予測変換入力後のカーソルの移動と挿入 */
     QTextCursor tc = textCursor();
     tc.movePosition(QTextCursor::Left);
     tc.setPosition(textCursor().position());
     tc.insertText(completion.right(extra));
-    tc.movePosition(QTextCursor::Right, QTextCursor::MoveMode::MoveAnchor, cursorMoveCount);
+    tc.movePosition(QTextCursor::EndOfWord, QTextCursor::MoveMode::MoveAnchor);
     setTextCursor(tc);
 }
 
@@ -361,7 +354,7 @@ void TextEdit::requestToolTipForCursor()
 {
     toolTipTimer->start(2000);
 
-    if(isActiveWindow()) //表示させているものだけ
+    if(isActiveWindow() && underMouse()) //表示させているものだけ
     {
         static QString previousFirstCmdForToolTip = "";
         static QString previousTextForToolTip = "";
