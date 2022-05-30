@@ -30,8 +30,25 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
     else if(firstCmd == "fit")
     {
         if(index == 1) list << expression();
-        else if(index == 2) list << expression() << fileList;
-        else if(index == 3) list << modifiers() << "unitweights" << "error" << "yerror" << "xyerror" << "zerror" << "via";
+        if(index == 2)
+        {
+            if(preCmd.contains(']')) list << expression();
+            else list << fileList;
+        }
+        else if(index == 3)
+        {
+            if(preCmd.contains(']')) list << fileList;
+            else
+            {
+                if(!modifiers().contains(preCmd)) list << modifiers();
+                if(preCmd != "unitweights") list << "unitweights";
+                if(preCmd != "error") list << "error";
+                if(preCmd != "xerror") list << "xerror";
+                if(preCmd != "xyerror") list << "xyerror";
+                if(preCmd != "zerror") list << "zerror";
+                if(preCmd != "via") list << "via";
+            }
+        }
         else if(index >= 4)
         {
             if(preCmd == "binary") list << binary();
@@ -40,9 +57,18 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
             else if(preCmd == "nonuniform") list << nonuniform();
             else if(preCmd == "smooth") list << smooth();
             else if(preCmd == "bandwidth") list << bandwidth();
-            else if(preCmd == "errors" | preCmd == ",") list << variables();
-            else if(preCmd == "via" | preCmd == ",") list << variables();
-            else list << modifiers() << "unitweights" << "yerror" << "xyerror" << "zerror" << "error" << "errors" << "via";
+            else if(preCmd == "errors" || preCmd == ",") list << variables();
+            else if(preCmd == "via" || preCmd == ",") list << variables();
+            else
+            {
+                if(!modifiers().contains(preCmd)) list << modifiers();
+                if(preCmd != "unitweights") list << "unitweights";
+                if(preCmd != "error") list << "error";
+                if(preCmd != "xerror") list << "xerror";
+                if(preCmd != "xyerror") list << "xyerror";
+                if(preCmd != "zerror") list << "zerror";
+                if(preCmd != "via") list << "via";
+            }
         }
     }
     else if(firstCmd == "help")
@@ -64,7 +90,19 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
     else if(firstCmd == "plot")
     {
         if(index == 1) list << expression() << fileList << "keyentry";
-        else if(index == 2) list << expression() << fileList << "keyentry" << titleSpec() << modifiers() << "matrix" << "name" << "nooutput" << "output" << "using" << "name";
+        else if(index == 2)
+        {
+            if(preCmd != "axes") list << "axes";
+            if(!titleSpec().contains(preCmd)) list << titleSpec();
+            if(preCmd != "with") list << "with";
+            if(!modifiers().contains(preCmd)) list << modifiers();
+            if(preCmd.contains(']'))
+            {   //<Ranges>が指定されていた場合のみ
+                if(!expression().contains(preCmd)) list << expression();
+                if(!fileList.contains(preCmd)) list << fileList;
+                if(preCmd != "keyentry") list << "keyentry";
+            }
+        }
         else if(index >= 3)
         {
             if(preCmd == "axes") list << axes();
@@ -77,16 +115,23 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
             else if(preCmd == "bandwidth") list << bandwidth();
             else if(preCmd == "filledcurves") list << filledcurves();
             else if(preCmd == "closed") list << closed();
-            else list << titleSpec() << modifiers() << style() << "matrix" << "name" << "nooutput" << "output" << "using" << "name";
+            else
+            {
+                if(preCmd != "axes") list << "axes";
+                if(!titleSpec().contains(preCmd)) list << titleSpec();
+                if(preCmd != "with") list << "with";
+                if(!modifiers().contains(preCmd)) list << modifiers();
+                if(!style().contains(preCmd)) list << style();
+            }
         }
     }
     else if(firstCmd == "save")
     {
         if(index == 1) list << "functions" << "variables" << "terminal" << "set" << "fit";
     }
-    else if(firstCmd == "set" | firstCmd == "show" | firstCmd == "unset")
+    else if(firstCmd == "set" || firstCmd == "show" || firstCmd == "unset")
     {
-        if(index == 1) option();
+        if(index == 1) list << option();
         else if(index == 2)
         {
             if(preCmd == "angle") list << angle();
@@ -125,16 +170,16 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
             else if(preCmd == "margin") list << margin();
             else if(preCmd == "monochrome") list << monochrome();
             else if(preCmd == "mouse") list << mouse();
-            else if(preCmd == "ruler" || "noruler") list << mouse_ruler();
+            else if(preCmd == "ruler" || preCmd == "noruler") list << mouse_ruler();
             else if(preCmd == "multiplot") list << multiplot();
             else if(preCmd == "layout") list << multiplot_layout();
-            else if(preCmd == "mxtics" |
-                    preCmd == "mytics" |
-                    preCmd == "mztics" |
-                    preCmd == "mx2tics" |
-                    preCmd == "my2tics" |
-                    preCmd == "mrtics" |
-                    preCmd == "mttics" |
+            else if(preCmd == "mxtics" ||
+                    preCmd == "mytics" ||
+                    preCmd == "mztics" ||
+                    preCmd == "mx2tics" ||
+                    preCmd == "my2tics" ||
+                    preCmd == "mrtics" ||
+                    preCmd == "mttics" ||
                     preCmd == "mcbtics") list << mxtics();
             else if(preCmd == "nolinear") list << nolinear();
             else if(preCmd == "object") list << object();
@@ -165,27 +210,27 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
             else if(preCmd == "view") list << view();
             else if(preCmd == "map") list << view_map();
             else if(preCmd == "equal") list << view_equal();
-            else if(preCmd == "xlabel" |
-                    preCmd == "x2label" |
-                    preCmd == "ylabel" |
-                    preCmd == "y2label" |
-                    preCmd == "zlabel" |
+            else if(preCmd == "xlabel" ||
+                    preCmd == "x2label" ||
+                    preCmd == "ylabel" ||
+                    preCmd == "y2label" ||
+                    preCmd == "zlabel" ||
                     preCmd == "cblabel") list << xlabel();
-            else if(preCmd == "xrange" |
-                    preCmd == "yrange" |
-                    preCmd == "zrange" |
-                    preCmd == "x2range" |
-                    preCmd == "y2range" |
-                    preCmd == "cbrange" |
-                    preCmd == "rrange" |
-                    preCmd == "trange" |
-                    preCmd == "urange" |
+            else if(preCmd == "xrange" ||
+                    preCmd == "yrange" ||
+                    preCmd == "zrange" ||
+                    preCmd == "x2range" ||
+                    preCmd == "y2range" ||
+                    preCmd == "cbrange" ||
+                    preCmd == "rrange" ||
+                    preCmd == "trange" ||
+                    preCmd == "urange" ||
                     preCmd == "vrange") list << xrange();
-            else if(preCmd == "xtics" |
-                    preCmd == "ytics" |
-                    preCmd == "ztics" |
-                    preCmd == "x2tics" |
-                    preCmd == "y2tics" |
+            else if(preCmd == "xtics" ||
+                    preCmd == "ytics" ||
+                    preCmd == "ztics" ||
+                    preCmd == "x2tics" ||
+                    preCmd == "y2tics" ||
                     preCmd == "cbtics") list << xtics();
             else if (preCmd == "xyplane") list << xyplane();
         }
@@ -225,11 +270,30 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
     else if(firstCmd == "splot")
     {
         if(index == 1) list << expression() << fileList << "keyentry";
-        else if(index == 2) list << expression() << fileList << "keyentry" << titleSpec() << modifiers() << "matrix" << "name" << "nooutput" << "output" << "using" << "with";
+        else if(index == 2)
+        {
+            if(preCmd.contains(']'))
+            {
+                if(!expression().contains(preCmd)) list << expression();
+                if(!fileList.contains(preCmd)) list << fileList;
+                if(preCmd != "keyentry") list << "keyentry";
+            }
+            else
+            {
+                if(!titleSpec().contains(preCmd)) list << titleSpec();
+                if(preCmd != "with") list << "with";
+                if(!modifiers().contains(preCmd)) list << modifiers();
+            }
+        }
         else if(index >= 3)
         {
             if(preCmd == "with") list << d3style();
-            else list << titleSpec() << "with" << modifiers() << "matrix" << "name" << "nooutput" << "output" << "using" << style();
+            else
+            {
+                if(!titleSpec().contains(preCmd)) list << titleSpec();
+                if(preCmd != "with") list << "with";
+                if(!modifiers().contains(preCmd)) list << modifiers();
+            }
         }
     }
     else if(firstCmd == "stats")
