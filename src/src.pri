@@ -1,6 +1,7 @@
 HEADERS += \
     $$PWD/browserwidget.h \
     $$PWD/consolewidget.h \
+    $$PWD/cursorwatcher.h \
     $$PWD/editorsettingwidget.h \
     $$PWD/editorsyntaxhighlighter.h \
     $$PWD/filetreewidget.h \

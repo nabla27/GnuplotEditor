@@ -14,6 +14,7 @@
 
 #include "gnuplotcompletion.h"
 #include <QThread>
+#include <QTimer>
 
 class TextEdit : public QPlainTextEdit
 {
@@ -62,9 +63,12 @@ private:
     QString currentCmd = "";
     QString cursorAfter = "";
 
+    QTimer *toolTipTimer;
+
     gnuplot_cpl::GnuplotCompletionModel *gnuplotcpl;
     QThread completionThread;
     void requestSettingToopTip(const QString& text);
+    void showToolTipForCursor();
 
 signals:
     void completionRequested(const QString& firstCmd, const QString& preCmd, const int index);
