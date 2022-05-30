@@ -59,10 +59,11 @@ public:
 public slots:
     void setCompletionList(const QString& firstCmd, const QString& preCmd, const int index);
     void setToolTip(const QString& text);
+    void setParentFolder(const QString& folderPath);
 
 private:
-    inline QStringList dirName() { return QStringList(); }
-    inline QStringList fileName() { return QStringList(); }
+    //inline QStringList dirName() { return QStringList(); }
+    //inline QStringList fileName() { return QStringList(); }
     inline QStringList parameter() { return QStringList() << "ARG1"
                                                           << "ARG2"
                                                           << "ARG3"
@@ -1108,8 +1109,6 @@ private:
                                                              << "noctrl" << "ctrl"
                                                              << "close"
                                                              << "widget";}
-
-
     inline QStringList color() { return QStringList() << "grey10"
                                                       << "gray20"
                                                       << "grey20"
@@ -1193,6 +1192,12 @@ private:
                                                       << "bgnd"
                                                       << "default";}
 
+private:
+    void getFilesRecursively(const QString& parentPath, const QString& folderPath);
+
+private:
+    QStringList dirList;
+    QStringList fileList;
 
 signals:
     void completionListSet(const QStringList& list);

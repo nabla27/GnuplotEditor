@@ -30,7 +30,7 @@ public slots:
     void setMainCmdColor(const QColor& color) { textHighlight->setFirstCmdColor(color); }
     void setCommentColor(const QColor& color) { textHighlight->setCommentColor(color); }
     void setStringColor(const QColor& color) { textHighlight->setStringColor(color); }
-    void setParentFolderPath(const QString& path);
+    void setParentFolderPath(const QString& path) { emit currentFolderChanged(path); };
 
 protected:
     void wheelEvent(QWheelEvent *event) override;
@@ -49,20 +49,18 @@ protected:
     void focusInEvent(QFocusEvent *e) override;
 
 private:
-    void insertCompletion(const QString& completion);           //予測変換で決定された文字をエディタに挿入
+    void insertCompletion(QString completion);           //予測変換で決定された文字をエディタに挿入
     QString textUnderCursor() const;                            //予測変換を出すために参照するテキスト
     void bracketCompletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar); //括弧の補完 [ ( ' "
     void bracketDeletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar);   //括弧の削除
     void changeCompleterModel();                                //入力コマンドから予測変換候補を変更
-    void getFilesRecursively(const QString& parentPath, const QString& folderPath, QStringList& list); //folderPath内のファイルについて、parentPathからの相対パスをlistに追加する。
 
 private:
     QCompleter *c = nullptr;
-    int cursorMoveCount = 0;
     QString firstCmd = "";
     QString beforeCmd = "";
     QString currentCmd = "";
-    QStringList currentDirFileList;
+    QString cursorAfter = "";
 
     gnuplot_cpl::GnuplotCompletionModel *gnuplotcpl;
     QThread completionThread;
@@ -70,6 +68,8 @@ private:
 signals:
     void completionRequested(const QString& firstCmd, const QString& preCmd, const int index);
     void toolTipRequested(const QString& text);
+    void currentFolderChanged(const QString& path);
+
 private slots:
     void setCompletionList(const QStringList& list);
     void setCompletionToolTip(const QString& text);
