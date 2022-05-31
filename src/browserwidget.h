@@ -27,6 +27,7 @@ public:
 public:
     void outputText(const QString& text, const MessageType messageType);
     void grayOutAll();
+    QSize minimumSizeHint() const override { return QSize(0, 0); }
 
 private:
     BrowserSyntaxHighlighter *highlighter;

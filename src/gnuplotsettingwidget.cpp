@@ -1,10 +1,11 @@
 #include "gnuplotsettingwidget.h"
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QSpinBox>
+#include <QFileDialog>
 #include "utility.h"
 #include "boost/property_tree/xml_parser.hpp"
 #include "boost/lexical_cast.hpp"
-
 
 GnuplotSettingWidget::GnuplotSettingWidget(Gnuplot *gnuplot, QWidget *parent)
     : QWidget(parent)
@@ -21,6 +22,7 @@ GnuplotSettingWidget::GnuplotSettingWidget(Gnuplot *gnuplot, QWidget *parent)
 
     /* 設定の反映 */
     connect(pathEdit, &QLineEdit::editingFinished, this, &GnuplotSettingWidget::setGnuplotPath);
+    connect(pathTool, &QToolButton::released, this, &GnuplotSettingWidget::selectGnuplotPath);
     connect(initializeCmd, &TextEdit::textChanged, this, &GnuplotSettingWidget::setGnuplotInitCmd);
     connect(preCmd, &TextEdit::textChanged, this, &GnuplotSettingWidget::setGnuplotPreCmd);
 
@@ -42,7 +44,9 @@ void GnuplotSettingWidget::initializeLayout()
     QLabel *initCmdLabel = new QLabel("Initialize Cmd", this);
     QHBoxLayout *preCmdLayout = new QHBoxLayout;
     QLabel *preCmdLabel = new QLabel("Pre Cmd", this);
-    QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    QHBoxLayout *autoCompileMsecLayout = new QHBoxLayout;
+    QLabel *autoCompileMsecLabel = new QLabel("Auto compile", this);
+    QSpinBox *autoCompileMsec = new QSpinBox(this);
 
     setLayout(vLayout);
     vLayout->addWidget(browser);
@@ -56,23 +60,41 @@ void GnuplotSettingWidget::initializeLayout()
     vLayout->addLayout(preCmdLayout);
     preCmdLayout->addWidget(preCmdLabel);
     preCmdLayout->addWidget(preCmd);
-    vLayout->addItem(spacer);
+    vLayout->addLayout(autoCompileMsecLayout);
+    autoCompileMsecLayout->addWidget(autoCompileMsecLabel);
+    autoCompileMsecLayout->addWidget(autoCompileMsec);
 
     constexpr int label_width = 80;
     constexpr int editor_height = 80;
-    browser->setFixedHeight(editor_height);
     pathLabel->setFixedWidth(label_width);
     initCmdLabel->setFixedWidth(label_width);
     initializeCmd->setFixedHeight(editor_height);
     preCmdLabel->setFixedWidth(label_width);
     preCmd->setFixedHeight(editor_height);
+    autoCompileMsecLabel->setFixedWidth(label_width);
+
+    pathTool->setText("...");
+    autoCompileMsec->setMaximum(10000);
+
+    pathLabel->setToolTip("Execution path of gnuplot.");
+    initCmdLabel->setToolTip("Command to be executed in advance.\nThis will be kept event if you close the app.");
+    preCmdLabel->setToolTip("Command to be executed in advance.\nThis will be removed if you close the app.");
+    autoCompileMsecLabel->setToolTip("Auto compile msec time for sheet changes.");
 
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.3f, 0.3f));
-    setFixedHeight(editor_height * 3 +
-                   vLayout->spacing() * 3 +
-                   vLayout->contentsMargins().bottom() +
-                   vLayout->contentsMargins().top() +
-                   pathEdit->height());
+    browser->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    connect(autoCompileMsec, &QSpinBox::valueChanged, this, &GnuplotSettingWidget::autoCompileMsecSet);
+}
+
+void GnuplotSettingWidget::selectGnuplotPath()
+{
+    const QString exePath = QFileDialog::getOpenFileName(this, "", "", "*.exe");
+
+    if(exePath.isEmpty()) return;
+
+    pathEdit->setText(exePath);
+    setGnuplotPath();
 }
 
 void GnuplotSettingWidget::addLogToBrowser(const QString& text)
@@ -99,6 +121,9 @@ void GnuplotSettingWidget::loadXmlSetting()
 
         if(boost::optional<std::string> initCmd = pt.get_optional<std::string>("root.initCmd"))
             initializeCmd->insertPlainText(QString::fromStdString(initCmd.value()));
+
+        setGnuplotPath();
+        setGnuplotInitCmd();
     }
     else
     {

@@ -5,6 +5,7 @@
 #include <QTextBrowser>
 #include <QLineEdit>
 #include <QToolButton>
+#include <QApplication>
 #include "gnuplot.h"
 #include "texteditor.h"
 
@@ -17,6 +18,7 @@ public:
 
 private slots:
     void addLogToBrowser(const QString& text);
+    void selectGnuplotPath();
     void setGnuplotPath() { gnuplot->setExePath(pathEdit->text()); }
     void setGnuplotInitCmd() { gnuplot->setInitCmd(initializeCmd->toPlainText()); }
     void setGnuplotPreCmd() { gnuplot->setPreCmd(preCmd->toPlainText()); };
@@ -34,11 +36,11 @@ private:
     TextEdit *initializeCmd;
     TextEdit *preCmd;
 
-    const QString settingFolderPath = "./setting/";
+    const QString settingFolderPath = QApplication::applicationDirPath() + "/setting";
     const QString settingFileName = "gnuplot-setting.xml";
 
 signals:
-
+    void autoCompileMsecSet(const int msec);
 };
 
 #endif // GNUPLOTSETTINGWIDGET_H

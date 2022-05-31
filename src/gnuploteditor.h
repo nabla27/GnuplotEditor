@@ -9,7 +9,7 @@
 
 #include "menubar.h"
 #include "utility.h"
-#include "filetree.h"
+#include "filetreewidget.h"
 #include "texteditor.h"
 #include "gnuplottable.h"
 #include "browserwidget.h"
@@ -18,6 +18,18 @@
 #include "editorsettingwidget.h"
 #include "consolewidget.h"
 #include "gnuplotsettingwidget.h"
+#include "templatecustomwidget.h"
+
+
+class TabWidget : public QTabWidget
+{
+    Q_OBJECT
+public:
+    explicit TabWidget(QWidget *parent) : QTabWidget(parent) {}
+
+    QSize minimumSizeHint() const override { return QSize(0, 0); }
+};
+
 
 class GnuplotEditor : public QMainWindow
 {
@@ -29,36 +41,49 @@ public:
 private:
     void initializeMenuBar();
     void initializeLayout();
-    void connectEditorSetting(TextEdit *const editor);
+    void postProcessing();
 
 private slots:
-    void setEditorWidget(const QString& fileName, const ScriptInfo* info);
-    void setSheetWidget(const QString& fileName, const SheetInfo* info);
-    void setOtherWidget(const QString& fileName, const OtherInfo* info);
-    void setMenuBarTitle(const QString& oldName, const QString& newName);
+    void setEditorWidget(TreeScriptItem *item);
+    void setSheetWidget(TreeSheetItem *item);
+    void setOtherWidget(TreeFileItem *item);
+
     void executeGnuplot();
     void receiveGnuplotStdOut(const QString& text);
     void receiveGnuplotStdErr(const QString& text, const int line);
-    void setFileTreeWidth(const int dx);
-    void setDisplayTabHeight(const int dy);
+
+    void closeCurrentProcess();
+    void moveSheetToNewWindow();
+    void changeSheetAutoUpdating();
+
+    void importTemplate(const QString& script);
+    void saveAsTemplate();
+
+    void showCommandHelp(const QString& command);
+
+    void reboot();
 
 private:
-    ScriptMenu *scriptMenu;
-    SheetMenu *sheetMenu;
+    MenuBarWidget *menuBarWidget;
 
     Gnuplot *gnuplot;
     QProcess *gnuplotProcess;
 
-    EditorSettingWidget *editorSetting;
+    EditorSetting *editorSetting;
     GnuplotSettingWidget *gnuplotSetting;
+    TemplateCustomWidget *templateCustom;
 
-    FileTree *fileTree;
-    QTabWidget *editorTab;
-    QTabWidget *displayTab;
+    TreeModelCombo *treeModelCombo;
+    FileTreeWidget *fileTree;
+    TabWidget *editorTab;
+    TabWidget *displayTab;
     QStackedWidget *gnuplotWidget;
     QStackedWidget *sheetWidget;
     ConsoleWidget *consoleWidget;
     BrowserWidget *browserWidget;
+
+    TreeFileItem *currentScript = nullptr;
+    TreeFileItem *currentSheet = nullptr;
 
 signals:
     void workingDirectoryChanged(const QString& path);

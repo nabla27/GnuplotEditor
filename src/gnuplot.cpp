@@ -5,19 +5,21 @@ Gnuplot::Gnuplot(QObject *parent)
 {
 }
 
-void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist)
+void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist, const bool preHandling)
 {
     if(!process)  return;
 
     currentProcess = process;
-
-    emit cmdPushed("\n[ " + QDateTime::currentDateTime().toString() + " ]     ProcessID(" + QString::number(process->processId()) + ")");
 
     /* 標準出力 */
     QObject::connect(process, &QProcess::readyReadStandardOutput, this, &Gnuplot::readStandardOutput);
 
     /* 標準エラー */
     QObject::connect(process, &QProcess::readyReadStandardError, this, &Gnuplot::readStandardError);
+
+    /* プロセスエラー */
+    QObject::connect(process, &QProcess::errorOccurred, this, &Gnuplot::receiveProcessError);
+    QObject::connect(process, &QProcess::errorOccurred, process, &QProcess::close);
 
     /* プロセスの開始 */
     if(process->state() == QProcess::ProcessState::NotRunning)
@@ -29,23 +31,28 @@ void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist)
         }
     }
 
+    emit cmdPushed("\n[ " + QDateTime::currentDateTime().toString() + " ]     ProcessID(" + QString::number(process->processId()) + ")");
+
     /* workingDirectoryに移動 */
     const QString moveDirCmd = "cd '" + workingDirectory + "'";
     process->write((moveDirCmd + "\n").toUtf8().constData());
     emit cmdPushed(moveDirCmd);
 
-    /* 初期コマンドの実行 */
-    for(const QString& initCmd : initCmdList)
+    if(preHandling)
     {
-        process->write((initCmd + "\n").toUtf8().constData());
-        emit cmdPushed(initCmd);
-    }
+        /* 初期コマンドの実行 */
+        for(const QString& initCmd : initCmdList)
+        {
+            process->write((initCmd + "\n").toUtf8().constData());
+            emit cmdPushed(initCmd);
+        }
 
-    /* 事前コマンドの実行 */
-    for(const QString& preCmd : preCmdList)
-    {
-        process->write((preCmd + "\n").toUtf8().constData());
-        emit cmdPushed(preCmd);
+        /* 事前コマンドの実行 */
+        for(const QString& preCmd : preCmdList)
+        {
+            process->write((preCmd + "\n").toUtf8().constData());
+            emit cmdPushed(preCmd);
+        }
     }
 
     /* コマンドの実行 */
@@ -90,6 +97,11 @@ void Gnuplot::readStandardError()
         emit standardOutputPassed(output);          //エラーじゃない標準出力でもreadAllStandardError()で拾われてしまう
     else
         emit standardErrorPassed(output, errLine);
+}
+
+void Gnuplot::receiveProcessError(const QProcess::ProcessError& error)
+{
+    emit errorCaused("Process error has occurred [" + enumToString(error) + "]. The process is closed.", BrowserWidget::MessageType::ProcessErr);
 }
 
 
