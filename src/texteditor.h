@@ -12,6 +12,10 @@
 #include "gnuplotcpl.h"
 #include "utility.h"
 
+#include "gnuplotcompletion.h"
+#include <QThread>
+#include <QTimer>
+
 class TextEdit : public QPlainTextEdit
 {
     Q_OBJECT
@@ -22,21 +26,19 @@ public:
 public slots:
     void setBackgroundColor(const QColor& color) { QPalette palette = this->palette(); palette.setColor(QPalette::Base, color); setPalette(palette); }
     void setTextColor(const QColor& color) { QPalette palette = this->palette(); palette.setColor(QPalette::Text, color); setPalette(palette); }
-    void setTextSize(const int ps) { QFont font = this->font(); font.setPointSize(ps); setFont(font); }
     void setTabSpace(const double& space) { setTabStopDistance(space); }
     void setWrap(const bool wrap) { setLineWrapMode(QPlainTextEdit::LineWrapMode(wrap)); }
-    void setItaric(const bool itaric) { QFont font = this->font(); font.setItalic(itaric); setFont(font); }
-    void setBold(const bool bold) { QFont font = this->font(); font.setBold(bold); setFont(font); }
     void setMainCmdColor(const QColor& color) { textHighlight->setFirstCmdColor(color); }
     void setCommentColor(const QColor& color) { textHighlight->setCommentColor(color); }
     void setStringColor(const QColor& color) { textHighlight->setStringColor(color); }
-    void setWorkingDirectory(const QString& path) { workingDirectory = path; }
+    void setParentFolderPath(const QString& path) { emit currentFolderChanged(path); };
 
 protected:
     void wheelEvent(QWheelEvent *event) override;
 
 private:
     EditorSyntaxHighlighter *textHighlight;
+    void requestCommandHelp();
 
 
     /* completer */
@@ -49,19 +51,33 @@ protected:
     void focusInEvent(QFocusEvent *e) override;
 
 private:
-    void insertCompletion(const QString& completion);           //予測変換で決定された文字をエディタに挿入
+    void insertCompletion(QString completion);           //予測変換で決定された文字をエディタに挿入
     QString textUnderCursor() const;                            //予測変換を出すために参照するテキスト
-    void bracketCompletion(QKeyEvent *e, const QChar nextChar); //括弧の補完 [ ( ' "
+    void bracketCompletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar); //括弧の補完 [ ( ' "
+    void bracketDeletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar);   //括弧の削除
     void changeCompleterModel();                                //入力コマンドから予測変換候補を変更
 
 private:
     QCompleter *c = nullptr;
-    int cursorMoveCount = 0;
     QString firstCmd = "";
     QString beforeCmd = "";
     QString currentCmd = "";
-    QString workingDirectory;
 
+    QTimer *toolTipTimer;
+
+    gnuplot_cpl::GnuplotCompletionModel *gnuplotcpl;
+    QThread completionThread;
+    void requestToopTipForCompletion(const QString& text);
+    void requestToolTipForCursor();
+
+signals:
+    void completionRequested(const QString& firstCmd, const QString& preCmd, const int index);
+    void toolTipRequested(const QString& text, const QString& firstCmd);
+    void currentFolderChanged(const QString& path);
+
+private slots:
+    void setCompletionList(const QStringList& list);
+    void setCompletionToolTip(const QString& text);
 
     /* lineNumer */
 public:
@@ -87,6 +103,7 @@ private:
 
 signals:
     void fontSizeChanged(const int ps);
+    void commandHelpRequested(const QString& command);
 };
 
 

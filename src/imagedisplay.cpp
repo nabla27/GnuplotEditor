@@ -33,8 +33,6 @@ void PaintImage::paintEvent(QPaintEvent*)
 
 
 
-
-
 ImageDisplay::ImageDisplay(QWidget *parent)
     : QWidget(parent)
     , painter(new PaintImage(this))
