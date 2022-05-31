@@ -327,288 +327,362 @@ void GnuplotCompletionModel::setToolTip(const QString& command, const QString& f
 {
     QString toolTip;
 
-    if(command == "break") toolTip =  "break";
-    else if(command == "cd") toolTip =  "cd <\"DirName\">";
-    else if(command == "call") toolTip =  "call <\"InputFile\"> <Parameter1> <Parameter2> ... <Parameter9>";
-    else if(command == "clear") toolTip =  "clear";
-    else if(command == "continue") toolTip =  "continue";
-    else if(command == "do") toolTip =  "do for <InterationSpec> { }";
-    else if(command == "eval") toolTip =  "eval <\"StringExpression\">";
-    else if(command == "exit") toolTip =  "exit \n""exit message <\"ErrorMessage\"> \n""exit status <ErrorCode>";
+    if(command == "break") toolTip =  toolTipStyle("break",
+                                                   "");
+    else if(command == "cd") toolTip =  toolTipStyle("cd <\"DirName\">",
+                                                     "");
+    else if(command == "call") toolTip =  toolTipStyle("call <\"InputFile\"> <Parameter1> <Parameter2> ... <Parameter9>",
+                                                       "");
+    else if(command == "clear") toolTip = toolTipStyle("clear",
+                                                       "");
+    else if(command == "continue") toolTip = toolTipStyle("continue",
+                                                          "");
+    else if(command == "do") toolTip = toolTipStyle("do for <InterationSpec> { }",
+                                                    "");
+    else if(command == "eval") toolTip = toolTipStyle("eval <\"StringExpression\">",
+                                                      "");
+    else if(command == "exit") toolTip = toolTipStyle("exit \n""exit message <\"ErrorMessage\"> \n""exit status <ErrorCode>",
+                                                      "");
     else if(command == "fit")
     {
-        if(firstCmd.isEmpty()) toolTip =  "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {unitweights} via <Var1>{,<Var2>,...}\n"
-                                          "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {{x|xy|z}error} via <Var1>{,<Var2>,...}\n"
-                                          "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {error <Var1>{,<Var2>,...}} via <Var1>{,<Var2>,...}";
-        else if(firstCmd == "save") toolTip = "fit <\"FileName\">\n"
-                                              "-----\nSave fitting parameters to file.";
+        if(firstCmd.isEmpty()) toolTip = toolTipStyle("fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {unitweights} via <Var1>{,<Var2>,...}\n"
+                                                      "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {{x|xy|z}error} via <Var1>{,<Var2>,...}\n"
+                                                      "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {error <Var1>{,<Var2>,...}} via <Var1>{,<Var2>,...}",
+                                                      "");
+        else if(firstCmd == "save") toolTip = toolTipStyle("fit <\"FileName\">\n",
+                                                           "Save fitting parameters to file.");
     }
-    else if(command == "help") toolTip =  "help <Contents>";
+    else if(command == "help") toolTip = toolTipStyle("help <Contents>",
+                                                      "");
     else if(command == "history")
     {
-        toolTip =  "history\n"
-                   "history {<Count>} <\"OutFile\"> {append}\n"
-                   "history ?<\"Command\">\n"
-                   "history !<\"Command\">\n"
-                   "history !<Count>";
+        toolTip = toolTipStyle("history\n"
+                               "history {<Count>} <\"OutFile\"> {append}\n"
+                               "history ?<\"Command\">\n"
+                               "history !<\"Command\">\n"
+                               "history !<Count>",
+                               "");
     }
-    else if(command == "if") toolTip =  "if (<Condition>) { } else if (<Condition>) { else {} }";
+    else if(command == "if") toolTip = toolTipStyle("if (<Condition>) { } else if (<Condition>) { else {} }",
+                                                    "");
     else if(command == "for")
     {
-        toolTip = "for [<IntVar> = <Start>:<End>{:<Increment>}]\n"
-                  "for [<StringVar> in \"Str1 Str2 ...\"]";
+        toolTip = toolTipStyle("for [<IntVar> = <Start>:<End>{:<Increment>}]\n"
+                               "for [<StringVar> in \"Str1 Str2 ...\"]",
+                               "");
     }
-    else if(command == "import") toolTip =  "import <FuncName>(x{y,z,...}) from <\"ObjectFile\"{:<Symbol>}\">";
-    else if(command == "load") toolTip =  "load <\"FileName\">";
-    else if(command == "lower") toolTip =  "lower {<PlotWindowId>}";
-    else if(command == "pause") toolTip =  "pause <Time> {<\"Message\">}";
-    else if(command == "pause") toolTip =  "pause mouse {<EndCondition>}{, <EndCondition>...} {<\"Message\">}";
+    else if(command == "import") toolTip = toolTipStyle("import <FuncName>(x{y,z,...}) from <\"ObjectFile\"{:<Symbol>}\">",
+                                                        "");
+    else if(command == "load") toolTip = toolTipStyle("load <\"FileName\">",
+                                                      "");
+    else if(command == "lower") toolTip = toolTipStyle("lower {<PlotWindowId>}",
+                                                       "");
+    else if(command == "pause") toolTip = toolTipStyle("pause <Time> {<\"Message\">}",
+                                                       "");
+    else if(command == "pause") toolTip = toolTipStyle("pause mouse {<EndCondition>}{, <EndCondition>...} {<\"Message\">}",
+                                                       "");
     else if(command == "plot")
     {
-        toolTip = "plot {<Ranges>} <Definition> {ases <Axes>} {<TitleSpec>} {with <Style>}\n"
-                  "plot {<Ranges>} {sampling-range} <Function> {axes <Axes>} {<TitleSpec>} {with <Style>}\n"
-                  "plot {<Ranges>} <DataSource> {<Modifier>} {axes <Axes>} {<TitleSpec>} {with <Style>}\n"
-                  "plot {<Ranges>} keyentry {axes <Axes>} {<TitleSpec>} {with <Style>}";
+        toolTip = toolTipStyle("plot {<Ranges>} <Definition> {ases <Axes>} {<TitleSpec>} {with <Style>}\n"
+                               "plot {<Ranges>} {sampling-range} <Function> {axes <Axes>} {<TitleSpec>} {with <Style>}\n"
+                               "plot {<Ranges>} <DataSource> {<Modifier>} {axes <Axes>} {<TitleSpec>} {with <Style>}\n"
+                               "plot {<Ranges>} keyentry {axes <Axes>} {<TitleSpec>} {with <Style>}",
+                               "");
     }
-    else if(command == "print") toolTip =  "print <Formula> {, <Formula>, ...}";
-    else if(command == "printerr") toolTip =  "print <Formula> {, <Formula>, ...}";
-    else if(command == "pwd") toolTip =  "pwd";
-    else if(command == "quit") toolTip =  "quit";
-    else if(command == "raise") toolTip =  "raise {<PlotWindowId>}";
-    else if(command == "refresh") toolTip =  "refresh";
-    else if(command == "replot") toolTip =  "replot";
-    else if(command == "reread") toolTip =  "reread";
-    else if(command == "reset") toolTip =  "reset";
-    else if(command == "save") toolTip =  "save {<SaveCmd> {<SaveCmd>,}...} <\"FileName\">";
+    else if(command == "print") toolTip = toolTipStyle("print <Formula> {, <Formula>, ...}",
+                                                       "");
+    else if(command == "printerr") toolTip = toolTipStyle("print <Formula> {, <Formula>, ...}",
+                                                          "");
+    else if(command == "pwd") toolTip = toolTipStyle("pwd",
+                                                     "");
+    else if(command == "quit") toolTip = toolTipStyle("quit",
+                                                      "");
+    else if(command == "raise") toolTip = toolTipStyle("raise {<PlotWindowId>}",
+                                                       "");
+    else if(command == "refresh") toolTip = toolTipStyle("refresh",
+                                                         "");
+    else if(command == "replot") toolTip = toolTipStyle("replot",
+                                                        "");
+    else if(command == "reread") toolTip = toolTipStyle("reread",
+                                                        "");
+    else if(command == "reset") toolTip = toolTipStyle("reset",
+                                                       "");
+    else if(command == "save") toolTip = toolTipStyle("save {<SaveCmd> {<SaveCmd>,}...} <\"FileName\">",
+                                                      "");
     else if(command == "set")
     {
-        if(firstCmd.isEmpty()) toolTip =  "set <Option>";
-        else if(firstCmd == "set") toolTip = "set <\"FileName\">\n"
-                                             "-----\nSave setting options to file.";
+        if(firstCmd.isEmpty()) toolTip = toolTipStyle("set <Option>",
+                                                      "");
+        else if(firstCmd == "set") toolTip = toolTipStyle("set <\"FileName\">\n",
+                                                          "Save setting options to file.");
     }
-    else if(command == "show") toolTip =  "show <Option>";
-    else if(command == "shell") toolTip =  "shell";
+    else if(command == "show") toolTip = toolTipStyle("show <Option>",
+                                                      "");
+    else if(command == "shell") toolTip = toolTipStyle("shell",
+                                                       "");
     else if(command == "splot")
     {
-        toolTip = "splot {<Ranges>} <Function> {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
-                  "splot {<Ranges>} <FileName> {datafile-modifiers} {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
-                  "splot {<Ranges>} <DataBolockName> {<Modifier>} {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
-                  "splot {<Ranges>} keyentry {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}";
+        toolTip = toolTipStyle("splot {<Ranges>} <Function> {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
+                               "splot {<Ranges>} <FileName> {datafile-modifiers} {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
+                               "splot {<Ranges>} <DataBolockName> {<Modifier>} {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
+                               "splot {<Ranges>} keyentry {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}",
+                               "");
     }
-    else if(command == "stats") toolTip =  "stats {<Ranges>} <\"FileName\"> {<StatsType>} {name <Prefix>} {{no}output}";
-    else if(command == "system") toolTip =  "system <\"Command\">";
-    else if(command == "test") toolTip =  "test <TestType>";
+    else if(command == "stats") toolTip = toolTipStyle("stats {<Ranges>} <\"FileName\"> {<StatsType>} {name <Prefix>} {{no}output}",
+                                                       "");
+    else if(command == "system") toolTip = toolTipStyle("system <\"Command\">",
+                                                        "");
+    else if(command == "test") toolTip = toolTipStyle("test <TestType>",
+                                                      "");
     else if(command == "toggle")
     {
-        toolTip = "toggle <PlotNo>\n"
-                  "toggle <\"Title\">\n"
-                  "toggle all";
+        toolTip = toolTipStyle("toggle <PlotNo>\n"
+                               "toggle <\"Title\">\n"
+                               "toggle all",
+                               "");
     }
     else if(command == "undefine")
     {
-        toolTip =  "undefine <Variable>\n"
-                   "undefine <StrExpression>";
+        toolTip = toolTipStyle("undefine <Variable>\n"
+                               "undefine <StrExpression>",
+                               "");
     }
-    else if(command == "unset") toolTip =  "unset <Option>";
-    else if(command == "update") toolTip =  "update <\"FileName\"> {<\"FileName\">}";
-    else if(command == "while") toolTip =  "while (<Expression>) {}";
+    else if(command == "unset") toolTip = toolTipStyle("unset <Option>",
+                                                       "");
+    else if(command == "update") toolTip = toolTipStyle("update <\"FileName\"> {<\"FileName\">}",
+                                                        "");
+    else if(command == "while") toolTip = toolTipStyle("while (<Expression>) {}",
+                                                       "");
 
     else if(command == "message")
     {
-        toolTip = "message <\"Message\">\n"
-                  "-----\nSpecify a error message.";
+        toolTip = toolTipStyle("message <\"Message\">",
+                               "Specify a error message.");
     }
     else if(command == "status")
     {
-        toolTip = "status <ExitCode>\n"
-                  "-----\nSpecify an integer error code.";
+        toolTip = toolTipStyle("status <ExitCode>",
+                               "Specify an integer error code.");
     }
     else if(command == "unitweights")
     {
-        if(firstCmd == "fit") toolTip = "unitweights\n-----\n This assumes that all data points have equal weights.";
+        if(firstCmd == "fit") toolTip = toolTipStyle("unitweights",
+                                                     "This assumes that all data points have equal weights.");
     }
     else if(command == "yerror" ||
             command == "xyerror" ||
             command == "zerror" ||
             command == "error")
     {
-        if(firstCmd == "fit") toolTip = command + "\n-----\nConsider the standard deviation s of the variable and use it to calculate a weight of 1/s**2 for each piece of data.";
+        if(firstCmd == "fit") toolTip = toolTipStyle(command,
+                                                     "Consider the standard deviation s of the variable and use it to calculate a weight of 1/s**2 for each piece of data.");
     }
     else if(command == "errors")
     {
-        if(firstCmd == "fit") toolTip = "errors <Var1>{, <Var2>, ...}\n"
-                                        "-----\nSpecify which variable error the input is.";
+        if(firstCmd == "fit") toolTip = toolTipStyle("errors <Var1>{, <Var2>, ...}",
+                                                     "Specify which variable error the input is.");
     }
     else if(command == "via")
     {
-        if(firstCmd == "fit") toolTip = "via <\"ParameterFile\">\n"
-                                        "via <Var1>{, <Var2>, ...}\n"
-                                        "-----\nSpecify what to refer to to optimize the parameters.";
+        if(firstCmd == "fit") toolTip = toolTipStyle("via <\"ParameterFile\">\n"
+                                                     "via <Var1>{, <Var2>, ...}",
+                                                     "Specify what to refer to to optimize the parameters.");
     }
     else if(command == "mouse")
     {
-        if(firstCmd == "pause") toolTip = "mouse {<EndCondition>}{, <EndCondition>} {<\"<Message>\"}\n"
-                                          "-----\nWait until there is a mouse click or ctrl-C is pressed.";
+        if(firstCmd == "pause") toolTip = toolTipStyle("mouse {<EndCondition>}{, <EndCondition>} {<\"<Message>\"}",
+                                                       "Wait until there is a mouse click or ctrl-C is pressed.");
     }
     else if(command == "keyentry")
     {
         if(firstCmd == "plot" ||
-           firstCmd == "splot") toolTip = "-----\n"
-                                          "Replacing filenames or functions with keyentries allows you to add extra lines for legend customization.";
+           firstCmd == "splot") toolTip = toolTipStyle("keyentry",
+                                                       "Replacing filenames or functions with keyentries allows you to add extra lines for legend customization.");
     }
     else if(command == "axes")
     {
         if(firstCmd == "plot" ||
-           firstCmd == "splot") toolTip = "axes x1y1|x2y2|x1y2|x2y1\n"
-                                          "-----\nSpecify which axis to scale to.";
+           firstCmd == "splot") toolTip = toolTipStyle("axes x1y1|x2y2|x1y2|x2y1",
+                                                       "Specify which axis to scale to.");
     }
     else if(command == "with")
     {
         if(firstCmd == "plot" ||
-           firstCmd == "splot") toolTip = "with <PlotStyle> {<Option>}\n"
-                                          "-----\nChoose a style for displaying functions and data.";
+           firstCmd == "splot") toolTip = toolTipStyle("with <PlotStyle> {<Option>}",
+                                                       "Choose a style for displaying functions and data.");
     }
     else if(command == "functions")
     {
-        if(firstCmd == "save") toolTip = "terminal <\"FileName\">\n"
-                                         "-----\nSave functions to file.";
+        if(firstCmd == "save") toolTip = toolTipStyle("terminal <\"FileName\">",
+                                                      "Save functions to file.");
     }
     else if(command == "variables")
     {
-        if(firstCmd == "save") toolTip = "variables <\"FileName\">\n"
-                                         "-----\nSave variables to file.";
+        if(firstCmd == "save") toolTip = toolTipStyle("variables <\"FileName\">",
+                                                      "Save variables to file.");
     }
     else if(command == "terminal")
     {
-        if(firstCmd == "save") toolTip = "terminal <\"FileName\">\n"
-                                         "-----\nSave the terminal information to file.";
-        else if(firstCmd == "test") toolTip = "test\n-----\nGenerates a line type, point type, or other drawing available for the terminal in use.";
+        if(firstCmd == "save") toolTip = toolTipStyle("terminal <\"FileName\">",
+                                                      "Save the terminal information to file.");
+        else if(firstCmd == "test") toolTip = toolTipStyle("test",
+                                                           "Generates a line type, point type, or other drawing available for the terminal in use.");
     }
     else if(command == "matrix")
     {
-        if(firstCmd == "stats") toolTip = "matrix\n-----\nSpecify the all matrix elements of data file to get statistics.";
+        if(firstCmd == "stats") toolTip = toolTipStyle("matrix",
+                                                       "Specify the all matrix elements of data file to get statistics.");
     }
     else if(command == "using")
     {
-        if(firstCmd == "stats") toolTip = "using N{:M}\n"
-                                          "-----\nSpecify the column to get statistics.";
+        if(firstCmd == "stats") toolTip = toolTipStyle("using N{:M}",
+                                                       "Specify the column to get statistics.");
+        else if(firstCmd == "plot" ||
+                firstCmd == "splot") toolTip = toolTipStyle("using <Entry>{:<Entry>{:<Entry>...}} {<\"Format\">}",
+                                                            "Specify the fields to read.");
     }
     else if(command == "name")
     {
-        if(firstCmd == "stats") toolTip = "name <\"Prefix\">\n"
-                                          "-----\nYou can replace the default prefix of variables, \"STATS\" to user option name.";
+        if(firstCmd == "stats") toolTip = toolTipStyle("name <\"Prefix\">",
+                                                       "You can replace the default prefix of variables, \"STATS\" to user option name.");
     }
     else if(command == "nooutput")
     {
-        if(firstCmd == "stats") toolTip = "nooutput\n-----\nAvoid output.";
+        if(firstCmd == "stats") toolTip = toolTipStyle("nooutput",
+                                                       "Avoid output.");
     }
     else if(command == "output")
     {
-        if(firstCmd == "stats") toolTip = "output\n-----\nOutput to a screen or file.";
+        if(firstCmd == "stats") toolTip = toolTipStyle("output",
+                                                       "Output to a screen or file.");
     }
     else if(command == "palette")
     {
-        if(firstCmd == "test") toolTip = "palette\n-----\nDraw the state of rgb.";
+        if(firstCmd == "test") toolTip = toolTipStyle("palette",
+                                                      "Draw the state of rgb.");
     }
     else if(command == "all")
     {
-        if(firstCmd == "toggle") toolTip = "toggle\n-----\nActs on all valid graphs.";
+        if(firstCmd == "toggle") toolTip = toolTipStyle("all",
+                                                        "Acts on all valid graphs.");
     }
     else if(command == "boxerrorbars")
     {
-        toolTip = "boxerrorbars\n-----\n2D. (x,y,dy)or(x,y,dy,dx)or(x,y,low,high)or(x,y,low,high,dx)";
+        toolTip = toolTipStyle("boxerrorbars",
+                               "2D. (x,y,dy)or(x,y,dy,dx)or(x,y,low,high)or(x,y,low,high,dx)");
     }
     else if(command == "boxes")
     {
-        toolTip = "boxes\n-----\n2D. (x,y)or(x,y,x_width)";
+        toolTip = toolTipStyle("boxes",
+                               "2D. (x,y)or(x,y,x_width)");
     }
     else if(command == "boxplot")
     {
-        toolTip = "boxplot\n-----\n2D. (x,y)or(x,y,width)or(x,y,width,count)";
+        toolTip = toolTipStyle("boxplot",
+                               "2D. (x,y)or(x,y,width)or(x,y,width,count)");
     }
     else if(command == "boxxyerror")
     {
-        toolTip = "boxxyerror\n-----\n2D. (x,y,dx,dy)or(x,y,xlow,xhigh,ylow,yhigh)";
+        toolTip = toolTipStyle("boxxyerror",
+                               "2D. (x,y,dx,dy)or(x,y,xlow,xhigh,ylow,yhigh)");
     }
     else if(command == "candlesticks")
     {
-        toolTip = "candlesticks\n-----\n2D. (date,open,low,high,close)or(x,box_min,whisker_min,whisker_high,box_high)";
+        toolTip = toolTipStyle("candlesticks",
+                               "2D. (date,open,low,high,close)or(x,box_min,whisker_min,whisker_high,box_high)");
     }
     else if(command == "circles")
     {
-        toolTip = "circles\n-----\nDraw circle to each points. (x,y,r,start_angle,end_angle,color). Minimum columnCount is 2.";
+        toolTip = toolTipStyle("circles",
+                               "Draw circle to each points. (x,y,r,start_angle,end_angle,color). Minimum columnCount is 2.");
     }
     else if(command == "ellipses")
     {
-        toolTip = "ellipses\n-----\nDrow ellipses to each points. (x,y,major_diam, minor_diam, angle). Minimum columnCount is 2.";
+        toolTip = toolTipStyle("ellipses",
+                               "Drow ellipses to each points. (x,y,major_diam, minor_diam, angle). Minimum columnCount is 2.");
     }
     else if(command == "dots")
     {
-        toolTip = "dots\n-----\n2D or 3D. Draw dots to (x,y,z)";
+        toolTip = toolTipStyle("dots",
+                               "2D or 3D. Draw dots to (x,y,z)");
     }
     else if(command == "filledcurves")
     {
-        toolTip = "filledcurves <Option>\n"
-                  "-----\n2D. (x,y)or(x,y1,y2)";
+        toolTip = toolTipStyle("filledcurves <Option>",
+                               "2D. (x,y)or(x,y1,y2)");
     }
     else if(command == "financebars")
     {
-        toolTip = "financebars\n-----\n2D. (date,open,low,high,close)or(data,open,low,high,close,color)";
+        toolTip = toolTipStyle("financebars",
+                               "2D. (date,open,low,high,close)or(data,open,low,high,close,color)");
     }
     else if(command == "fsteps" ||
             command == "fillsteps" ||
             command == "histeps" ||
             command == "steps")
     {
-        toolTip = "steps\n-----\n2D. (x,y)";
+        toolTip = toolTipStyle("steps",
+                               "2D. (x,y)");
     }
     else if(command == "impulses")
     {
-        toolTip = "impulses\n-----\n2D or 3D. (y)or(x,y)or(x,y,z)";
+        toolTip = toolTipStyle("impulses",
+                               "2D or 3D. (y)or(x,y)or(x,y,z)");
     }
     else if(command == "labels")
     {
-        toolTip = "labels\n-----\n2D or 3D. (x,y,string)or(x,y,z,string)";
+        toolTip = toolTipStyle("labels",
+                               "2D or 3D. (x,y,string)or(x,y,z,string)");
     }
     else if(command == "lines")
     {
-        toolTip = "lines\n-----\n2D or 3D. (y)or(x,y)or(z)or(x,y,z)";
+        toolTip = toolTipStyle("lines",
+                               "2D or 3D. (y)or(x,y)or(z)or(x,y,z)");
     }
     else if(command == "parallelaxes")
     {
-        toolTip = "parallelaxes\n-----\nVisualize multidimensional data correlations.";
+        toolTip = toolTipStyle("parallelaxes",
+                               "Visualize multidimensional data correlations.");
     }
     else if(command == "vectors")
     {
-        toolTip = "vectors\n-----\n2D or 3D.(x,y,dx,dy)or(x,y,z,dx,dy,dz)";
+        toolTip = toolTipStyle("vectors",
+                               "2D or 3D.(x,y,dx,dy)or(x,y,z,dx,dy,dz)");
     }
     else if(command == "xerrorbars")
     {
-        toolTip = "xerrorbars\n-----\n2D. (x,y,dx)or(x,y,low,high)";
+        toolTip = toolTipStyle("xerrorbars",
+                               "2D. (x,y,dx)or(x,y,low,high)");
     }
     else if(command == "xyerrorbars")
     {
-        toolTip = "xyerrorbars\n-----\n2D. (x,y,dx,dy)or(x,y,xlow,xhigh,ylow,yhigh)";
+        toolTip = toolTipStyle("xyerrorbars",
+                               "2D. (x,y,dx,dy)or(x,y,xlow,xhigh,ylow,yhigh)");
     }
     else if(command == "yerrorbars")
     {
-        toolTip = "yerrorbars\n-----\n2D. (y,dy)or(x,y,dy)or(x,y,low,high)";
+        toolTip = toolTipStyle("yerrorbars",
+                               "2D. (y,dy)or(x,y,dy)or(x,y,low,high)");
     }
     else if(command == "xerrorlines")
     {
-        toolTip = "xerrorlines\n-----\n2D. (x,y,dx)or(x,y,low,high)";
+        toolTip = toolTipStyle("xerrorlines",
+                               "2D. (x,y,dx)or(x,y,low,high)");
     }
     else if(command == "xyerrorlines")
     {
-        toolTip = "xyerrorlines\n-----\n2D. (x,y,dx,dy)or(x,y,xlow,xhigh,ylow,yhigh)";
+        toolTip = toolTipStyle("xyerrorlines",
+                               "2D. (x,y,dx,dy)or(x,y,xlow,xhigh,ylow,yhigh)");
     }
     else if(command == "yerrorlines")
     {
-        toolTip = "yerrorlines\n-----\n2D. (x,y,dy)or(x,y,low,high)";
+        toolTip = toolTipStyle("yerrorlines",
+                               "2D. (x,y,dy)or(x,y,low,high)");
     }
     else if(command == "zerrorfill")
     {
-        toolTip = "zerrorfill\n-----\n3D. (x,y,z,dz)or(x,y,z,low,high)";
+        toolTip = toolTipStyle("zerrorfill",
+                               "3D. (x,y,z,dz)or(x,y,z,low,high)");
     }
 
     emit toolTipSet(toolTip);

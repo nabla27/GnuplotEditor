@@ -1267,6 +1267,13 @@ private:
 
 private:
     void getFilesRecursively(const QString& parentPath, const QString& folderPath);
+    QString toolTipStyle(const QString& formula, const QString& message)
+    {
+        QString toolTip = formula;
+        if(!message.isEmpty()) toolTip += "\n-----\n" + message;
+
+        return toolTip;
+    };
 
 private:
     QStringList dirList;
