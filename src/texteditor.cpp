@@ -276,6 +276,38 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
         }
     }
 
+    /* Ctrl+Tabによるタブ移動 */
+    if(e->keyCombination().keyboardModifiers() == Qt::KeyboardModifier::ShiftModifier &&
+       e->keyCombination().key() == Qt::Key::Key_Backtab)
+    {
+        QTextCursor tc = textCursor();
+        if(tc.positionInBlock() != 0) //カーソルが行頭にあれば無視。
+        {
+            constexpr int indent = 4; //タブに相当する空白文字数
+            for(int i = 0; i < indent; ++i)
+            {
+                tc.movePosition(QTextCursor::MoveOperation::Left, QTextCursor::MoveMode::KeepAnchor, 1);
+                const QString selectedText = tc.selectedText();
+
+                if(selectedText == "\t")
+                {   //左横がタブ文字だった場合、そのタブ文字を削除して完了
+                    tc.removeSelectedText();
+                    break;
+                }
+                else if(selectedText == " ")
+                {   //左横が空白文字だった場合、空白を削除してまた横に移動する。最大、indent数だけ空白を削除する
+                    tc.removeSelectedText();
+                    continue;
+                }
+                else break; //左横が文字であった場合、削除を中断する
+            }
+
+            tc.clearSelection();
+            setTextCursor(tc);
+        }
+        return;
+    }
+
     const bool isShortcut = (e->modifiers().testFlag(Qt::ControlModifier) &&
                              e->key() == Qt::Key_E);
 
@@ -306,12 +338,12 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
     /* 予測変換候補を変更 */
     changeCompleterModel();
 }
-
+#include <QStandardItemModel>
 void TextEdit::setCompletionList(const QStringList& list)
 {
     if(!c) return;
 
-    QStringListModel *model = new QStringListModel();
+    QStringListModel *model = new QStringListModel(completer());
     model->setStringList(list);
 
     completer()->setModel(model);
