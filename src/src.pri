@@ -15,8 +15,13 @@ HEADERS += \
     $$PWD/menubar.h \
     $$PWD/templatecustomwidget.h \
     $$PWD/texteditor.h \
+#<<<<<<< HEAD
+#    $$PWD/updatemanager.h \
+    $$PWD/windowmenubar.h
+#=======
     $$PWD/windowmenubar.h \
-    $$PWD/windowscontents.h
+#    $$PWD/windowscontents.h
+#>>>>>>> d2f7655fc2dea0117945d23b8e5e25ce22252c9f
 
 SOURCES += \
     $$PWD/browserwidget.cpp \
@@ -35,5 +40,10 @@ SOURCES += \
     $$PWD/menubar.cpp \
     $$PWD/templatecustomwidget.cpp \
     $$PWD/texteditor.cpp \
+#<<<<<<< HEAD
+#    $$PWD/updatemanager.cpp \
+    $$PWD/windowmenubar.cpp
+#=======
     $$PWD/windowmenubar.cpp \
-    $$PWD/windowscontents.cpp
+#    $$PWD/windowscontents.cpp
+#>>>>>>> d2f7655fc2dea0117945d23b8e5e25ce22252c9f

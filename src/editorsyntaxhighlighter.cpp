@@ -55,6 +55,9 @@ EditorSyntaxHighlighter::EditorSyntaxHighlighter(QTextDocument *document)
 /* カーソル行の文字列がtextとして自動で渡される */
 void EditorSyntaxHighlighter::highlightBlock(const QString &text)
 {
+    if(text.isEmpty()) return;
+
+    /* firstCmdのハイライト */
     {
         /* firstCmdより空白スペースが前にあれば、ハイライトされない事に注意 */
         const qsizetype index = text.indexOf(' '); //空白の最初のインデックス
