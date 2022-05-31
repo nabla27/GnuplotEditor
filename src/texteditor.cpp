@@ -368,7 +368,12 @@ void TextEdit::requestToolTipForCursor()
 
         tc.movePosition(QTextCursor::MoveOperation::WordLeft, QTextCursor::MoveAnchor);
         tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
-        const QString textForToolTip = tc.selectedText();
+        QString textForToolTip = tc.selectedText();
+
+        tc.movePosition(QTextCursor::MoveOperation::NextWord, QTextCursor::MoveAnchor);
+        tc.movePosition(QTextCursor::MoveOperation::WordLeft, QTextCursor::MoveAnchor);
+        tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
+        if(tc.selectedText() == "=") textForToolTip += "=";
 
         tc.movePosition(QTextCursor::MoveOperation::StartOfLine, QTextCursor::MoveAnchor);
         tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);

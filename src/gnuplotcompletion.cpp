@@ -52,8 +52,8 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
         else if(index >= 4)
         {
             if(preCmd == "binary") list << binary();
-            else if(preCmd == "endian") list << endian();
-            else if(preCmd == "filetype") list << filetype();
+            else if(preCmd == "endian=") list << endian();
+            else if(preCmd == "filetype=") list << filetype();
             else if(preCmd == "nonuniform") list << nonuniform();
             else if(preCmd == "smooth") list << smooth();
             else if(preCmd == "bandwidth") list << bandwidth();
@@ -532,12 +532,17 @@ void GnuplotCompletionModel::setToolTip(const QString& command, const QString& f
     {
         if(firstCmd == "stats") toolTip = toolTipStyle("matrix",
                                                        "Specify the all matrix elements of data file to get statistics.");
+        else if(firstCmd == "plot" ||
+                firstCmd == "splot") toolTip = toolTipStyle("matrix",
+                                                            "Suppose the binary data is a 32-bit IEEE standard float arranged in a two-dimensional arra \n"
+                                                            "with additional rows and columns representing their coordinate values.");
     }
     else if(command == "using")
     {
         if(firstCmd == "stats") toolTip = toolTipStyle("using N{:M}",
                                                        "Specify the column to get statistics.");
-        else if(firstCmd == "plot" ||
+        else if(firstCmd == "fit" ||
+                firstCmd == "plot" ||
                 firstCmd == "splot") toolTip = toolTipStyle("using <Entry>{:<Entry>{:<Entry>...}} {<\"Format\">}",
                                                             "Specify the fields to read.");
     }
@@ -684,6 +689,174 @@ void GnuplotCompletionModel::setToolTip(const QString& command, const QString& f
         toolTip = toolTipStyle("zerrorfill",
                                "3D. (x,y,z,dz)or(x,y,z,low,high)");
     }
+    else if(command == "binary")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("binary matrix\n"
+                                                      "binary <GeneralOption> ...",
+                                                      "Read binary file.");
+    }
+    else if(command == "nouniform")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("nonuniform matrix",
+                                                      "The first row of input data has y coordinates. The first column of input data has x coordinates.\n"
+                                                      "For binary input data, the first element in the first row must be the number of columns.");
+    }
+    else if(command == "index")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("index {<M>{:<N>{:<P>}}\n"
+                                                       "index <\"Name\">",
+                                                       "Select the data every P rows in the Nth set from M for the data separated by two blanks.");
+    }
+    else if(command == "skip")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("skip <N>",
+                                                       "Skip the first <N> line in the text file.");
+    }
+    else if(command == "smooth")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("smooth <Option>",
+                                                       "Select a routine that interpolates and approximates the data points.");
+    }
+    else if(command == "bins")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("bins{= <NBINS>} {binrange [<Low>:<High>]} {binwidth= <Width>}",
+                                                       "First assign the original data to several boxes (bins) of equal width on the x-axis, and then draw only one value per box.");
+    }
+    else if(command == "volatile")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("volatile",
+                                                       "It means that previously read data from the input stream or file is not valid when reloading.");
+    }
+    else if(command == "noautoscale")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("noautoscale",
+                                                       "If the function that automatically determines the range of the axis is enabled, \n"
+                                                       "the data points that make up this drawing will be ignored.");
+    }
+    else if(command == "array=")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("array= (<X>,<Y>)",
+                                                       "Sets the size of the array of samples in a binary file.");
+    }
+    else if(command == "record=")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("record= (<X>,<Y>)",
+                                                       "Sets the size of the array of samples in a binary file.");
+    }
+    else if(command == "skip=")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("skip= <SkipByte>",
+                                                       "Specifies the number of bytes to skip binary data.");
+    }
+    else if(command == "format=")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("format= <\"%<Size1>%<Size2>%<Size3>\">",
+                                                       "Specify the size of the data variable in the binary file. <Size> is, for example, 'uchar' or 'int'. \n"
+                                                       "You can see the sizes of variables available in the command'show data file binary datasizes'.");
+    }
+    else if(command == "endian=")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("endian= <EndianType>",
+                                                       "You can control how gnuplot handles bytes.");
+    }
+    else if(command == "filetype=")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("filetype= <FileType>",
+                                                      "Specify the binary file type. You can show all type by 'show datafile binary filetypes' command.");
+    }
+    else if(command == "scan=")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("scan= <Axis1><Axis2>{<Axis3>}",
+                                                       "Specifies which coordinate direction <Axis>=(x/y/z) in the drawing the (Point/Line/Face) scan direction is assigned to.");
+    }
+    else if(command == "transpose")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("transpose",
+                                                       "This is the same as scan=yx or scan=yxz.");
+    }
+    else if(command == "dx=" ||
+            command == "dy=" ||
+            command == "dz=")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle(command + " <N>",
+                                                       "When gnuplot produces coordinates, the spacing specified by this keywords is used.");
+    }
+    else if(command == "flipx" ||
+            command == "flipy" ||
+            command == "flipz")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle(command,
+                                                       "Reverses the scanning direction of the data.");
+    }
+    else if(command == "origin=")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("origin= (<X>,<Y>{,<Z>}){:(<X>,<Y>{,<Z>})...}",
+                                                       "Specify the coordinates that will be the origin when transposing or flipping.\n"
+                                                       "By default, the lower left point of the array is the origin.");
+    }
+    else if(command == "center=")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("center= (<X>,<Y>{,<Z>}){:(<X>,<Y>{,<Z>})...}",
+                                                       "The center of the array is the point specified by this keyword.");
+    }
+    else if(command == "rotate=")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("rotate= <Radian>\n"
+                                                       "rotate= <Value>pi\n"
+                                                       "rotate= <Degree>deg",
+                                                       "");
+    }
+    else if(command == "perpendicular=")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("perpendicular= (<Xp>,<Yp>,<Zp>)",
+                                                       "Set the rotation vector for splot. This vector represents a \n"
+                                                       "normal vector oriented with respect to the two-dimensional xy plane. The default is (0,0,1).");
+    }
+
 
     emit toolTipSet(toolTip);
 }
