@@ -166,7 +166,7 @@ private:
                                                            << "endian="
                                                            << "filetype="
                                                            << "scan="
-                                                           << "transpose="
+                                                           << "transpose"
                                                            << "dx="
                                                            << "dy="
                                                            << "dz="
