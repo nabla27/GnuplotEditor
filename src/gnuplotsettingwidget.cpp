@@ -1,7 +1,10 @@
 #include "gnuplotsettingwidget.h"
 #include <QVBoxLayout>
 #include <QLabel>
+//<<<<<<< HEAD
+//=======
 #include <QSpinBox>
+//>>>>>>> d2f7655fc2dea0117945d23b8e5e25ce22252c9f
 #include <QFileDialog>
 #include "utility.h"
 #include "boost/property_tree/xml_parser.hpp"
@@ -67,6 +70,7 @@ void GnuplotSettingWidget::initializeLayout()
     constexpr int label_width = 80;
     constexpr int editor_height = 80;
     pathLabel->setFixedWidth(label_width);
+    pathTool->setText("...");
     initCmdLabel->setFixedWidth(label_width);
     initializeCmd->setFixedHeight(editor_height);
     preCmdLabel->setFixedWidth(label_width);
