@@ -3,18 +3,43 @@
 
 GnuplotTable::GnuplotTable(QWidget *parent)
     : TableWidget(parent)
+    , process(new QProcess(this))
+    , updateTimer(new QTimer(this))
 {
-    process = new QProcess(this);
-
     /* contextMenu初期化 */
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &GnuplotTable::customContextMenuRequested, this, &GnuplotTable::onCustomContextMenu);
     initializeContextMenu();
+
+    updateTimer->setSingleShot(true);
+
+    disconnect(startTimerConnection);
 }
 
 GnuplotTable::~GnuplotTable()
 {
     process->close();
+}
+
+void GnuplotTable::startItemChangedTimer()
+{
+    updateTimer->start(updateMsec);
+}
+
+void GnuplotTable::changeUpdateNotification()
+{
+    notifyUpdatingEnable = !notifyUpdatingEnable;
+
+    if(notifyUpdatingEnable)
+    {
+        startTimerConnection = connect(this, &GnuplotTable::itemChanged, this, &GnuplotTable::startItemChangedTimer);
+        requestUpdateConnection = connect(updateTimer, &QTimer::timeout, this, &GnuplotTable::tableUpdated);
+    }
+    else
+    {
+        disconnect(startTimerConnection);
+        disconnect(requestUpdateConnection);
+    }
 }
 
 
@@ -29,19 +54,21 @@ void GnuplotTable::mousePressEvent(QMouseEvent *event)
     const int cursorX = event->pos().x();
     const int cursorY = event->pos().y();
 
+    /* 一番右下のセルの右下隅の座標(tableWidgetのローカル座標) */
     const int rowLastIndex = rowCount() - 1;
     const int colLastIndex = columnCount() - 1;
+    const int tableWidth = (rowLastIndex < 0) ? 0 : columnViewportPosition(colLastIndex) + columnWidth(colLastIndex);
+    const int tableHeight = (colLastIndex < 0) ? 0 : rowViewportPosition(rowLastIndex) + rowHeight(rowLastIndex);
 
-    /* 一番右下のセルの右下隅の座標(tableWidgetのローカル座標) */
-    const int tableWidth = columnViewportPosition(colLastIndex) + columnWidth(colLastIndex);
-    const int tableHeight = rowViewportPosition(rowLastIndex) + rowHeight(rowLastIndex);
-
-    /* セル右下角とカーソル位置が4ピクセル以下 */
+    /* セル右下角とカーソル位置が4ピクセル以下でマウスが押された場合に有効 */
     if(std::abs(cursorX - tableWidth) < 4 && std::abs(cursorY - tableHeight) < 4)
     {
         startDragPoint = event->pos();
         startDragTableSize = QPoint(columnCount(), rowCount());
-        startDragCellSize = QPoint(columnWidth(colLastIndex), rowHeight(rowLastIndex));
+        if(rowLastIndex < 0 || colLastIndex < 0)
+            startDragCellSize = QPoint(100, 30);  //セルがない場合は、デフォルトの(100,30)でセルサイズを指定
+        else
+            startDragCellSize = QPoint(columnWidth(colLastIndex), rowHeight(rowLastIndex)); //右端のセルのサイズを追加するセルのサイズにする
     }
 }
 
@@ -109,7 +136,7 @@ void GnuplotTable::initializeContextMenu()
     connect(actPaste, &QAction::triggered, this, &GnuplotTable::pasteCell);
 
     /* claer */
-    QAction *actDelete = new QAction("delete", normalMenu);
+    QAction *actDelete = new QAction("clear", normalMenu);
     normalMenu->addAction(actDelete);
     connect(actDelete, &QAction::triggered, this, &GnuplotTable::clearCell);
 
@@ -261,6 +288,7 @@ void GnuplotTable::toLatexCode()
 
         clip += "\\begin{table}[h]\n";
         clip += "\t\\centering\n";
+        clip += "\t\\caption{}\n";
         clip += "\t\\begin{tabular}{|";
         for(int i = 0; i <= endCol - startCol; ++i)
             clip += "c|";
@@ -271,14 +299,23 @@ void GnuplotTable::toLatexCode()
             for(int col = startCol; col <= endCol; ++col)
             {
                 if(col != endCol)
-                    clip += this->item(row, col)->text() + " & ";
+                {
+                    if(QTableWidgetItem *item = this->item(row, col))
+                        clip += item->text() + " & ";
+                    else
+                        clip += " & ";
+                }
                 else
-                    clip += this->item(row, col)->text() + " \\\\\n";
+                {
+                    if(QTableWidgetItem *item = this->item(row, col))
+                        clip += item->text() + " \\\\\n";
+                    else
+                        clip += " \\\\\n";
+                }
             }
         }
         clip += "\t\t\\hline\n";
         clip += "\t\\end{tabular}\n";
-        clip += "\t\\caption{}\n";
         clip += "\t\\label{}\n";
         clip += "\\end{table}\n";
 

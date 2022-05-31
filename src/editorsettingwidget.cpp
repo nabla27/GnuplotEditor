@@ -1,125 +1,171 @@
 #include "editorsettingwidget.h"
+#include <QFormLayout>
+#include <QPushButton>
 
-
-const QString EditorSettingWidget::settingFolderPath = "./setting";
-EditorSettingWidget::EditorSettingWidget(QWidget *parent)
-    : QWidget{parent}
+EditorSetting::EditorSetting(QWidget *parent)
+    : QWidget(parent)
+    , backgroundColorDialog(new QColorDialog(this))
+    , textColorDialog(new QColorDialog(this))
+    , textFontDialog(new QFontDialog(this))
+    , mainCmdColorDialog(new QColorDialog(this))
+    , commentCmdColorDialog(new QColorDialog(this))
+    , doubleQuoteColorDialog(new QColorDialog(this))
+    , cursorLineColorDialog(new QColorDialog(this))
+    , setDefaultButton(new QPushButton("Default", this))
 {
-    setMinimumSize(240, 520);
-    setMaximumSize(240, 520);
-
     initializeLayout();
 
     loadXmlSetting();
+
+    setMinimumWidth(250);
 }
 
-EditorSettingWidget::~EditorSettingWidget()
+EditorSetting::~EditorSetting()
 {
     saveXmlSetting();
 }
 
-void EditorSettingWidget::initializeLayout()
+void EditorSetting::initializeLayout()
 {
     if(!layout()) delete layout();
 
-    QVBoxLayout *layout = new QVBoxLayout(this);
-    backgroundColorCombo = new ComboEditLayout(this, "Background color");
-    backgroundColorRgb = new RGBEditLayout(this);
-    textColorCombo = new ComboEditLayout(this, "Text color");
-    textColorRgb = new RGBEditLayout(this);
-    textSizeSpin = new SpinBoxEditLayout(this, "Text size");
-    tabSpaceEdit = new LineEditLayout(this, "Tab spacing");
-    checkWrap = new CheckBoxLayout(this, "Wrap line");
-    checkItaric = new CheckBoxLayout(this, "Itaric text");
-    checkBold = new CheckBoxLayout(this ,"Bold text");
-    mainCmdColorCombo = new ComboEditLayout(this, "Main cmd color");
-    mainCmdColorRgb = new RGBEditLayout(this);
-    commentColorCombo = new ComboEditLayout(this, "Comment color");
-    commentColorRgb = new RGBEditLayout(this);
-    cursorLineColorCombo = new ComboEditLayout(this, "Cursor line color");
-    cursorLineColorRgb = new RGBEditLayout(this);
-    stringColorCombo = new ComboEditLayout(this, "String color");
-    stringColorRgb = new RGBEditLayout(this);
-    BlankSpaceLayout *blank = new BlankSpaceLayout(0, 30);
-    PushButtonLayout *setDefaultButton = new PushButtonLayout(this, "Default");
-    QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    QFormLayout *fLayout = new QFormLayout(this);
+    setLayout(fLayout);
 
-    setLayout(layout);
-    layout->addLayout(backgroundColorCombo);
-    layout->addLayout(backgroundColorRgb);
-    layout->addLayout(textColorCombo);
-    layout->addLayout(textColorRgb);
-    layout->addLayout(textSizeSpin);
-    layout->addLayout(tabSpaceEdit);
-    layout->addLayout(checkWrap);
-    layout->addLayout(checkItaric);
-    layout->addLayout(checkBold);
-    layout->addLayout(mainCmdColorCombo);
-    layout->addLayout(mainCmdColorRgb);
-    layout->addLayout(commentColorCombo);
-    layout->addLayout(commentColorRgb);
-    layout->addLayout(cursorLineColorCombo);
-    layout->addLayout(cursorLineColorRgb);
-    layout->addLayout(stringColorCombo);
-    layout->addLayout(stringColorRgb);
-    layout->addLayout(blank);
-    layout->addLayout(setDefaultButton);
-    layout->addItem(spacer);
+    fLayout->addRow("Background color", backgroundColorButton = new QPushButton(this));
+    fLayout->addRow("Text color", textColorButton = new QPushButton(this));
+    fLayout->addRow("Text font", textFontButton = new QPushButton("sample", this));
+    fLayout->addRow("Tab space", tabSpaceSpin = new QDoubleSpinBox(this));
+    fLayout->addRow("Wrap line", wrapCheckBox = new QCheckBox(this));
+    fLayout->addRow("Main cmd color", mainCmdColorButton = new QPushButton(this));
+    fLayout->addRow("Comment cmd color", commentCmdColorButton = new QPushButton(this));
+    fLayout->addRow("double quote color", doubleQuoteColorButton = new QPushButton(this));
+    fLayout->addRow("Cursor line color", cursorLineColorButton = new QPushButton(this));
+    fLayout->addRow(setDefaultButton);
 
-    const int labelWidth = 100;
-    backgroundColorCombo->setLabelMinimumWidth(labelWidth);
-    backgroundColorRgb->setLabelMinimumWidth(labelWidth);
-    textColorCombo->setLabelMinimumWidth(labelWidth);
-    textColorRgb->setLabelMinimumWidth(labelWidth);
-    textSizeSpin->setLabelMinimumWidth(labelWidth);
-    tabSpaceEdit->setLabelMinimumWidth(labelWidth);
-    checkWrap->setLabelMinimumWidth(labelWidth);
-    checkItaric->setLabelMinimumWidth(labelWidth);
-    checkBold->setLabelMinimumWidth(labelWidth);
-    mainCmdColorCombo->setLabelMinimumWidth(labelWidth);
-    mainCmdColorRgb->setLabelMinimumWidth(labelWidth);
-    commentColorCombo->setLabelMinimumWidth(labelWidth);
-    commentColorRgb->setLabelMinimumWidth(labelWidth);
-    cursorLineColorCombo->setLabelMinimumWidth(labelWidth);
-    cursorLineColorRgb->setLabelMinimumWidth(labelWidth);
-    stringColorCombo->setLabelMinimumWidth(labelWidth);
-    stringColorRgb->setLabelMinimumWidth(labelWidth);
+    connect(backgroundColorButton, &QPushButton::released, backgroundColorDialog, &QColorDialog::show);
+    connect(textColorButton, &QPushButton::released, textColorDialog, &QColorDialog::show);
+    connect(textFontButton, &QPushButton::released, textFontDialog, &QFontDialog::show);
+    connect(mainCmdColorButton, &QPushButton::released, mainCmdColorDialog, &QColorDialog::show);
+    connect(commentCmdColorButton, &QPushButton::released, commentCmdColorDialog, &QColorDialog::show);
+    connect(doubleQuoteColorButton, &QPushButton::released, doubleQuoteColorDialog, &QColorDialog::show);
+    connect(cursorLineColorButton, &QPushButton::released, cursorLineColorDialog, &QColorDialog::show);
 
-    backgroundColorCombo->insertComboItems(0, colorNameList());
-    textColorCombo->insertComboItems(0, colorNameList());
-    mainCmdColorCombo->insertComboItems(0, colorNameList());
-    commentColorCombo->insertComboItems(0, colorNameList());
-    cursorLineColorCombo->insertComboItems(0, colorNameList());
-    stringColorCombo->insertComboItems(0, colorNameList());
+    connect(backgroundColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setBackgroundColor);
+    connect(textColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setTextColor);
+    connect(textFontDialog, &QFontDialog::currentFontChanged, this, &EditorSetting::setTextFont);
+    connect(tabSpaceSpin, &QDoubleSpinBox::valueChanged, this, &EditorSetting::setTabSpace);
+    connect(wrapCheckBox, &QCheckBox::toggled, this, &EditorSetting::setWrap);
+    connect(mainCmdColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setMainCmdColor);
+    connect(commentCmdColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setCommentCmdColor);
+    connect(doubleQuoteColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setDoubleQuoteColor);
+    connect(cursorLineColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setCursorLineColor);
 
-    connect(backgroundColorCombo, &ComboEditLayout::currentComboIndexChanged, backgroundColorRgb, &RGBEditLayout::setColorAndEditable);
-    connect(backgroundColorRgb, &RGBEditLayout::colorEdited, this, &EditorSettingWidget::backgroundColorSet);
-    connect(textColorCombo, &ComboEditLayout::currentComboIndexChanged, textColorRgb, &RGBEditLayout::setColorAndEditable);
-    connect(textColorRgb, &RGBEditLayout::colorEdited, this, &EditorSettingWidget::textColorSet);
-    connect(textSizeSpin, &SpinBoxEditLayout::spinBoxValueChanged, this, &EditorSettingWidget::textSizeSet);
-    connect(tabSpaceEdit, &LineEditLayout::lineValueEdited, this, &EditorSettingWidget::tabSpaceSet);
-    connect(checkWrap, &CheckBoxLayout::checkBoxToggled, this, &EditorSettingWidget::checkWrapSet);
-    connect(checkItaric, &CheckBoxLayout::checkBoxToggled, this, &EditorSettingWidget::checkItaricSet);
-    connect(checkBold, &CheckBoxLayout::checkBoxToggled, this, &EditorSettingWidget::checkBoldSet);
-    connect(mainCmdColorCombo, &ComboEditLayout::currentComboIndexChanged, mainCmdColorRgb, &RGBEditLayout::setColorAndEditable);
-    connect(mainCmdColorRgb, &RGBEditLayout::colorEdited, this, &EditorSettingWidget::mainCmdColorSet);
-    connect(commentColorCombo, &ComboEditLayout::currentComboIndexChanged, commentColorRgb, &RGBEditLayout::setColorAndEditable);
-    connect(commentColorRgb, &RGBEditLayout::colorEdited, this, &EditorSettingWidget::commentColorSet);
-    connect(cursorLineColorCombo, &ComboEditLayout::currentComboIndexChanged, cursorLineColorRgb, &RGBEditLayout::setColorAndEditable);
-    connect(cursorLineColorRgb, &RGBEditLayout::colorEdited, this, &EditorSettingWidget::cursorLineColorSet);
-    connect(stringColorCombo, &ComboEditLayout::currentComboIndexChanged, stringColorRgb, &RGBEditLayout::setColorAndEditable);
-    connect(stringColorRgb, &RGBEditLayout::colorEdited, this, &EditorSettingWidget::stringColorSet);
-    connect(setDefaultButton, &PushButtonLayout::buttonReleased, this, &EditorSettingWidget::loadDefaultSetting);
+    connect(setDefaultButton, &QPushButton::released, this, &EditorSetting::loadDefaultSetting);
 }
 
-void EditorSettingWidget::loadXmlSetting()
+void EditorSetting::setBackgroundColor(const QColor& color)
+{
+    backgroundColorButton->setStyleSheet(QString("QPushButton { background: %1 }").arg(color.name()));
+    if(editor)
+        editor->setBackgroundColor(color);
+}
+
+void EditorSetting::setTextColor(const QColor& color)
+{
+    textColorButton->setStyleSheet(QString("QPushButton { background: %1 }").arg(color.name()));
+    if(editor)
+        editor->setTextColor(color);
+}
+
+void EditorSetting::setTextFont(const QFont& font)
+{
+    textFontButton->setFont(font);
+    if(editor)
+        editor->setFont(font);
+}
+
+void EditorSetting::setTabSpace(const double& tabSpace)
+{
+    if(editor)
+        editor->setTabSpace(tabSpace);
+}
+
+void EditorSetting::setWrap(const bool wrap)
+{
+    if(editor)
+        editor->setWrap(wrap);
+}
+
+void EditorSetting::setMainCmdColor(const QColor& color)
+{
+    mainCmdColorButton->setStyleSheet(QString("QPushButton { background: %1 }").arg(color.name()));
+
+    if(editor)
+        editor->setMainCmdColor(color);
+}
+
+void EditorSetting::setCommentCmdColor(const QColor& color)
+{
+    commentCmdColorButton->setStyleSheet(QString("QPushButton { background: %1 }").arg(color.name()));
+
+    if(editor)
+        editor->setCommentColor(color);
+}
+
+void EditorSetting::setDoubleQuoteColor(const QColor& color)
+{
+    doubleQuoteColorButton->setStyleSheet(QString("QPushButton { background: %1 }").arg(color.name()));
+
+    if(editor)
+        editor->setStringColor(color);
+}
+
+void EditorSetting::setCursorLineColor(const QColor& color)
+{
+    cursorLineColorButton->setStyleSheet(QString("QPushButton { background: %1 }").arg(color.name()));
+
+    if(editor)
+        editor->setCursorLineColor(color);
+}
+
+void EditorSetting::setTextSize(const int ps)
+{
+    QFont font = textFontDialog->currentFont();
+    font.setPointSize(ps);
+    textFontDialog->setCurrentFont(font);
+}
+
+void EditorSetting::setEditor(TextEdit *editor)
+{
+    if(!editor) return;
+
+    this->editor = editor;
+
+    editor->setBackgroundColor(backgroundColorDialog->currentColor());
+    editor->setTextColor(textColorDialog->currentColor());
+    editor->setFont(textFontDialog->currentFont());
+    editor->setTabSpace(tabSpaceSpin->value());
+    editor->setWrap(wrapCheckBox->isChecked());
+    editor->setMainCmdColor(mainCmdColorDialog->currentColor());
+    editor->setCommentColor(commentCmdColorDialog->currentColor());
+    editor->setStringColor(doubleQuoteColorDialog->currentColor());
+    editor->setCursorLineColor(cursorLineColorDialog->currentColor());
+}
+
+/* dialogを設定した後、コンストラクタ内でつなげたシグナルスロットによって、ボタンのスタイルも変更されるが、
+ * dialogに設定した値がdialogのデフォルト値と等しい場合、シグナルは発せられないので、それぞれ明示的に
+ * set~()を呼び出してある。*/
+void EditorSetting::loadXmlSetting()
 {
     using namespace boost::property_tree;
 
-    if(QFile::exists(settingFolderPath + "/" + "editor-setting.xml"))
+    const QString settingFile = settingFolderPath + '/' + settingFileName;
+
+    if(QFile::exists(settingFile))
     {
         ptree pt;
-        read_xml((settingFolderPath + "/" + "editor-setting.xml").toUtf8().constData(), pt); //存在しないファイルやフォルダーを指定するとエラー(落ちる)
+        read_xml(settingFile.toUtf8().constData(), pt); //存在しないファイルやフォルダーを指定するとエラー(落ちる)
 
         {
             int r = 0, g = 0, b = 0;
@@ -129,8 +175,9 @@ void EditorSettingWidget::loadXmlSetting()
                 g = green.value();
             if(boost::optional<int> blue = pt.get_optional<int>("root.backgroundColor.b"))
                 b = blue.value();
-            backgroundColorCombo->setComboCurrentIndex(QT_GLOBAL_COLOR_COUNT + 1);
-            backgroundColorRgb->setColor(QColor(r, g, b));
+
+            backgroundColorDialog->setCurrentColor(QColor(r, g, b));
+            setBackgroundColor(QColor(r, g, b));
         }
         {
             int r = 0, g = 0, b = 0;
@@ -140,19 +187,36 @@ void EditorSettingWidget::loadXmlSetting()
                 g = green.value();
             if(boost::optional<int> blue = pt.get_optional<int>("root.textColor.b"))
                 b = blue.value();
-            textColorCombo->setComboCurrentIndex(QT_GLOBAL_COLOR_COUNT + 1);
-            textColorRgb->setColor(QColor(r, g, b));
+
+            textColorDialog->setCurrentColor(QColor(r, g, b));
+            setTextColor(QColor(r, g, b));
         }
-        if(boost::optional<int> ps = pt.get_optional<int>("root.textSize"))
-            textSizeSpin->setSpinBoxValue(ps.value());
-        if(boost::optional<double> space = pt.get_optional<double>("root.tabSpace"))
-            tabSpaceEdit->setLineEditText(QString::number(space.value()));
-        if(boost::optional<bool> wrap = pt.get_optional<bool>("root.wrap"))
-            checkWrap->setChecked(wrap.value());
-        if(boost::optional<bool> itaric = pt.get_optional<bool>("root.itaric"))
-            checkItaric->setChecked(itaric.value());
-        if(boost::optional<bool> bold = pt.get_optional<bool>("root.bold"))
-            checkBold->setChecked(bold.value());
+        {
+            QString family = "";
+            int pointSize = 0;
+            QFont::Weight weight = QFont::Weight::Normal;
+            bool itaric = false;
+            if(boost::optional<std::string> f = pt.get_optional<std::string>("root.textFont.family"))
+                family = QString::fromStdString(f.value());
+            if(boost::optional<int> p = pt.get_optional<int>("root.textFont.pointSize"))
+                pointSize = p.value();
+            if(boost::optional<int> w = pt.get_optional<int>("root.textFont.weight"))
+                weight = QFont::Weight(w.value());
+            if(boost::optional<bool> i = pt.get_optional<bool>("root.textFont.italic"))
+                itaric = i.value();
+
+            const QFont font(family, pointSize, weight, itaric);
+            textFontDialog->setCurrentFont(font);
+            setTextFont(font);
+        }
+        {
+            if(boost::optional<double> s = pt.get_optional<double>("root.tabSpace"))
+                tabSpaceSpin->setValue(s.value());
+        }
+        {
+            if(boost::optional<bool> wrap = pt.get_optional<bool>("root.wrap"))
+                wrapCheckBox->setChecked(wrap.value());
+        }
         {
             int r = 0, g = 0, b = 0;
             if(boost::optional<int> red = pt.get_optional<int>("root.mainCmdColor.r"))
@@ -161,19 +225,33 @@ void EditorSettingWidget::loadXmlSetting()
                 g = green.value();
             if(boost::optional<int> blue = pt.get_optional<int>("root.mainCmdColor.b"))
                 b = blue.value();
-            mainCmdColorCombo->setComboCurrentIndex(QT_GLOBAL_COLOR_COUNT + 1);
-            mainCmdColorRgb->setColor(QColor(r, g, b));
+
+            mainCmdColorDialog->setCurrentColor(QColor(r, g, b));
+            setMainCmdColor(QColor(r, g, b));
         }
         {
             int r = 0, g = 0, b = 0;
-            if(boost::optional<int> red = pt.get_optional<int>("root.commentColor.r"))
+            if(boost::optional<int> red = pt.get_optional<int>("root.commentCmdColor.r"))
                 r = red.value();
-            if(boost::optional<int> green = pt.get_optional<int>("root.commentColor.g"))
+            if(boost::optional<int> green = pt.get_optional<int>("root.commentCmdColor.g"))
                 g = green.value();
-            if(boost::optional<int> blue = pt.get_optional<int>("root.commentColor.b"))
+            if(boost::optional<int> blue = pt.get_optional<int>("root.commentCmdColor.b"))
                 b = blue.value();
-            commentColorCombo->setComboCurrentIndex(QT_GLOBAL_COLOR_COUNT + 1);
-            commentColorRgb->setColor(QColor(r, g, b));
+
+            commentCmdColorDialog->setCurrentColor(QColor(r, g, b));
+            setCommentCmdColor(QColor(r, g, b));
+        }
+        {
+            int r = 0, g = 0, b = 0;
+            if(boost::optional<int> red = pt.get_optional<int>("root.doubleQuoteColor.r"))
+                r = red.value();
+            if(boost::optional<int> green = pt.get_optional<int>("root.doubleQuoteColor.g"))
+                g = green.value();
+            if(boost::optional<int> blue = pt.get_optional<int>("root.doubleQuoteColor.b"))
+                b = blue.value();
+
+            doubleQuoteColorDialog->setCurrentColor(QColor(r, g, b));
+            setDoubleQuoteColor(QColor(r, g, b));
         }
         {
             int r = 0, g = 0, b = 0;
@@ -183,19 +261,9 @@ void EditorSettingWidget::loadXmlSetting()
                 g = green.value();
             if(boost::optional<int> blue = pt.get_optional<int>("root.cursorLineColor.b"))
                 b = blue.value();
-            cursorLineColorCombo->setComboCurrentIndex(QT_GLOBAL_COLOR_COUNT + 1);
-            cursorLineColorRgb->setColor(QColor(r, g, b));
-        }
-        {
-            int r = 0, g = 0, b = 0;
-            if(boost::optional<int> red = pt.get_optional<int>("root.stringColor.r"))
-                r = red.value();
-            if(boost::optional<int> green = pt.get_optional<int>("root.stringColor.g"))
-                g = green.value();
-            if(boost::optional<int> blue = pt.get_optional<int>("root.stringColor.b"))
-                b = blue.value();
-            stringColorCombo->setComboCurrentIndex(QT_GLOBAL_COLOR_COUNT + 1);
-            stringColorRgb->setColor(QColor(r, g, b));
+
+            cursorLineColorDialog->setCurrentColor(QColor(r, g, b));
+            setCursorLineColor(QColor(r, g, b));
         }
     }
     else
@@ -204,68 +272,81 @@ void EditorSettingWidget::loadXmlSetting()
     }
 }
 
-void EditorSettingWidget::loadDefaultSetting()
+void EditorSetting::loadDefaultSetting()
 {
-    backgroundColorCombo->setComboCurrentIndex(QT_GLOBAL_COLOR_COUNT + 1);
-    backgroundColorRgb->setColor(Qt::GlobalColor::black);
-    textColorCombo->setComboCurrentIndex(QT_GLOBAL_COLOR_COUNT + 1);
-    textColorRgb->setColor(Qt::GlobalColor::white);
-    textSizeSpin->setSpinBoxValue(9);
-    tabSpaceEdit->setLineEditText("20.0");
-    checkWrap->setChecked(true);
-    checkItaric->setChecked(false);
-    checkBold->setChecked(false);
-    mainCmdColorCombo->setComboCurrentIndex(QT_GLOBAL_COLOR_COUNT + 1);
-    mainCmdColorRgb->setColor(Qt::GlobalColor::cyan);
-    commentColorCombo->setComboCurrentIndex(QT_GLOBAL_COLOR_COUNT + 1);
-    commentColorRgb->setColor(Qt::GlobalColor::lightGray);
-    cursorLineColorCombo->setComboCurrentIndex(QT_GLOBAL_COLOR_COUNT + 1);
-    cursorLineColorRgb->setColor(QColor(50, 50, 50));
-    stringColorCombo->setComboCurrentIndex(QT_GLOBAL_COLOR_COUNT + 1);
-    stringColorRgb->setColor(QColor(255, 200, 0));
+    backgroundColorDialog->setCurrentColor(Qt::GlobalColor::black);
+    setBackgroundColor(Qt::GlobalColor::black);
+
+    textColorDialog->setCurrentColor(Qt::GlobalColor::white);
+    setTextColor(Qt::GlobalColor::white);
+
+    const QFont font("Yu Gothic UI", 12, QFont::Normal, false);
+    textFontDialog->setCurrentFont(font);
+    setTextFont(font);
+
+    tabSpaceSpin->setValue(20.00);
+
+    wrapCheckBox->setChecked(true);
+
+    mainCmdColorDialog->setCurrentColor(Qt::GlobalColor::cyan);
+    setMainCmdColor(Qt::GlobalColor::cyan);
+
+    commentCmdColorDialog->setCurrentColor(Qt::GlobalColor::lightGray);
+    setCommentCmdColor(Qt::GlobalColor::lightGray);
+
+    doubleQuoteColorDialog->setCurrentColor(QColor(255, 200, 0));
+    setDoubleQuoteColor(QColor(255, 200, 0));
+
+    cursorLineColorDialog->setCurrentColor(QColor(50, 50, 50));
+    setCursorLineColor(QColor(50, 50, 50));
 }
 
-void EditorSettingWidget::saveXmlSetting()
+void EditorSetting::saveXmlSetting()
 {
     using namespace boost::property_tree;
 
     ptree pt;
 
     ptree& backgroundColor = pt.add("root.backgroundColor", "");
-    backgroundColor.add("r", backgroundColorRgb->getColorR());
-    backgroundColor.add("g", backgroundColorRgb->getColorG());
-    backgroundColor.add("b", backgroundColorRgb->getColorB());
+    backgroundColor.add("r", backgroundColorDialog->currentColor().red());
+    backgroundColor.add("g", backgroundColorDialog->currentColor().green());
+    backgroundColor.add("b", backgroundColorDialog->currentColor().blue());
 
     ptree& textColor = pt.add("root.textColor", "");
-    textColor.add("r", textColorRgb->getColorR());
-    textColor.add("g", textColorRgb->getColorG());
-    textColor.add("b", textColorRgb->getColorB());
+    textColor.add("r", textColorDialog->currentColor().red());
+    textColor.add("g", textColorDialog->currentColor().green());
+    textColor.add("b", textColorDialog->currentColor().blue());
 
-    pt.add("root.textSize", textSizeSpin->spinBoxValue());
-    pt.add("root.tabSpace", tabSpaceEdit->lineEditText().toUtf8().constData());
-    pt.add("root.wrap", checkWrap->isChecked());
-    pt.add("root.itaric", checkItaric->isChecked());
-    pt.add("root.bold", checkBold->isChecked());
+    ptree& textFont = pt.add("root.textFont", "");
+    textFont.add("family", textFontDialog->currentFont().family().constData());
+    textFont.add("pointSize", textFontDialog->currentFont().pointSize());
+    textFont.add("weight", (int)textFontDialog->currentFont().weight());
+    textFont.add("italic", textFontDialog->currentFont().italic());
+
+    pt.add("root.tabSpace", tabSpaceSpin->value());
+
+    pt.add("root.wrap", wrapCheckBox->isChecked());
 
     ptree& mainCmdColor = pt.add("root.mainCmdColor", "");
-    mainCmdColor.add("r", mainCmdColorRgb->getColorR());
-    mainCmdColor.add("g", mainCmdColorRgb->getColorG());
-    mainCmdColor.add("b", mainCmdColorRgb->getColorB());
+    mainCmdColor.add("r", mainCmdColorDialog->currentColor().red());
+    mainCmdColor.add("g", mainCmdColorDialog->currentColor().green());
+    mainCmdColor.add("b", mainCmdColorDialog->currentColor().blue());
 
-    ptree& commentColor = pt.add("root.commentColor", "");
-    commentColor.add("r", commentColorRgb->getColorR());
-    commentColor.add("g", commentColorRgb->getColorG());
-    commentColor.add("b", commentColorRgb->getColorB());
+    ptree& commentCmdColor = pt.add("root.commentCmdColor", "");
+    commentCmdColor.add("r", commentCmdColorDialog->currentColor().red());
+    commentCmdColor.add("g", commentCmdColorDialog->currentColor().green());
+    commentCmdColor.add("b", commentCmdColorDialog->currentColor().blue());
+
+    ptree& doubleQuoteColor = pt.add("root.doubleQuoteColor", "");
+    doubleQuoteColor.add("r", doubleQuoteColorDialog->currentColor().red());
+    doubleQuoteColor.add("g", doubleQuoteColorDialog->currentColor().green());
+    doubleQuoteColor.add("b", doubleQuoteColorDialog->currentColor().blue());
 
     ptree& cursorLineColor = pt.add("root.cursorLineColor", "");
-    cursorLineColor.add("r", cursorLineColorRgb->getColorR());
-    cursorLineColor.add("g", cursorLineColorRgb->getColorG());
-    cursorLineColor.add("b", cursorLineColorRgb->getColorB());
+    cursorLineColor.add("r", cursorLineColorDialog->currentColor().red());
+    cursorLineColor.add("g", cursorLineColorDialog->currentColor().green());
+    cursorLineColor.add("b", cursorLineColorDialog->currentColor().blue());
 
-    ptree& stringColor = pt.add("root.stringColor", "");
-    stringColor.add("r", stringColorRgb->getColorR());
-    stringColor.add("g", stringColorRgb->getColorG());
-    stringColor.add("b", stringColorRgb->getColorB());
 
     const int indent = 4;
 
@@ -282,42 +363,9 @@ void EditorSettingWidget::saveXmlSetting()
 
     //存在しないフォルダーを含むパスを指定した場合はクラッシュする
     //存在しないファイルは指定しても大丈夫
-    write_xml((settingFolderPath + "/" + "editor-setting.xml").toUtf8().constData()
+    write_xml((settingFolderPath + "/" + settingFileName).toUtf8().constData()
               , pt, std::locale(), xml_writer_make_settings<std::string>(' ', indent, "utf-8"));
 }
-
-void EditorSettingWidget::set(TextEdit *const editor)
-{
-    if(!editor) return;
-
-    editor->setBackgroundColor(backgroundColorRgb->getColor());
-    editor->setTextColor(textColorRgb->getColor());
-    editor->setTextSize(textSizeSpin->spinBoxValue());
-    editor->setTabSpace(tabSpaceEdit->lineEditText().toDouble());
-    editor->setWrap(checkWrap->isChecked());
-    editor->setItaric(checkItaric->isChecked());
-    editor->setBold(checkBold->isChecked());
-    editor->setMainCmdColor(mainCmdColorRgb->getColor());
-    editor->setCommentColor(commentColorRgb->getColor());
-    editor->setCursorLineColor(cursorLineColorRgb->getColor());
-    editor->setStringColor(stringColorRgb->getColor());
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
