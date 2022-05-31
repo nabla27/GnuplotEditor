@@ -3,6 +3,10 @@
 #include <QMenu>
 #include <QAction>
 #include <QFileDialog>
+#include <QPushButton>
+#include "filetreewidget.h"
+#include "layoutparts.h"
+
 
 class FileMenu : public QMenu
 {
@@ -31,10 +35,11 @@ public:
     WidgetMenu(const QString& title, QWidget *parent);
 
 signals:
-    void clearOutputWindowPushed();
-    void clearConsoleWindowPushed();
-    void editorSettingOpened();
-    void gnuplotSettingOpened();
+    void clearOutputWindowRequested();
+    void clearConsoleWindowRequested();
+    void openEditorSettingRequested();
+    void openGnuplotSettingRequested();
+    void openTemplateCustomRequested();
 };
 
 
@@ -46,33 +51,65 @@ public:
     HelpMenu(const QString& title, QWidget *parent);
 
 signals:
-    void updateManagerRequested();
+    void rebootRequested();
 };
 
 
-class ScriptMenu : public QMenu
+
+
+
+
+
+
+
+class MenuBarWidget : public QWidget
 {
     Q_OBJECT
+public:
+    explicit MenuBarWidget(QWidget *parent = nullptr);
 
 public:
-    ScriptMenu(const QString& title, QWidget *parent);
+    void setScript(TreeFileItem *item);
+    void setSheet(TreeFileItem *item);
+    void changeAutoUpdateSheetMenuText(const bool isAuto);
+
+
+private slots:
+    void initializeMenu();
+    void setName(TreeFileItem *item);
+    void removeScript();
+    void removeSheet();
+
+private:
+    const QString activeButtonSheet = "QPushButton { background: transparent; text-align: left; } QPushButton:hover { background-color: rgb(231, 241, 255); }";
+    const QString emptyButtonSheet = "QPushButton { background:transparent; }";
+
+    const int barHeight = 20;
+
+    QPushButton *scriptButton;
+    QPushButton *sheetButton;
+    mlayout::IconLabel *scriptIcon;
+    mlayout::IconLabel *sheetIcon;
+    QSpacerItem *spacer;
+    QPushButton *runButton;
+
+    QMenu *emptyMenu;
+    QMenu *scriptMenu;
+    QMenu *sheetMenu;
+    QAction *autoUpdateAction;
+
+    QMetaObject::Connection renameScriptConnection;
+    QMetaObject::Connection removeScriptConnection;
+    QMetaObject::Connection renameSheetConnection;
+    QMetaObject::Connection removeSheetConnection;
+
+signals:
+    void closeProcessRequested();
+    void saveAsTemplateRequested();
+    void openInNewWindowRequested();
+    void autoSheetUpdateRequested();
+    void runRequested();
 };
-
-
-class SheetMenu : public QMenu
-{
-    Q_OBJECT
-
-public:
-    SheetMenu(const QString& title, QWidget *parent);
-};
-
-
-
-
-
-
-
 
 
 

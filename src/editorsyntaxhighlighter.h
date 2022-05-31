@@ -17,6 +17,16 @@ public:
     void setCommentColor(const QColor& color) { commentsFormat.setForeground(QColor(color)); rehighlight(); }
     void setStringColor(const QColor& color) { quotationFormat.setForeground(QColor(color)); rehighlight(); }
 
+public:
+    QList<qsizetype> doubleQuotationLeft;
+    QList<qsizetype> doubleQuotationRight;
+    QList<qsizetype> singleQuotationLeft;
+    QList<qsizetype> singleQuotationRight;
+    qsizetype bracketLeft = 0;
+    qsizetype bracketRight = 0;
+    qsizetype squareBracketLeft = 0;
+    qsizetype squareBracketRight = 0;
+
 private:
     QTextCharFormat firstOrderFormat;
     QStringList firstCmdList;
