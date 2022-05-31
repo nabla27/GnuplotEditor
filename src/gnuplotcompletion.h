@@ -62,8 +62,6 @@ public slots:
     void setParentFolder(const QString& folderPath);
 
 private:
-    //inline QStringList dirName() { return QStringList(); }
-    //inline QStringList fileName() { return QStringList(); }
     inline QStringList parameter() { return QStringList() << "ARG1"
                                                           << "ARG2"
                                                           << "ARG3"
