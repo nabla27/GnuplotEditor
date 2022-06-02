@@ -178,10 +178,10 @@ private:
                                                            << "rotate="
                                                            << "perpendicular=";}
             inline QStringList endian() { return QStringList() << "little"
-                                                                 << "big"
-                                                                 << "default"
-                                                                 << "swap"
-                                                                 << "swab";}
+                                                               << "big"
+                                                               << "default"
+                                                               << "swap"
+                                                               << "swab";}
             inline QStringList filetype() { return QStringList() << "avs"
                                                                        << "bin"
                                                                        << "edf"

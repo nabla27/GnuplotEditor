@@ -856,6 +856,71 @@ void GnuplotCompletionModel::setToolTip(const QString& command, const QString& f
                                                        "Set the rotation vector for splot. This vector represents a \n"
                                                        "normal vector oriented with respect to the two-dimensional xy plane. The default is (0,0,1).");
     }
+    else if(command == "little")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("little",
+                                                       "Binary data is arranged from small digits to large digits.") ;
+    }
+    else if(command == "big")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("big",
+                                                       "Binary data is arranged from large digits to small digits.");
+    }
+    else if(command == "default")
+    {
+        if(firstCmd == "fit" ||
+           firstCmd == "plot" ||
+           firstCmd == "splot") toolTip = toolTipStyle("default",
+                                                       "Binary data is considered the same endian as compiler.");
+    }
+    else if(command == "swap" ||
+            command == "swab")
+    {
+        if(command == "fit" ||
+           command == "plot" ||
+           command == "splot") toolTip = toolTipStyle(command,
+                                                      "Change the endian (try this if it doesn't work).");
+    }
+    else if(command == "avs")
+    {
+        if(command == "fit" ||
+           command == "plot" ||
+           command == "splot") toolTip = toolTipStyle("avs",
+                                                      "avs is one of the binary file types for automatically recognized images.");
+    }
+    else if(command == "edf")
+    {
+        if(command == "fit" ||
+           command == "plot" ||
+           command == "splot") toolTip = toolTipStyle("edf",
+                                                      "edf is one of the binary file types for automatically recognized images.");
+    }
+    else if(command == "png")
+    {
+        if(command == "fit" ||
+           command == "plot" ||
+           command == "splot") toolTip = toolTipStyle("png",
+                                                      "This is useful if gnuplot is installed to use the libgd library for png/gif/jpeg output.");
+    }
+    else if(command == "auto")
+    {
+        if(command == "fit" ||
+           command == "plot" ||
+           command == "splot") toolTip = toolTipStyle("auto",
+                                                      "In this case, gnuplot checks if the binary file extension is a standard extension in a supported format.");
+    }
+    else if(command == "matrix")
+    {
+        if(command == "fit" ||
+           command == "plot" ||
+           command == "splot") toolTip = toolTipStyle("matrix",
+                                                      "Draw non-uniform matrix data.");
+    }
+
 
 
     emit toolTipSet(toolTip);
