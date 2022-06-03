@@ -60,7 +60,7 @@ private:
 private:
     QCompleter *c = nullptr;
     QString firstCmd = "";
-    QString beforeCmd = "";
+    QString previousCmd = "";
     QString currentCmd = "";
 
     QTimer *toolTipTimer;
@@ -72,7 +72,7 @@ private:
 
 signals:
     void completionRequested(const QString& firstCmd, const QString& preCmd, const int index);
-    void toolTipRequested(const QString& text, const QString& firstCmd);
+    void toolTipRequested(const QString& text, const QString& firstCmd, const QString& previousCmd);
     void currentFolderChanged(const QString& path);
 
 private slots:

@@ -3,6 +3,14 @@
 #include <QToolTip>
 #include <QShortcut>
 
+/* <firstCmd, previousCmd, currentCmd>
+ * example.
+ *          pl|            --> firstCmd="", previousCmd="", currentCmd=""
+ *          plot sin|      --> firstCmd="plot", previousCmd="plot", currentCmd="sin"
+ *          plot sin wit|  --> firstCmd="plot", previousCmd="sin", currentCmd="wit"
+ */
+
+
 TextEdit::TextEdit(QWidget *parent)
     : QPlainTextEdit(parent)
     , toolTipTimer(new QTimer(this))
@@ -75,7 +83,7 @@ void TextEdit::wheelEvent(QWheelEvent *event)
 
 void TextEdit::requestToopTipForCompletion(const QString &text)
 {
-    emit toolTipRequested(text, firstCmd);
+    emit toolTipRequested(text, firstCmd, previousCmd);
 }
 
 void TextEdit::changeCompleterModel()
@@ -112,7 +120,7 @@ void TextEdit::changeCompleterModel()
     /* それぞれfirstCmd,beforeCmd,currentCmdを決定する */
     firstCmd = (firstCmdBlock.size() >= 2) ? firstCmdBlock.at(0) : "";
     const qsizetype currentCmdCount = textForwardCursor.size();
-    beforeCmd = (currentCmdCount >= 2) ? textForwardCursor.at(currentCmdCount - 2) : "";
+    previousCmd = (currentCmdCount >= 2) ? textForwardCursor.at(currentCmdCount - 2) : "";
     currentCmd = (currentCmdCount > 0) ? textForwardCursor.at(currentCmdCount - 1) : "";
 
     /* コメント中では予測変換を無効にする */
@@ -123,7 +131,7 @@ void TextEdit::changeCompleterModel()
         }
     }
 
-    emit completionRequested(firstCmd, beforeCmd, textForwardCursor.size() - 1);
+    emit completionRequested(firstCmd, previousCmd, textForwardCursor.size() - 1);
 }
 
 
@@ -338,7 +346,7 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
     /* 予測変換候補を変更 */
     changeCompleterModel();
 }
-#include <QStandardItemModel>
+
 void TextEdit::setCompletionList(const QStringList& list)
 {
     if(!c) return;
@@ -398,23 +406,48 @@ void TextEdit::requestToolTipForCursor()
 
         QTextCursor tc = cursorForPosition(mapFromGlobal(viewport()->cursor().pos()));
 
+        const int currentBlockNumber = tc.blockNumber();
+        const QTextCursor currentTextCursor = tc;
+
+        /* カーソル下にある単語textForToolTipを特定する */
         tc.movePosition(QTextCursor::MoveOperation::WordLeft, QTextCursor::MoveAnchor);
         tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
         QString textForToolTip = tc.selectedText();
 
+        /* 次の単語が "=" だった場合、それもtextForToolTipに含める */
         tc.movePosition(QTextCursor::MoveOperation::NextWord, QTextCursor::MoveAnchor);
         tc.movePosition(QTextCursor::MoveOperation::WordLeft, QTextCursor::MoveAnchor);
         tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
         if(tc.selectedText() == "=") textForToolTip += "=";
 
-        tc.movePosition(QTextCursor::MoveOperation::StartOfLine, QTextCursor::MoveAnchor);
-        tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
-        const QString firstCmdForToolTip = tc.selectedText();
+        /* 一つ前の単語を特定する。ここで、カーソル下の単語が行頭の単語であれば、前の行に移動され、その行の最後の単語が選択される事に注意 */
+        tc = currentTextCursor; //最初の位置(カーソル下)に戻す
+        tc.movePosition(QTextCursor::MoveOperation::PreviousWord, QTextCursor::MoveAnchor);
+
+        QString previousCmdForToolTip;
+        QString firstCmdForToolTip;
+
+        if(currentBlockNumber == tc.blockNumber())
+        {   //カーソル下の単語が行頭出ない場合(=previousWordが同じ行)
+            tc.movePosition(QTextCursor::MoveOperation::WordLeft, QTextCursor::MoveAnchor);
+            tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
+            previousCmdForToolTip = tc.selectedText();
+
+            /* 行頭のコマンドを特定する */
+            tc.movePosition(QTextCursor::MoveOperation::StartOfLine, QTextCursor::MoveAnchor);
+            tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
+            firstCmdForToolTip = tc.selectedText();
+        }
+        else
+        {   //カーソル下の行頭が行頭だった場(=previousWordが前行)
+            previousCmdForToolTip = "";
+            firstCmdForToolTip = "";
+        }
 
         if(textForToolTip != previousTextForToolTip ||
            firstCmdForToolTip != previousFirstCmdForToolTip)
         {
-            emit toolTipRequested(textForToolTip, firstCmdForToolTip);
+            emit toolTipRequested(textForToolTip, firstCmdForToolTip, previousCmdForToolTip);
 
             previousTextForToolTip = textForToolTip;
             previousFirstCmdForToolTip = firstCmdForToolTip;
