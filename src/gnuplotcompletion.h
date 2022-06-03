@@ -58,7 +58,7 @@ public:
 
 public slots:
     void setCompletionList(const QString& firstCmd, const QString& preCmd, const int index);
-    void setToolTip(const QString& text, const QString& firstCmd);
+    void setToolTip(const QString& text, const QString& firstCmd, const QString& previousCmd);
     void setParentFolder(const QString& folderPath);
 
 private:
@@ -198,7 +198,7 @@ private:
         inline QStringList smooth() { return QStringList() << "unique"
                                                            << "frequency"
                                                            << "fnormal"
-                                                           << "comulative"
+                                                           << "cumulative"
                                                            << "cnormal"
                                                            << "bins"
                                                            << "kdensity"

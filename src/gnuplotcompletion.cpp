@@ -323,7 +323,9 @@ void GnuplotCompletionModel::setCompletionList(const QString& firstCmd, const QS
 
 
 
-void GnuplotCompletionModel::setToolTip(const QString& command, const QString& firstCmd)
+void GnuplotCompletionModel::setToolTip(const QString& command,
+                                        const QString& firstCmd,
+                                        const QString& previousCmd)
 {
     QString toolTip;
 
@@ -345,11 +347,11 @@ void GnuplotCompletionModel::setToolTip(const QString& command, const QString& f
                                                       "");
     else if(command == "fit")
     {
-        if(firstCmd.isEmpty()) toolTip = toolTipStyle("fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {unitweights} via <Var1>{,<Var2>,...}\n"
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {unitweights} via <Var1>{,<Var2>,...}\n"
                                                       "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {{x|xy|z}error} via <Var1>{,<Var2>,...}\n"
                                                       "fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {error <Var1>{,<Var2>,...}} via <Var1>{,<Var2>,...}",
                                                       "");
-        else if(firstCmd == "save") toolTip = toolTipStyle("fit <\"FileName\">\n",
+        else if(previousCmd == "save") toolTip = toolTipStyle("fit <\"FileName\">\n",
                                                            "Save fitting parameters to file.");
     }
     else if(command == "help") toolTip = toolTipStyle("help <Contents>",
@@ -411,9 +413,9 @@ void GnuplotCompletionModel::setToolTip(const QString& command, const QString& f
                                                       "");
     else if(command == "set")
     {
-        if(firstCmd.isEmpty()) toolTip = toolTipStyle("set <Option>",
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("set <Option>",
                                                       "");
-        else if(firstCmd == "set") toolTip = toolTipStyle("set <\"FileName\">\n",
+        else if(previousCmd == "save") toolTip = toolTipStyle("set <\"FileName\">\n",
                                                           "Save setting options to file.");
     }
     else if(command == "show") toolTip = toolTipStyle("show <Option>",
@@ -454,7 +456,12 @@ void GnuplotCompletionModel::setToolTip(const QString& command, const QString& f
     else if(command == "while") toolTip = toolTipStyle("while (<Expression>) {}",
                                                        "");
 
-    else if(command == "message")
+    if(!toolTip.isEmpty())
+    {
+        emit toolTipSet(toolTip); return;
+    }
+
+    if(command == "message")
     {
         toolTip = toolTipStyle("message <\"Message\">",
                                "Specify a error message.");
@@ -729,10 +736,12 @@ void GnuplotCompletionModel::setToolTip(const QString& command, const QString& f
     }
     else if(command == "bins")
     {
-        if(firstCmd == "fit" ||
-           firstCmd == "plot" ||
-           firstCmd == "splot") toolTip = toolTipStyle("bins{= <NBINS>} {binrange [<Low>:<High>]} {binwidth= <Width>}",
-                                                       "First assign the original data to several boxes (bins) of equal width on the x-axis, and then draw only one value per box.");
+        if(previousCmd == "smooth") toolTip = toolTipStyle("bins",
+                                                           "First assign the original data to several boxes (bins) of equal width on the x-axis, and then draw only one value per box.");
+        else if(firstCmd == "fit" ||
+                firstCmd == "plot" ||
+                firstCmd == "splot") toolTip = toolTipStyle("bins{= <NBINS>} {binrange [<Low>:<High>]} {binwidth= <Width>}",
+                                                            "First assign the original data to several boxes (bins) of equal width on the x-axis, and then draw only one value per box.");
     }
     else if(command == "volatile")
     {
@@ -919,6 +928,70 @@ void GnuplotCompletionModel::setToolTip(const QString& command, const QString& f
            command == "plot" ||
            command == "splot") toolTip = toolTipStyle("matrix",
                                                       "Draw non-uniform matrix data.");
+    }
+    else if(command == "acsplines")
+    {
+        if(previousCmd == "smooth") toolTip = toolTipStyle("acsplines",
+                                                           "The curve is piecewise composed of several degree polynomials. \n"
+                                                           "If the \"using\" specification is gave in the third column, the coefficients of the cubic expression are weighted to points with that value.");
+    }
+    else if(command == "bezier")
+    {
+        if(previousCmd == "smooth") toolTip = toolTipStyle("bezier",
+                                                           "Approximate the data with a Bezier curve of degree N(number of data points).");
+    }
+    else if(command == "csplines")
+    {
+        if(previousCmd == "smooth") toolTip = toolTipStyle("csplines",
+                                                           "Connects the points that follow with a natural cubic spline curve after the data is monotonically aligned.");
+    }
+    else if(command == "mcsplines")
+    {
+        if(previousCmd == "smooth") toolTip = toolTipStyle("mcsplines",
+                                                           "Connects the points with a cubic spline curve where the smoothed function preserves the monotonicity and convexity of the original point.\n"
+                                                           "This reduces the effects of outliers.");
+    }
+    else if(command == "sbezier")
+    {
+        if(previousCmd == "smooth") toolTip = toolTipStyle("sbezier",
+                                                           "First, the data is monotonically aligned (unique) and then the bezier algorithm is applied.");
+    }
+    else if(command == "unique")
+    {
+        if(previousCmd == "smooth") toolTip = toolTipStyle("unique",
+                                                           "Connect the line segments.");
+    }
+    else if(command == "unwrap")
+    {
+        if(previousCmd == "smooth") toolTip = toolTipStyle("unwrap",
+                                                           "Correct the data so that the difference between the two consecutive points does not exceed π.");
+    }
+    else if(command == "frequency")
+    {
+        if(previousCmd == "smooth") toolTip = toolTipStyle("unwrap",
+                                                           "Makes the data monotonous with respect to x. Points with the same x coordinate are replaced with "
+                                                           "a single point that has the sum of those y values.");
+    }
+    else if(command == "fnormal")
+    {
+        if(previousCmd == "smooth") toolTip = toolTipStyle("fnormal",
+                                                           "Works similar to frequency, but produces a normalized histogram.");
+    }
+    else if(command == "cumulative")
+    {
+        if(previousCmd == "smooth") toolTip = toolTipStyle("cumulative",
+                                                           "Makes the data monotonous with respect to x. Points with the same x coordinate replace the cumulative sum of\n"
+                                                           " y values for all points with x values below that as the y value.");
+    }
+    else if(command == "cnormal")
+    {
+        if(previousCmd == "smooth") toolTip = toolTipStyle("cnormal",
+                                                           "It is monotonous with respect to x, and the value of y produces data normalized to [0:1].");
+    }
+    else if(command == "kdensity")
+    {
+        if(previousCmd == "smooth") toolTip = toolTipStyle("kdensity",
+                                                           "This is one of the methods to draw a kernel density evaluation(smooth histogram) of random selection points using Gaussian nuclei.");
     }
 
 
