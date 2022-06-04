@@ -158,6 +158,41 @@ void FileTreeSettingWidget::saveXmlSetting()
     ptree pt;
 
 
+    ptree& childFilter = pt.add("root.filterList", "");
+    for(int i = 0; i < filterList->topLevelItemCount(); ++i)
+    {
+        QTreeWidgetItem *item = filterList->topLevelItem(i);
+        const std::string filter = item->text(0).toStdString();
+
+        childFilter.add("filter", filter);
+    }
+
+
+    ptree& childScriptExt = pt.add("root.scriptExtList", "");
+    for(int i = 0; i < scriptExtensionList->topLevelItemCount(); ++i)
+    {
+        QTreeWidgetItem *item = scriptExtensionList->topLevelItem(i);
+        const std::string ext = item->text(0).toStdString();
+        const std::string readType = item->text(1).toStdString();
+
+        ptree& childItem = childScriptExt.add("item", "");
+        childItem.add("ext", ext);
+        childItem.add("readType", readType);
+    }
+
+
+    ptree& childSheetExt = pt.add("root.sheetExtList", "");
+    for(int i = 0; i < sheetExtensionList->topLevelItemCount(); ++i)
+    {
+        QTreeWidgetItem *item = sheetExtensionList->topLevelItem(i);
+        const std::string ext = item->text(0).toStdString();
+        const std::string readType = item->text(1).toStdString();
+
+        ptree& childItem = childSheetExt.add("item", "");
+        childItem.add("ext", ext);
+        childItem.add("readType", readType);
+    }
+
 
     constexpr int indent = 4;
 
