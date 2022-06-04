@@ -19,6 +19,7 @@
 #include "consolewidget.h"
 #include "gnuplotsettingwidget.h"
 #include "templatecustomwidget.h"
+#include "filetreesettingwidget.h"
 
 
 class TabWidget : public QTabWidget
@@ -73,6 +74,7 @@ private:
     EditorSetting *editorSetting;
     GnuplotSettingWidget *gnuplotSetting;
     TemplateCustomWidget *templateCustom;
+    FileTreeSettingWidget *fileTreeSetting;
 
     TreeModelCombo *treeModelCombo;
     FileTreeWidget *fileTree;
