@@ -104,11 +104,37 @@ void FileTreeSettingWidget::removeItem()
     QWidget *currentPage = settingPage->currentWidget();
 
     if(currentPage == filterList)
-        ;
+    {
+        const QList<QTreeWidgetItem*> list = filterList->selectedItems();
+
+        for(QTreeWidgetItem* item : list)
+        {
+            QTreeWidgetItem *removeItem = filterList->takeTopLevelItem(filterList->indexOfTopLevelItem(item));
+            delete removeItem;
+        }
+    }
     else if(currentPage == scriptExtensionList)
-        ;
+    {
+        const QList<QTreeWidgetItem*> list = scriptExtensionList->selectedItems();
+
+        for(QTreeWidgetItem *item : list)
+        {
+            QTreeWidgetItem *removeItem = scriptExtensionList->takeTopLevelItem(scriptExtensionList->indexOfTopLevelItem(item));
+            TreeScriptItem::suffix.remove(removeItem->text(0));
+            delete removeItem;
+        }
+    }
     else if(currentPage == sheetExtensionList)
-        ;
+    {
+        const QList<QTreeWidgetItem*> list = sheetExtensionList->selectedItems();
+
+        for(QTreeWidgetItem *item : list)
+        {
+            QTreeWidgetItem *removeItem = sheetExtensionList->takeTopLevelItem(sheetExtensionList->indexOfTopLevelItem(item));
+            TreeSheetItem::suffix.remove(removeItem->text(0));
+            delete removeItem;
+        }
+    }
 }
 
 void FileTreeSettingWidget::loadXmlSetting()
