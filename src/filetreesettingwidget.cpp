@@ -1,6 +1,7 @@
 #include "filetreesettingwidget.h"
 #include "boost/property_tree/xml_parser.hpp"
 #include "boost/lexical_cast.hpp"
+#include "boost/foreach.hpp"
 #include <QFile>
 #include <QDir>
 
@@ -18,6 +19,8 @@ FileTreeSettingWidget::FileTreeSettingWidget(QWidget *parent)
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.2f, 0.3f));
 
     setupLayout();
+
+    loadXmlSetting();
 }
 
 void FileTreeSettingWidget::setupLayout()
@@ -62,6 +65,30 @@ void FileTreeSettingWidget::setupLayout()
     connect(removeButton, &QPushButton::released, this, &FileTreeSettingWidget::removeItem);
 }
 
+void FileTreeSettingWidget::addScriptExt(const QString& ext, const int index)
+{
+    QTreeWidgetItem *item = new QTreeWidgetItem(scriptExtensionList,
+                                                QStringList() << ext
+                                                              << enumToString(TreeScriptItem::ReadType(index))
+                                                              << QString::number(index));
+    item->setIcon(0, QIcon(":/icon/file_code"));
+    scriptExtensionList->addTopLevelItem(item);
+
+    TreeScriptItem::suffix.insert(ext, TreeScriptItem::ReadType(index));
+}
+
+void FileTreeSettingWidget::addSheetExt(const QString& ext, const int index)
+{
+    QTreeWidgetItem *item = new QTreeWidgetItem(sheetExtensionList,
+                                                QStringList() << ext
+                                                              << enumToString(TreeSheetItem::ReadType(index))
+                                                              << QString::number(index));
+    item->setIcon(0, QIcon(":/icon/file_doc"));
+    sheetExtensionList->addTopLevelItem(item);
+
+    TreeSheetItem::suffix.insert(ext, TreeSheetItem::ReadType(index));
+}
+
 void FileTreeSettingWidget::addItem()
 {
     QWidget *currentPage = settingPage->currentWidget();
@@ -80,10 +107,7 @@ void FileTreeSettingWidget::addItem()
 
         if(dialog.exec() == 0) return;
 
-        scriptExtensionList->addTopLevelItem(new QTreeWidgetItem(QStringList() << dialog.lineEditText()
-                                                                               << enumToString(TreeScriptItem::ReadType(dialog.comboIndex()))));
-
-        TreeScriptItem::suffix.insert(dialog.lineEditText(), TreeScriptItem::ReadType(dialog.comboIndex()));
+        addScriptExt(dialog.lineEditText(), dialog.comboIndex());
     }
     else if(currentPage == sheetExtensionList)
     {
@@ -92,10 +116,7 @@ void FileTreeSettingWidget::addItem()
 
         if(dialog.exec() == 0) return;
 
-        sheetExtensionList->addTopLevelItem(new QTreeWidgetItem(QStringList() << dialog.lineEditText()
-                                                                              << enumToString(TreeSheetItem::ReadType(dialog.comboIndex()))));
-
-        TreeSheetItem::suffix.insert(dialog.lineEditText(), TreeSheetItem::ReadType(dialog.comboIndex()));
+        addSheetExt(dialog.lineEditText(), dialog.comboIndex());
     }
 }
 
@@ -148,6 +169,25 @@ void FileTreeSettingWidget::loadXmlSetting()
         ptree pt;
         read_xml(settingFile.toUtf8().constData(), pt); //存在しないファイルやフォルダーを指定するとエラー(落ちる)
 
+
+        BOOST_FOREACH(const ptree::value_type& child, pt.get_child("root.filterList"))
+        {
+            const std::string filter = boost::lexical_cast<std::string>(child.second.data());
+            filterList->addTopLevelItem(new QTreeWidgetItem(QStringList() << QString::fromStdString(filter)));
+        }
+
+
+        BOOST_FOREACH(const ptree::value_type& child, pt.get_child("root.scriptExtList"))
+            if(const boost::optional<std::string>& ext = child.second.get_optional<std::string>("ext"))
+                if(const boost::optional<int>& readType = child.second.get_optional<int>("readType"))
+                    addScriptExt(QString::fromStdString(ext.value()), readType.value());
+
+
+        BOOST_FOREACH(const ptree::value_type& child, pt.get_child("root.sheetExtList"))
+            if(const boost::optional<std::string>& ext = child.second.get_optional<std::string>("ext"))
+                if(const boost::optional<int>& readType = child.second.get_optional<int>("readType"))
+                    addSheetExt(QString::fromStdString(ext.value()), readType.value());
+
     }
 }
 
@@ -173,7 +213,7 @@ void FileTreeSettingWidget::saveXmlSetting()
     {
         QTreeWidgetItem *item = scriptExtensionList->topLevelItem(i);
         const std::string ext = item->text(0).toStdString();
-        const std::string readType = item->text(1).toStdString();
+        const int  readType = item->text(2).toInt();
 
         ptree& childItem = childScriptExt.add("item", "");
         childItem.add("ext", ext);
@@ -186,7 +226,7 @@ void FileTreeSettingWidget::saveXmlSetting()
     {
         QTreeWidgetItem *item = sheetExtensionList->topLevelItem(i);
         const std::string ext = item->text(0).toStdString();
-        const std::string readType = item->text(1).toStdString();
+        const int readType = item->text(2).toInt();
 
         ptree& childItem = childSheetExt.add("item", "");
         childItem.add("ext", ext);

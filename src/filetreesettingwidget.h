@@ -29,6 +29,8 @@ private:
 private slots:
     void addItem();
     void removeItem();
+    void addScriptExt(const QString& ext, const int index);
+    void addSheetExt(const QString& ext, const int index);
 
 private:
     const QString settingFolderPath = QApplication::applicationDirPath() + "/setting";
