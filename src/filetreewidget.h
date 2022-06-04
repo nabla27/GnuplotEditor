@@ -51,6 +51,7 @@ signals:
 
 class TreeScriptItem : public TreeFileItem
 {
+    Q_OBJECT
 public:
     explicit TreeScriptItem(QTreeWidgetItem *parent, int type)
         : TreeFileItem(parent, type)
@@ -63,6 +64,9 @@ public:
         process->close();
         delete process; process = nullptr;
     }
+
+    enum class ReadType { Text };
+    Q_ENUM(ReadType)
 
     void save() override
     {
@@ -101,6 +105,7 @@ public:
 
 class TreeSheetItem : public TreeFileItem
 {
+    Q_OBJECT
 public:
     explicit TreeSheetItem(QTreeWidgetItem *parent, int type)
         : TreeFileItem(parent, type)
@@ -110,6 +115,9 @@ public:
     {
         delete table; table = nullptr;
     }
+
+    enum class ReadType { Csv };
+    Q_ENUM(ReadType)
 
     void save() override
     {
