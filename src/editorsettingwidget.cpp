@@ -1,6 +1,7 @@
 #include "editorsettingwidget.h"
 #include <QFormLayout>
 #include <QPushButton>
+#include <QMessageBox>
 
 EditorSetting::EditorSetting(QWidget *parent)
     : QWidget(parent)
@@ -61,7 +62,15 @@ void EditorSetting::initializeLayout()
     connect(doubleQuoteColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setDoubleQuoteColor);
     connect(cursorLineColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setCursorLineColor);
 
-    connect(setDefaultButton, &QPushButton::released, this, &EditorSetting::loadDefaultSetting);
+    connect(setDefaultButton, &QPushButton::released, this, &EditorSetting::setDefaultSetting);
+}
+
+void EditorSetting::setDefaultSetting()
+{
+    const QMessageBox::StandardButton result = QMessageBox::question(this, "Reset", "Would you like to return to the default settings?");
+
+    if(result == QMessageBox::Yes)
+        loadDefaultSetting();
 }
 
 void EditorSetting::setBackgroundColor(const QColor& color)
@@ -318,11 +327,10 @@ void EditorSetting::saveXmlSetting()
     textColor.add("b", textColorDialog->currentColor().blue());
 
     ptree& textFont = pt.add("root.textFont", "");
-    textFont.add("family", textFontDialog->currentFont().family().constData());
+    textFont.add("family", textFontDialog->currentFont().family().toStdString());
     textFont.add("pointSize", textFontDialog->currentFont().pointSize());
     textFont.add("weight", (int)textFontDialog->currentFont().weight());
     textFont.add("italic", textFontDialog->currentFont().italic());
-
     pt.add("root.tabSpace", tabSpaceSpin->value());
 
     pt.add("root.wrap", wrapCheckBox->isChecked());

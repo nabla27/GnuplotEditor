@@ -37,6 +37,8 @@ private slots:
     void setDoubleQuoteColor(const QColor& color);
     void setCursorLineColor(const QColor& color);
 
+    void setDefaultSetting();
+
 private:
     void initializeLayout();
     void closeEvent(QCloseEvent* event) override { saveXmlSetting(); QWidget::closeEvent(event); }
