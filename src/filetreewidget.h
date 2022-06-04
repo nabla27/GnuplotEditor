@@ -73,7 +73,15 @@ public:
         if(editor)
         {
             bool ok = false;
-            toFileTxt(info.absoluteFilePath(), editor->toPlainText(), &ok);
+
+            switch(suffix.value(info.suffix()))
+            {
+            case ReadType::Text:
+                toFileTxt(info.absoluteFilePath(), editor->toPlainText(), &ok); break;
+            default:
+                break;
+            }
+
             if(!ok)
                 emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
@@ -86,7 +94,15 @@ public:
         if(editor)
         {
             bool ok = false;
-            editor->setPlainText(readFileTxt(info.absoluteFilePath(), &ok));
+
+            switch(suffix.value(info.suffix()))
+            {
+            case ReadType::Text:
+                editor->setPlainText(readFileTxt(info.absoluteFilePath(), &ok)); break;
+            default:
+                break;
+            }
+
             if(!ok)
                 emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
@@ -94,7 +110,7 @@ public:
     }
 
 public:
-    static QStringList suffix;
+    static QHash<QString, ReadType> suffix;
     TextEdit *editor;
     QProcess *process;
 };
@@ -124,7 +140,15 @@ public:
         if(table)
         {
             bool ok = false;
-            toFileCsv(info.absoluteFilePath(), table->getData<QString>(), &ok);
+
+            switch(suffix.value(info.suffix()))
+            {
+            case ReadType::Csv:
+                toFileCsv(info.absoluteFilePath(), table->getData<QString>(), &ok); break;
+            default:
+                break;
+            }
+
             if(!ok)
                 emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
@@ -136,7 +160,15 @@ public:
         if(table)
         {
             bool ok = false;
-            table->setData(readFileCsv(info.absoluteFilePath(), &ok));
+
+            switch(suffix.value(info.suffix()))
+            {
+            case ReadType::Csv:
+                table->setData(readFileCsv(info.absoluteFilePath(), &ok)); break;
+            default:
+                break;
+            }
+
             if(!ok)
                 emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
@@ -144,7 +176,7 @@ public:
     }
 
 public:
-    static QStringList suffix;
+    static QHash<QString, ReadType> suffix;
     GnuplotTable *table;
 };
 
