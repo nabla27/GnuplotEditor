@@ -9,6 +9,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     , editorSetting(new EditorSetting(nullptr))
     , gnuplotSetting(new GnuplotSettingWidget(gnuplot, nullptr))
     , templateCustom(new TemplateCustomWidget(this))
+    , fileTreeSetting(new FileTreeSettingWidget(nullptr))
 {
     /* ウィンドウをスクリーン画面に対して(0.4,0.5)の比率サイズに設定 */
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
@@ -39,6 +40,8 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     connect(gnuplot, &Gnuplot::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(browserWidget, &BrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
     connect(templateCustom, &TemplateCustomWidget::importTemplateRequested, this, &GnuplotEditor::importTemplate);
+
+    fileTreeSetting->show();
 }
 
 GnuplotEditor::~GnuplotEditor()

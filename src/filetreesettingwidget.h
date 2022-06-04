@@ -2,6 +2,8 @@
 #define FILETREESETTINGWIDGET_H
 #include <QWidget>
 #include <QApplication>
+#include <QTreeWidget>
+#include <QPushButton>
 
 /* フィルター
  * 拡張子
@@ -23,6 +25,10 @@ private:
 private:
     const QString settingFolderPath = QApplication::applicationDirPath() + "/setting";
     const QString settingFileName = "filetree-setting.xml";
+
+    QTreeWidget *filterList;
+    QTreeWidget *scriptExtensionList;
+    QTreeWidget *sheetExtensionList;
 
 signals:
 
