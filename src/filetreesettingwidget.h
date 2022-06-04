@@ -30,10 +30,6 @@ private slots:
     void addItem();
     void removeItem();
 
-    //void addFilder(const QString& filter);
-    //void addScriptExtension(const QString& ext, const QString& type);
-    //void addSheetExtension(const QString& ext, const QString& type);
-
 private:
     const QString settingFolderPath = QApplication::applicationDirPath() + "/setting";
     const QString settingFileName = "filetree-setting.xml";
@@ -42,9 +38,6 @@ private:
     QTreeWidget *filterList;
     QTreeWidget *scriptExtensionList;
     QTreeWidget *sheetExtensionList;
-
-signals:
-
 };
 
 
@@ -59,7 +52,7 @@ public:
 public:
     void addComboItems(const QStringList& list) { if(combo) combo->addItems(list); }
     QString lineEditText() const { return (lineEdit) ? lineEdit->text() : ""; }
-    QString comboText() const { return (combo) ? combo->currentText() : ""; }
+    int comboIndex() const { return (combo) ? combo->currentIndex() : -1; }
 
 private:
     QLineEdit *lineEdit;

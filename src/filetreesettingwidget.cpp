@@ -80,7 +80,10 @@ void FileTreeSettingWidget::addItem()
 
         if(dialog.exec() == 0) return;
 
-        scriptExtensionList->addTopLevelItem(new QTreeWidgetItem(QStringList() << dialog.lineEditText() << dialog.comboText()));
+        scriptExtensionList->addTopLevelItem(new QTreeWidgetItem(QStringList() << dialog.lineEditText()
+                                                                               << enumToString(TreeScriptItem::ReadType(dialog.comboIndex()))));
+
+        TreeScriptItem::suffix.insert(dialog.lineEditText(), TreeScriptItem::ReadType(dialog.comboIndex()));
     }
     else if(currentPage == sheetExtensionList)
     {
@@ -89,7 +92,10 @@ void FileTreeSettingWidget::addItem()
 
         if(dialog.exec() == 0) return;
 
-        sheetExtensionList->addTopLevelItem(new QTreeWidgetItem(QStringList() << dialog.lineEditText() << dialog.comboText()));
+        sheetExtensionList->addTopLevelItem(new QTreeWidgetItem(QStringList() << dialog.lineEditText()
+                                                                              << enumToString(TreeSheetItem::ReadType(dialog.comboIndex()))));
+
+        TreeSheetItem::suffix.insert(dialog.lineEditText(), TreeSheetItem::ReadType(dialog.comboIndex()));
     }
 }
 

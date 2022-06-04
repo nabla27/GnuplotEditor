@@ -4,8 +4,8 @@
 #include <QInputDialog>
 #include <QFileDialog>
 
-QStringList TreeScriptItem::suffix = QStringList() << "txt";
-QStringList TreeSheetItem::suffix = QStringList() << "csv";
+QHash<QString, TreeScriptItem::ReadType> TreeScriptItem::suffix = QHash<QString, TreeScriptItem::ReadType>();
+QHash<QString, TreeSheetItem::ReadType> TreeSheetItem::suffix = QHash<QString, TreeSheetItem::ReadType>();
 QHash<QString, TreeFileItem*> TreeFileItem::list = QHash<QString, TreeFileItem*>();
 
 void TreeFileItem::setFileIcon()
