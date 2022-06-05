@@ -37,6 +37,7 @@ public:
 signals:
     void clearOutputWindowRequested();
     void clearConsoleWindowRequested();
+    void openFileTreeSettingRequested();
     void openEditorSettingRequested();
     void openGnuplotSettingRequested();
     void openTemplateCustomRequested();
