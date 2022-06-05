@@ -2,12 +2,12 @@
 
 1. gnuplotがダウンロードされていない場合、[公式サイト](http://www.gnuplot.info/)からダウンロードする。
 
-3. ダウンロード方法する。 <br> 
+3. ダウンロード方法。 <br> 
   いづれかの方法でこのリポジトリをローカルにダウンロードする。<br>
   ・リポジトリをクローンする。`git clone https://github.com/nabla27/GnuplotEditor.git` <br>
   ・[ここから](https://github.com/nabla27/GnuplotEditor/archive/refs/heads/master.zip)zipファイルでダウンロードする。
   
-3. アプリを起動させる。 <br>
+3. アプリの起動。 <br>
   フォルダー内の "bin/release/GnuplotEditor.exe" を実行する。 <br>
   そうするとメインウィンドウが表示される。
   ![gp-setup1](https://user-images.githubusercontent.com/63175080/172050026-a184275b-271e-47ef-8c96-5724faea9ba4.png) <br>
