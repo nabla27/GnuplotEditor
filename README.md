@@ -1,3 +1,5 @@
+[English translation](./README-eg.md)
+
 # GnuplotEdior
 
 2次元または3次元のグラフを作成するためのアプリケーションソフトウェアであるgnuplotのためのエディター。
