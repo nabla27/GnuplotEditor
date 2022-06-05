@@ -23,6 +23,11 @@ FileTreeSettingWidget::FileTreeSettingWidget(QWidget *parent)
     loadXmlSetting();
 }
 
+FileTreeSettingWidget::~FileTreeSettingWidget()
+{
+    saveXmlSetting();
+}
+
 void FileTreeSettingWidget::setupLayout()
 {
     QVBoxLayout *vLayout = new QVBoxLayout;
@@ -102,6 +107,7 @@ void FileTreeSettingWidget::addItem()
         if(dialog.exec() == 0) return;
 
         filterList->addTopLevelItem(new QTreeWidgetItem(QStringList() << dialog.lineEditText()));
+        FileTreeWidget::fileFilter << dialog.lineEditText();
     }
     else if(currentPage == scriptExtensionList)
     {
@@ -134,6 +140,7 @@ void FileTreeSettingWidget::removeItem()
         for(QTreeWidgetItem* item : list)
         {
             QTreeWidgetItem *removeItem = filterList->takeTopLevelItem(filterList->indexOfTopLevelItem(item));
+            FileTreeWidget::fileFilter.removeOne(removeItem->text(0));
             delete removeItem;
         }
     }
@@ -176,6 +183,7 @@ void FileTreeSettingWidget::editItem()
 
         if(dialog.exec() == 0) return;
 
+        FileTreeWidget::fileFilter.replaceInStrings(item->text(0), dialog.lineEditText());
         item->setText(0, dialog.lineEditText());
     }
     else if(currentPage == scriptExtensionList)
@@ -241,6 +249,7 @@ void FileTreeSettingWidget::loadXmlSetting()
         {
             const std::string filter = boost::lexical_cast<std::string>(child.second.data());
             filterList->addTopLevelItem(new QTreeWidgetItem(QStringList() << QString::fromStdString(filter)));
+            FileTreeWidget::fileFilter << QString::fromStdString(filter);
         }
 
 

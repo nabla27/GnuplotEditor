@@ -7,6 +7,7 @@
 QHash<QString, TreeScriptItem::ReadType> TreeScriptItem::suffix = QHash<QString, TreeScriptItem::ReadType>();
 QHash<QString, TreeSheetItem::ReadType> TreeSheetItem::suffix = QHash<QString, TreeSheetItem::ReadType>();
 QHash<QString, TreeFileItem*> TreeFileItem::list = QHash<QString, TreeFileItem*>();
+QStringList FileTreeWidget::fileFilter = QStringList();
 
 void TreeFileItem::setFileIcon()
 {
@@ -202,86 +203,100 @@ void FileTreeWidget::loadFileTree()
 
 void FileTreeWidget::updateGnuplotModelTree(const QString &path)
 {
-    QDir dir(path);
-    const QList<QFileInfo> infoList = dir.entryInfoList(QDir::Filter::NoDotAndDotDot |
-                                                        QDir::Filter::Dirs |
-                                                        QDir::Filter::Files);
+    /* fileFilterをファイルにのみ適用するために、fileとdirでQDirを分ける */
 
-    for(const QFileInfo& info : infoList)
+    /* ファイル */
+    QDir dirForFiles(path);
+    dirForFiles.setNameFilters(fileFilter);
+    const QList<QFileInfo> fileInfoList = dirForFiles.entryInfoList(QDir::Filter::Files);
+
+    for(const QFileInfo& info : fileInfoList)
     {
         const QString absPath = info.absoluteFilePath();
 
-        if(info.isFile())
-        {
-            if(TreeFileItem::list.contains(absPath)) continue;
+        if(TreeFileItem::list.contains(absPath)) continue;
 
-            TreeFileItem *item;
+        TreeFileItem *item;
 
-            if(TreeScriptItem::suffix.contains(info.suffix()))
-                item = new TreeScriptItem(scriptFolderItem, (int)TreeItemType::Script);
-            else if(TreeSheetItem::suffix.contains(info.suffix()))
-                item = new TreeSheetItem(sheetFolderItem, (int)TreeItemType::Sheet);
-            else
-                item = new TreeFileItem(otherFolderItem, (int)TreeItemType::Other);
+        if(TreeScriptItem::suffix.contains(info.suffix()))
+            item = new TreeScriptItem(scriptFolderItem, (int)TreeItemType::Script);
+        else if(TreeSheetItem::suffix.contains(info.suffix()))
+            item = new TreeSheetItem(sheetFolderItem, (int)TreeItemType::Sheet);
+        else
+            item = new TreeFileItem(otherFolderItem, (int)TreeItemType::Other);
 
-            const QString rootFolderName = rootTreeItem->info.fileName();
-            item->setText(0, absPath.sliced(absPath.lastIndexOf(rootFolderName) + rootFolderName.count() + 1)); //作業ディレクトリからの相対パスを表示する
-            item->info = info;
-            TreeFileItem::list.insert(absPath, item);
-        }
-        else if(info.isDir())
-        {
-            dirWatcher->addPath(absPath);
+        const QString rootFolderName = rootTreeItem->info.fileName();
+        item->setText(0, absPath.sliced(absPath.lastIndexOf(rootFolderName) + rootFolderName.count() + 1)); //作業ディレクトリからの相対パスを表示する
+        item->info = info;
+        TreeFileItem::list.insert(absPath, item);
+    }
 
-            //再帰的にサブディレクトリについても設定する
-            updateGnuplotModelTree(absPath);
-        }
+
+    /* ディレクトリ */
+    QDir dirForDir(path);
+    const QList<QFileInfo> dirInfoList = dirForDir.entryInfoList(QDir::Filter::NoDotAndDotDot | QDir::Filter::Dirs);
+
+    for(const QFileInfo& info : dirInfoList)
+    {
+        const QString absPath = info.absoluteFilePath();
+
+        dirWatcher->addPath(absPath);
+
+        //再帰的にサブディレクトリについても設定する
+        updateGnuplotModelTree(absPath);
     }
 }
 
 void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetItem *parent)
 {
-    QDir dir(path);
-    const QList<QFileInfo> infoList = dir.entryInfoList(QDir::Filter::NoDotAndDotDot |
-                                                        QDir::Filter::Dirs |
-                                                        QDir::Filter::Files);
+    /* fileFilterをファイルにのみ適用するために、fileとdirでQDirを分ける */
 
-    for(const QFileInfo& info : infoList)
+    /* ファイル */
+    QDir dirForFiles(path);
+    dirForFiles.setNameFilters(fileFilter);
+    const QList<QFileInfo> fileInfoList = dirForFiles.entryInfoList(QDir::Filter::Files);
+
+    for(const QFileInfo& info : fileInfoList)
     {
         const QString absPath = info.absoluteFilePath();
 
-        if(info.isFile())
-        {   
-            if(TreeFileItem::list.contains(absPath)) continue;
+        if(TreeFileItem::list.contains(absPath)) continue;
 
-            TreeFileItem *item;
+        TreeFileItem *item;
 
-            if(TreeScriptItem::suffix.contains(info.suffix()))
-                item = new TreeScriptItem(parent, (int)TreeItemType::Script);
-            else if(TreeSheetItem::suffix.contains(info.suffix()))
-                item = new TreeSheetItem(parent, (int)TreeItemType::Sheet);
-            else
-                item = new TreeFileItem(parent, (int)TreeItemType::Other);
+        if(TreeScriptItem::suffix.contains(info.suffix()))
+            item = new TreeScriptItem(parent, (int)TreeItemType::Script);
+        else if(TreeSheetItem::suffix.contains(info.suffix()))
+            item = new TreeSheetItem(parent, (int)TreeItemType::Sheet);
+        else
+            item = new TreeFileItem(parent, (int)TreeItemType::Other);
 
+        item->setText(0, info.fileName());
+        item->info = info;
+        TreeFileItem::list.insert(absPath, item);
+    }
+
+
+    /* ディレクトリ */
+    QDir dirForDir(path);
+    const QList<QFileInfo> dirInfoList = dirForDir.entryInfoList(QDir::Filter::NoDotAndDotDot | QDir::Filter::Dirs);
+
+    for(const QFileInfo& info : dirInfoList)
+    {
+        const QString absPath = info.absoluteFilePath();
+
+        if(!TreeFileItem::list.contains(absPath))
+        {
+            TreeFileItem *item = new TreeFileItem(parent, (int)TreeItemType::Dir);
             item->setText(0, info.fileName());
             item->info = info;
             TreeFileItem::list.insert(absPath, item);
         }
-        else if(info.isDir())
-        {
-            if(!TreeFileItem::list.contains(absPath))
-            {
-                TreeFileItem *item = new TreeFileItem(parent, (int)TreeItemType::Dir);
-                item->setText(0, info.fileName());
-                item->info = info;
-                TreeFileItem::list.insert(absPath, item);
-            }
 
-            dirWatcher->addPath(absPath);
+        dirWatcher->addPath(absPath);
 
-            //再帰的にサブディレクトリについても設定する
-            updateFileSystemModelTree(absPath, TreeFileItem::list.value(absPath));
-        }
+        //再帰的にサブディレクトリについても設定する
+        updateFileSystemModelTree(absPath, TreeFileItem::list.value(absPath));
     }
 }
 
@@ -368,29 +383,35 @@ void FileTreeWidget::saveFolder()
 
 void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QString &toPath)
 {
-    QDir dir(fromPath);
-    const QFileInfoList fileInfoList = dir.entryInfoList(QDir::Filter::NoDotAndDotDot |
-                                                         QDir::Filter::Files |
-                                                         QDir::Filter::Dirs);
+    /* ファイル */
+    QDir dirForFiles(fromPath);
+    dirForFiles.setNameFilters(fileFilter);
+    const QList<QFileInfo> fileInfoList = dirForFiles.entryInfoList(QDir::Filter::Files);
 
     for(const QFileInfo& info : fileInfoList)
     {
-        const QString absPath = info.absoluteFilePath(); //コピーもとのパス
+        const QString absPath = info.absoluteFilePath();         //コピー元のパス
         const QString makePath = toPath + '/' + info.fileName(); //コピー先のパス
 
-        if(info.isFile())
-        {
-            const bool ok = QFile::copy(absPath, makePath);
-            if(!ok) emit errorCaused("Could not copy a file \"" + absPath + "\".", BrowserWidget::MessageType::FileSystemErr);
-        }
-        else if(info.isDir())
-        {
-            QDir dir(toPath);
-            const bool ok = dir.mkdir(makePath);
-            if(!ok) emit errorCaused("Could not copy a directory \"" + absPath + "\".", BrowserWidget::MessageType::FileSystemErr);
+        const bool ok = QFile::copy(absPath, makePath);
+        if(!ok) emit errorCaused("Could not copy a file \"" + absPath + "\".", BrowserWidget::MessageType::FileSystemErr);
+    }
 
-            copyDirectoryRecursively(absPath, makePath);
-        }
+
+    /* ディレクトリ */
+    QDir dirForDir(fromPath);
+    const QList<QFileInfo> dirInfoList = dirForDir.entryInfoList(QDir::Filter::NoDotAndDotDot | QDir::Filter::Dirs);
+
+    for(const QFileInfo& info : dirInfoList)
+    {
+        const QString absPath = info.absoluteFilePath();         //コピー元のパス
+        const QString makePath = toPath + '/' + info.fileName(); //コピー先のパス
+
+        QDir dir(toPath);
+        const bool ok = dir.mkdir(makePath);
+        if(!ok) emit errorCaused("Could not copy a directory \"" + absPath + "\".", BrowserWidget::MessageType::FileSystemErr);
+
+        copyDirectoryRecursively(absPath, makePath);
     }
 }
 

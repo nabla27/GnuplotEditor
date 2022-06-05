@@ -195,6 +195,7 @@ public:
     enum class FileTreeModel { FileSystem, Gnuplot };
     enum class TreeItemType { Script = 1000, Sheet, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
     Q_ENUM(FileTreeModel)
+    static QStringList fileFilter;
     void setTreeModel(const int type);
     QString currentFolderPath() const { return folderPath; }
     QSize minimumSizeHint() const override { return QSize(0, 0); }
