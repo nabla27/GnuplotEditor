@@ -49,6 +49,8 @@ Editor for gnuplot, application software for creating 2D or 3D graphs.
 3. Execute bin / release / GnuplotEditor.exe in the folder to start it.
 4. After launching, specify the path of the gnuplot.exe executable file in the Path of her Widget-> Gnuplot Setting on the menu bar.
 
+See [Download to Plot Flow](./docs/eg/setup.md) for details.
+
 # Note
 
 - Developed using Qt (Cute), a cross-platform application framework. <br>
