@@ -17,7 +17,7 @@
         <italic>false</italic>
     </textFont>
     <tabSpace>20</tabSpace>
-    <wrap>true</wrap>
+    <wrap>false</wrap>
     <mainCmdColor>
         <r>0</r>
         <g>255</g>
