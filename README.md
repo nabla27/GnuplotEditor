@@ -7,6 +7,7 @@
 - テキストエディター
   - 入力補完機能
   - コマンドのtoolTip表示
+  - 行番号、エラー行の表示、ハイライト
   - F1キーによる対象コマンドのhelp表示
   - スタイルのカスタマイズ
 - ファイルツリー
@@ -24,7 +25,11 @@
 
 # DEMO
 
-
+![GnuplotEditor1](https://user-images.githubusercontent.com/63175080/172048494-466826a6-d56a-4c73-860b-6269ea05ceb9.png)
+<br>
+![GnuplotEditor2](https://user-images.githubusercontent.com/63175080/172048495-61a6cd21-09c6-4cac-abf7-2b234fd085c1.png)
+<br>
+![GnuplotEditor3](https://user-images.githubusercontent.com/63175080/172048498-7a85b203-1b99-47bb-a29a-ba82612deea5.png)
 
 # Requirement
 
