@@ -47,11 +47,13 @@ void FileTreeSettingWidget::setupLayout()
     QPushButton *addButton = new QPushButton("Add", this);
     QPushButton *removeButton = new QPushButton("Remove", this);
     QPushButton *editButton = new QPushButton("Edit", this);
+    QPushButton *reloadButton = new QPushButton("Reload", this);
 
     buttonLayout->addWidget(addButton);
     buttonLayout->addWidget(removeButton);
     buttonLayout->addWidget(editButton);
     buttonLayout->addItem(buttonLayoutSpacer);
+    buttonLayout->addWidget(reloadButton);
 
 
     filterList = new QTreeWidget(settingPage);
@@ -71,6 +73,7 @@ void FileTreeSettingWidget::setupLayout()
     connect(addButton, &QPushButton::released, this, &FileTreeSettingWidget::addItem);
     connect(removeButton, &QPushButton::released, this, &FileTreeSettingWidget::removeItem);
     connect(editButton, &QPushButton::released, this, &FileTreeSettingWidget::editItem);
+    connect(reloadButton, &QPushButton::released, this, &FileTreeSettingWidget::requestReload);
 }
 
 void FileTreeSettingWidget::addScriptExt(const QString& ext, const int index)
@@ -226,6 +229,12 @@ void FileTreeSettingWidget::editItem()
 
         TreeSheetItem::suffix.insert(item->text(0), TreeSheetItem::ReadType(item->text(2).toInt()));
     }
+}
+
+void FileTreeSettingWidget::requestReload()
+{
+    hide();
+    emit reloadRequested();
 }
 
 
