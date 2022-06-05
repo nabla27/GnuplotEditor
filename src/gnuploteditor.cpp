@@ -53,8 +53,10 @@ void GnuplotEditor::postProcessing()
 {
     editorSetting->hide();
     gnuplotSetting->hide();
+    fileTreeSetting->hide();
     delete editorSetting;
     delete gnuplotSetting;
+    delete fileTreeSetting;
 }
 
 void GnuplotEditor::initializeMenuBar()

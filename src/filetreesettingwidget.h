@@ -19,12 +19,12 @@ class FileTreeSettingWidget : public QWidget
     Q_OBJECT
 public:
     explicit FileTreeSettingWidget(QWidget *parent = nullptr);
+    ~FileTreeSettingWidget();
 
 private:
     void setupLayout();
     void loadXmlSetting();
     void saveXmlSetting();
-    void closeEvent(QCloseEvent *event) override { saveXmlSetting(); QWidget::closeEvent(event); }
 
 private slots:
     void addItem();
