@@ -85,6 +85,10 @@ WidgetMenu::WidgetMenu(const QString& title, QWidget *parent)
 HelpMenu::HelpMenu(const QString& title, QWidget *parent)
     : QMenu(title, parent)
 {
+    QAction *gnuplotHelpAction = new QAction("Gnuplot", this);
+    addAction(gnuplotHelpAction);
+    connect(gnuplotHelpAction, &QAction::triggered, this, &HelpMenu::gnuplotHelpRequested);
+
     QAction *rebootAction = new QAction("Reboot", this);
     addAction(rebootAction);
     connect(rebootAction, &QAction::triggered, this, &HelpMenu::rebootRequested);

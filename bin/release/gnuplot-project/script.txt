@@ -1,1 +1,4 @@
-plot sin(x) with lines
+set xrange [0:10]
+set yrange [-1:1]
+
+plot sin(x) with points
