@@ -33,8 +33,8 @@
 
 # Installation
 
-- gnuplot
-  - gnuplotを持っていない場合、gnuplotを公式サイト( http://www.gnuplot.info/ )からダウンロードする。
+- gnuplot<br>
+  gnuplotを持っていない場合、gnuplotを公式サイト( http://www.gnuplot.info/ )からダウンロードする。
 
 # Usage
 
@@ -46,6 +46,9 @@
 
 # Note
 
+- クロスプラットフォームアプリケーションフレームワークであるQt(キュート)を用いて開発した。<br>
+  リポジトリ(https://code.qt.io/cgit/qt/qtbase.git/ )<br>
+  公式サイト(https://www.qt.io/jp )
 
 # License
 
