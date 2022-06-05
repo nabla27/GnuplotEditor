@@ -40,6 +40,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     connect(gnuplot, &Gnuplot::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(browserWidget, &BrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
     connect(templateCustom, &TemplateCustomWidget::importTemplateRequested, this, &GnuplotEditor::importTemplate);
+    connect(fileTreeSetting, &FileTreeSettingWidget::reloadRequested, fileTree, &FileTreeWidget::saveAndLoad);
 }
 
 GnuplotEditor::~GnuplotEditor()

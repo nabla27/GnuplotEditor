@@ -33,6 +33,8 @@ private slots:
     void addScriptExt(const QString& ext, const int index);
     void addSheetExt(const QString& ext, const int index);
 
+    void requestReload();
+
 private:
     const QString settingFolderPath = QApplication::applicationDirPath() + "/setting";
     const QString settingFileName = "filetree-setting.xml";
@@ -41,6 +43,9 @@ private:
     QTreeWidget *filterList;
     QTreeWidget *scriptExtensionList;
     QTreeWidget *sheetExtensionList;
+
+signals:
+    void reloadRequested();
 };
 
 
