@@ -34,7 +34,7 @@
 # Installation
 
 - gnuplot
-  - gnuplotを持っていない場合、gnuplotを公式サイト(http://www.gnuplot.info/)からダウンロードする。
+  - gnuplotを持っていない場合、gnuplotを公式サイト( http://www.gnuplot.info/ )からダウンロードする。
 
 # Usage
 
