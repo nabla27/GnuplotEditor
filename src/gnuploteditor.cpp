@@ -40,8 +40,6 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     connect(gnuplot, &Gnuplot::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(browserWidget, &BrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
     connect(templateCustom, &TemplateCustomWidget::importTemplateRequested, this, &GnuplotEditor::importTemplate);
-
-    fileTreeSetting->show();
 }
 
 GnuplotEditor::~GnuplotEditor()
@@ -84,6 +82,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(fileMenu, &FileMenu::reloadFolderPushed, fileTree, &FileTreeWidget::saveAndLoad);
     connect(widgetMenu, &WidgetMenu::clearOutputWindowRequested, browserWidget, &BrowserWidget::clear);
     //connect(widgetMenu, &WidgetMenu::clearConsoleWindowPushed, consoleWidget, &);
+    connect(widgetMenu, &WidgetMenu::openFileTreeSettingRequested, fileTreeSetting, &FileTreeSettingWidget::show);
     connect(widgetMenu, &WidgetMenu::openEditorSettingRequested, editorSetting, &EditorSetting::show);
     connect(widgetMenu, &WidgetMenu::openGnuplotSettingRequested, gnuplotSetting, &GnuplotSettingWidget::show);
     connect(widgetMenu, &WidgetMenu::openTemplateCustomRequested, templateCustom, &TemplateCustomWidget::show);

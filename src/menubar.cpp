@@ -52,6 +52,10 @@ WidgetMenu::WidgetMenu(const QString& title, QWidget *parent)
     addAction(clearOutputWindow);
     connect(clearOutputWindow, &QAction::triggered, this, &WidgetMenu::clearOutputWindowRequested);
 
+    QAction *openFileTreeSetting = new QAction("FileTree Setting", this);
+    addAction(openFileTreeSetting);
+    connect(openFileTreeSetting, &QAction::triggered, this, &WidgetMenu::openFileTreeSettingRequested);
+
     QAction *openEditorSetting = new QAction("Editor Setting", this);
     addAction(openEditorSetting);
     connect(openEditorSetting, &QAction::triggered, this, &WidgetMenu::openEditorSettingRequested);
