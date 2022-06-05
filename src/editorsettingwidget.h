@@ -19,8 +19,6 @@
 #include <QCheckBox>
 #include "browserwidget.h"
 #include "texteditor.h"
-#include <boost/property_tree/xml_parser.hpp>
-#include <boost/lexical_cast.hpp>
 #include <QApplication>
 
 class EditorSetting : public QWidget

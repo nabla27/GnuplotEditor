@@ -13,8 +13,6 @@
 #include <QSpinBox>
 #include <QFileDialog>
 #include "utility.h"
-#include "boost/property_tree/xml_parser.hpp"
-#include "boost/lexical_cast.hpp"
 
 GnuplotSettingWidget::GnuplotSettingWidget(Gnuplot *gnuplot, QWidget *parent)
     : QWidget(parent)
@@ -116,6 +114,26 @@ void GnuplotSettingWidget::addLogToBrowser(const QString& text)
     /* 一番下までスクロール */
     browser->verticalScrollBar()->setValue(browser->verticalScrollBar()->maximum());
 }
+
+
+
+
+
+
+
+
+
+
+
+/*          Copyright Joe Coder 2004 - 2006.
+ * Distributed under the Boost Software License, Version 1.0.
+ *    (See accompanying file LICENSE_1_0.txt or copy at
+ *          https://www.boost.org/LICENSE_1_0.txt)
+ */
+#include "boost/property_tree/xml_parser.hpp"
+#include "boost/lexical_cast.hpp"
+
+
 
 void GnuplotSettingWidget::loadXmlSetting()
 {

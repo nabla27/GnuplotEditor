@@ -8,9 +8,6 @@
  */
 
 #include "filetreesettingwidget.h"
-#include "boost/property_tree/xml_parser.hpp"
-#include "boost/lexical_cast.hpp"
-#include "boost/foreach.hpp"
 #include <QFile>
 #include <QDir>
 
@@ -21,6 +18,8 @@
 #include <QPushButton>
 #include <QFormLayout>
 #include <QDialogButtonBox>
+
+
 
 FileTreeSettingWidget::FileTreeSettingWidget(QWidget *parent)
     : QWidget{parent}
@@ -250,6 +249,19 @@ void FileTreeSettingWidget::requestReload()
 
 
 
+
+
+
+
+
+/*          Copyright Joe Coder 2004 - 2006.
+ * Distributed under the Boost Software License, Version 1.0.
+ *    (See accompanying file LICENSE_1_0.txt or copy at
+ *          https://www.boost.org/LICENSE_1_0.txt)
+ */
+#include "boost/property_tree/xml_parser.hpp"
+#include "boost/lexical_cast.hpp"
+#include "boost/foreach.hpp"
 
 void FileTreeSettingWidget::loadXmlSetting()
 {
