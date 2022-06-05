@@ -12,6 +12,8 @@
 #include <QPushButton>
 #include <QMessageBox>
 
+
+
 EditorSetting::EditorSetting(QWidget *parent)
     : QWidget(parent)
     , backgroundColorDialog(new QColorDialog(this))
@@ -170,6 +172,25 @@ void EditorSetting::setEditor(TextEdit *editor)
     editor->setStringColor(doubleQuoteColorDialog->currentColor());
     editor->setCursorLineColor(cursorLineColorDialog->currentColor());
 }
+
+
+
+
+
+
+
+
+
+/*          Copyright Joe Coder 2004 - 2006.
+ * Distributed under the Boost Software License, Version 1.0.
+ *    (See accompanying file LICENSE_1_0.txt or copy at
+ *          https://www.boost.org/LICENSE_1_0.txt)
+ */
+#include "boost/property_tree/xml_parser.hpp"
+#include "boost/lexical_cast.hpp"
+
+
+
 
 /* dialogを設定した後、コンストラクタ内でつなげたシグナルスロットによって、ボタンのスタイルも変更されるが、
  * dialogに設定した値がdialogのデフォルト値と等しい場合、シグナルは発せられないので、それぞれ明示的に
