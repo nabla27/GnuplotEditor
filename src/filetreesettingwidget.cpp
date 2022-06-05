@@ -16,7 +16,7 @@
 FileTreeSettingWidget::FileTreeSettingWidget(QWidget *parent)
     : QWidget{parent}
 {
-    setGeometry(getRectFromScreenRatio(screen()->size(), 0.2f, 0.3f));
+    setGeometry(getRectFromScreenRatio(screen()->size(), 0.2f, 0.2f));
 
     setupLayout();
 
@@ -41,9 +41,11 @@ void FileTreeSettingWidget::setupLayout()
 
     QPushButton *addButton = new QPushButton("Add", this);
     QPushButton *removeButton = new QPushButton("Remove", this);
+    QPushButton *editButton = new QPushButton("Edit", this);
 
     buttonLayout->addWidget(addButton);
     buttonLayout->addWidget(removeButton);
+    buttonLayout->addWidget(editButton);
     buttonLayout->addItem(buttonLayoutSpacer);
 
 
@@ -63,6 +65,7 @@ void FileTreeSettingWidget::setupLayout()
     connect(settingPageCombo, &QComboBox::currentIndexChanged, settingPage, &QStackedWidget::setCurrentIndex);
     connect(addButton, &QPushButton::released, this, &FileTreeSettingWidget::addItem);
     connect(removeButton, &QPushButton::released, this, &FileTreeSettingWidget::removeItem);
+    connect(editButton, &QPushButton::released, this, &FileTreeSettingWidget::editItem);
 }
 
 void FileTreeSettingWidget::addScriptExt(const QString& ext, const int index)
@@ -157,6 +160,70 @@ void FileTreeSettingWidget::removeItem()
         }
     }
 }
+
+void FileTreeSettingWidget::editItem()
+{
+    QWidget *currentPage = settingPage->currentWidget();
+
+    if(currentPage == filterList)
+    {
+        QList<QTreeWidgetItem*> list = filterList->selectedItems();
+        if(list.count() < 1) return;
+        QTreeWidgetItem *item = list.at(0);
+
+        InputDialog dialog(this, "filter", "");
+        dialog.setData(item->text(0), -1);
+
+        if(dialog.exec() == 0) return;
+
+        item->setText(0, dialog.lineEditText());
+    }
+    else if(currentPage == scriptExtensionList)
+    {
+        QList<QTreeWidgetItem*> list = scriptExtensionList->selectedItems();
+        if(list.count() < 1) return;
+        QTreeWidgetItem *item = list.at(0);
+
+        InputDialog dialog(this, "Extension", "ReadType");
+        dialog.setData(item->text(0), item->text(2).toInt());
+        dialog.addComboItems(enumToStrings(TreeScriptItem::ReadType(0)));
+
+        if(dialog.exec() == 0) return;
+
+        TreeScriptItem::suffix.remove(item->text(0));
+
+        item->setText(0, dialog.lineEditText());
+        item->setText(1, enumToString(TreeScriptItem::ReadType(dialog.comboIndex())));
+        item->setText(2, QString::number(dialog.comboIndex()));
+
+        TreeScriptItem::suffix.insert(item->text(0), TreeScriptItem::ReadType(item->text(2).toInt()));
+    }
+    else if(currentPage == sheetExtensionList)
+    {
+        QList<QTreeWidgetItem*> list = sheetExtensionList->selectedItems();
+        if(list.count() < 1) return;
+        QTreeWidgetItem *item = list.at(0);
+
+        InputDialog dialog(this, "Extension", "ReadType");
+        dialog.setData(item->text(0), item->text(2).toInt());
+        dialog.addComboItems(enumToStrings(TreeSheetItem::ReadType(0)));
+
+        if(dialog.exec() == 0) return;
+
+        TreeSheetItem::suffix.remove(item->text(0));
+
+        item->setText(0, dialog.lineEditText());
+        item->setText(1, enumToString(TreeSheetItem::ReadType(dialog.comboIndex())));
+        item->setText(2, QString::number(dialog.comboIndex()));
+
+        TreeSheetItem::suffix.insert(item->text(0), TreeSheetItem::ReadType(item->text(2).toInt()));
+    }
+}
+
+
+
+
+
 
 void FileTreeSettingWidget::loadXmlSetting()
 {
@@ -262,6 +329,9 @@ void FileTreeSettingWidget::saveXmlSetting()
 
 
 
+
+
+
 InputDialog::InputDialog(QWidget *parent, const QString& lineEditLabel, const QString& comboLabel)
     : QDialog(parent)
     , lineEdit(nullptr)
@@ -286,6 +356,12 @@ InputDialog::InputDialog(QWidget *parent, const QString& lineEditLabel, const QS
     fLayout->addRow(button);
 
     connect(button, &QDialogButtonBox::accepted, this, &InputDialog::accept);
+}
+
+void InputDialog::setData(const QString &lineEdit, const int index)
+{
+    if(this->lineEdit) this->lineEdit->setText(lineEdit);
+    if(combo) this->combo->setCurrentIndex(index);
 }
 
 

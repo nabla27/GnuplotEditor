@@ -29,6 +29,7 @@ private:
 private slots:
     void addItem();
     void removeItem();
+    void editItem();
     void addScriptExt(const QString& ext, const int index);
     void addSheetExt(const QString& ext, const int index);
 
@@ -55,6 +56,7 @@ public:
     void addComboItems(const QStringList& list) { if(combo) combo->addItems(list); }
     QString lineEditText() const { return (lineEdit) ? lineEdit->text() : ""; }
     int comboIndex() const { return (combo) ? combo->currentIndex() : -1; }
+    void setData(const QString& lineEdit, const int index);
 
 private:
     QLineEdit *lineEdit;
