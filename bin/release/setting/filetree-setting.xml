@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <filterList/>
+    <scriptExtList>
+        <item>
+            <ext>txt</ext>
+            <readType>0</readType>
+        </item>
+        <item>
+            <ext>plt</ext>
+            <readType>0</readType>
+        </item>
+    </scriptExtList>
+    <sheetExtList>
+        <item>
+            <ext>csv</ext>
+            <readType>0</readType>
+        </item>
+    </sheetExtList>
+</root>
