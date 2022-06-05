@@ -1,10 +1,16 @@
+/*!
+ * GnuplotEditor
+ *
+ * Copyright (c) 2022 yuya
+ *
+ * This software is released under the GPLv3.
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ */
+
 #include "gnuplotsettingwidget.h"
 #include <QVBoxLayout>
 #include <QLabel>
-//<<<<<<< HEAD
-//=======
 #include <QSpinBox>
-//>>>>>>> d2f7655fc2dea0117945d23b8e5e25ce22252c9f
 #include <QFileDialog>
 #include "utility.h"
 #include "boost/property_tree/xml_parser.hpp"

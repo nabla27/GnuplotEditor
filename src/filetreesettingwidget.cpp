@@ -1,3 +1,12 @@
+/*!
+ * GnuplotEditor
+ *
+ * Copyright (c) 2022 yuya
+ *
+ * This software is released under the GPLv3.
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ */
+
 #include "filetreesettingwidget.h"
 #include "boost/property_tree/xml_parser.hpp"
 #include "boost/lexical_cast.hpp"
