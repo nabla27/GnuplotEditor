@@ -15,6 +15,7 @@
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
     , gnuplot(new Gnuplot(this))
+    , gnuplotProcess(nullptr)
     , editorSetting(new EditorSetting(nullptr))
     , gnuplotSetting(new GnuplotSettingWidget(gnuplot, nullptr))
     , templateCustom(new TemplateCustomWidget(this))
@@ -96,6 +97,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(widgetMenu, &WidgetMenu::openEditorSettingRequested, editorSetting, &EditorSetting::show);
     connect(widgetMenu, &WidgetMenu::openGnuplotSettingRequested, gnuplotSetting, &GnuplotSettingWidget::show);
     connect(widgetMenu, &WidgetMenu::openTemplateCustomRequested, templateCustom, &TemplateCustomWidget::show);
+    connect(helpMenu, &HelpMenu::gnuplotHelpRequested, this, &GnuplotEditor::showGnuplotHelp);
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
 
     connect(menuBarWidget, &MenuBarWidget::closeProcessRequested, this, &GnuplotEditor::closeCurrentProcess);
@@ -351,6 +353,11 @@ void GnuplotEditor::saveAsTemplate()
 void GnuplotEditor::showCommandHelp(const QString& command)
 {
     gnuplot->exc(gnuplotProcess, QList<QString>() << "help " + command + "\n", false);
+}
+
+void GnuplotEditor::showGnuplotHelp()
+{
+    gnuplot->exc(gnuplotProcess, QList<QString>() << "help", false);
 }
 
 void GnuplotEditor::reboot()

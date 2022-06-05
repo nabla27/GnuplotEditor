@@ -61,6 +61,7 @@ public:
     HelpMenu(const QString& title, QWidget *parent);
 
 signals:
+    void gnuplotHelpRequested();
     void rebootRequested();
 };
 

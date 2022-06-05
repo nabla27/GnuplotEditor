@@ -70,6 +70,7 @@ private slots:
     void importTemplate(const QString& script);
     void saveAsTemplate();
 
+    void showGnuplotHelp();
     void showCommandHelp(const QString& command);
 
     void reboot();
