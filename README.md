@@ -51,6 +51,8 @@
 3. フォルダー内の bin/release/GnuplotEditor.exe を実行して起動する。
 4. 起動後、メニューバーの Widget->Gnuplot Setting のPathに gnuplot.exe 実行ファイルのパスを指定する。
 
+詳細は[ダウンロードからプロットまでの流れ](./docs/ja/setup.md)を参照。
+
 # Note
 
 - クロスプラットフォームアプリケーションフレームワークであるQt(キュート)を用いて開発した。<br>
