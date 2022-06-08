@@ -1,6 +1,7 @@
 # GnuplotEdior
 
-Editor for gnuplot, application software for creating 2D or 3D graphs.
+Editor for gnuplot, application software for creating 2D or 3D graphs.<br>
+Only this software can edit scripts and data, and display generated images. In addition, the complement function and ToolTip display help coding.
 
 # Main Features
 
