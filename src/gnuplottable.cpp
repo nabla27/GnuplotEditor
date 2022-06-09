@@ -13,6 +13,7 @@
 GnuplotTable::GnuplotTable(QWidget *parent)
     : TableWidget(parent)
     , process(new QProcess(this))
+    , optionCmd("with linespoints pointtype 2 linewidth 2")
     , updateTimer(new QTimer(this))
 {
     /* contextMenu初期化 */
