@@ -15,6 +15,7 @@
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
     , gnuplot(new Gnuplot(this))
+    , gnuplotProcess(nullptr)
     , editorSetting(new EditorSetting(nullptr))
     , gnuplotSetting(new GnuplotSettingWidget(gnuplot, nullptr))
     , templateCustom(new TemplateCustomWidget(this))
@@ -38,6 +39,10 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     fileTree->setFolderPath(path);
     gnuplot->setWorkingDirectory(path);
 
+    /* ショートカットキー */
+    QShortcut *saveShortcut = new QShortcut(QKeySequence("Ctrl+s"), this);
+    connect(saveShortcut, &QShortcut::activated, this, &GnuplotEditor::saveCurrentFile);
+
     connect(this, &GnuplotEditor::workingDirectoryChanged, fileTree, &FileTreeWidget::setFolderPath);
     connect(this, &GnuplotEditor::workingDirectoryChanged, gnuplot, &Gnuplot::setWorkingDirectory);
     connect(fileTree, &FileTreeWidget::scriptSelected, this, &GnuplotEditor::setEditorWidget);
@@ -59,6 +64,20 @@ GnuplotEditor::~GnuplotEditor()
 
 void GnuplotEditor::postProcessing()
 {
+    /* セーブしていないファイルがあれば，確認して保存する */
+    QHashIterator<QString, TreeFileItem*> fileIter(TreeFileItem::list);
+    while (fileIter.hasNext())
+    {
+        fileIter.next();
+        if(!fileIter.value()->isSaved())
+        {
+            const QMessageBox::StandardButton button = QMessageBox::question(this, "Gnuplot Editor", "Do you want to save all file??");
+            if(button == QMessageBox::StandardButton::Yes)
+                fileTree->saveAllFile();
+            break;
+        }
+    }
+
     editorSetting->hide();
     gnuplotSetting->hide();
     fileTreeSetting->hide();
@@ -96,6 +115,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(widgetMenu, &WidgetMenu::openEditorSettingRequested, editorSetting, &EditorSetting::show);
     connect(widgetMenu, &WidgetMenu::openGnuplotSettingRequested, gnuplotSetting, &GnuplotSettingWidget::show);
     connect(widgetMenu, &WidgetMenu::openTemplateCustomRequested, templateCustom, &TemplateCustomWidget::show);
+    connect(helpMenu, &HelpMenu::gnuplotHelpRequested, this, &GnuplotEditor::showGnuplotHelp);
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
 
     connect(menuBarWidget, &MenuBarWidget::closeProcessRequested, this, &GnuplotEditor::closeCurrentProcess);
@@ -193,6 +213,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
         connect(item->editor, &TextEdit::fontSizeChanged, editorSetting, &EditorSetting::setTextSize);
         connect(item->editor, &TextEdit::commandHelpRequested, this, &GnuplotEditor::showCommandHelp);
         editorSetting->setEditor(item->editor);
+        connect(item->editor, &TextEdit::textChanged, item, &TreeFileItem::setEdited); //EditorSettingWidget::setEditor()より後に呼び出す。
         gnuplot->setWorkingDirectory(item->info.absolutePath());
         item->editor->setParentFolderPath(item->info.absolutePath());
     }
@@ -224,6 +245,7 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     {
         connect(currentSheet, &TreeFileItem::errorCaused, browserWidget, &BrowserWidget::outputText);
         item->table = new GnuplotTable(sheetWidget);
+        connect(item->table, &GnuplotTable::itemChanged, item, &TreeFileItem::setEdited);
         item->load();
     }
 
@@ -348,9 +370,26 @@ void GnuplotEditor::saveAsTemplate()
     templateCustom->addTemplate(currentEditor->toPlainText());
 }
 
+void GnuplotEditor::saveCurrentFile()
+{
+    if(editorTab->currentIndex() == 0) //Gnuplot Tab
+    {
+        if(currentScript) currentScript->save();
+    }
+    else if(editorTab->currentIndex() == 1) //Table Tab
+    {
+        if(currentSheet) currentSheet->save();
+    }
+}
+
 void GnuplotEditor::showCommandHelp(const QString& command)
 {
     gnuplot->exc(gnuplotProcess, QList<QString>() << "help " + command + "\n", false);
+}
+
+void GnuplotEditor::showGnuplotHelp()
+{
+    gnuplot->exc(gnuplotProcess, QList<QString>() << "help", false);
 }
 
 void GnuplotEditor::reboot()

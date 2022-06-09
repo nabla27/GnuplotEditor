@@ -85,6 +85,10 @@ WidgetMenu::WidgetMenu(const QString& title, QWidget *parent)
 HelpMenu::HelpMenu(const QString& title, QWidget *parent)
     : QMenu(title, parent)
 {
+    QAction *gnuplotHelpAction = new QAction("Gnuplot", this);
+    addAction(gnuplotHelpAction);
+    connect(gnuplotHelpAction, &QAction::triggered, this, &HelpMenu::gnuplotHelpRequested);
+
     QAction *rebootAction = new QAction("Reboot", this);
     addAction(rebootAction);
     connect(rebootAction, &QAction::triggered, this, &HelpMenu::rebootRequested);
@@ -157,9 +161,11 @@ void MenuBarWidget::setScript(TreeFileItem *item)
 
     disconnect(renameScriptConnection);
     disconnect(removeScriptConnection);
+    disconnect(scriptSavedConnection);
 
     renameScriptConnection = connect(item, &TreeFileItem::renamed, this, &MenuBarWidget::setName);
     removeScriptConnection = connect(item, &TreeFileItem::destroyed, this, &MenuBarWidget::removeScript);
+    scriptSavedConnection = connect(item, &TreeFileItem::editStateChanged, this, &MenuBarWidget::changeScriptState);
 }
 
 void MenuBarWidget::setSheet(TreeFileItem *item)
@@ -174,9 +180,11 @@ void MenuBarWidget::setSheet(TreeFileItem *item)
 
     disconnect(renameSheetConnection);
     disconnect(removeSheetConnection);
+    disconnect(sheetSavedConnection);
 
     renameSheetConnection = connect(item, &TreeFileItem::renamed, this, &MenuBarWidget::setName);
     removeSheetConnection = connect(item, &TreeFileItem::destroyed, this, &MenuBarWidget::removeSheet);
+    sheetSavedConnection = connect(item, &TreeFileItem::editStateChanged, this, &MenuBarWidget::changeSheetState);
 }
 
 void MenuBarWidget::initializeMenu()
@@ -209,7 +217,7 @@ void MenuBarWidget::setName(TreeFileItem *item)
     {
         scriptButton->setMenu(scriptMenu);
         scriptButton->setStyleSheet(activeButtonSheet);
-        scriptButton->setText(item->info.fileName());
+        scriptButton->setText((item->isSaved()) ? item->info.fileName() : item->info.fileName() + "*");
         scriptButton->setToolTip(item->info.absoluteFilePath());
         break;
     }
@@ -217,7 +225,7 @@ void MenuBarWidget::setName(TreeFileItem *item)
     {
         sheetButton->setMenu(sheetMenu);
         sheetButton->setStyleSheet(activeButtonSheet);
-        sheetButton->setText(item->info.fileName());
+        sheetButton->setText((item->isSaved()) ? item->info.fileName() : item->info.fileName() + "*");
         sheetButton->setToolTip(item->info.absoluteFilePath());
         break;
     }
@@ -252,6 +260,36 @@ void MenuBarWidget::changeAutoUpdateSheetMenuText(const bool isAuto)
         autoUpdateAction->setText("Enable auto updating");
     else
         autoUpdateAction->setText("Disable auto updating");
+}
+
+void MenuBarWidget::changeScriptState(const bool isSaved)
+{
+    const QString previousText = scriptButton->text();
+    if(isSaved)
+    {
+        if(previousText.last(1) == "*")
+            scriptButton->setText(previousText.left(previousText.size() - 1));
+    }
+    else
+    {
+        if(previousText.last(1) != "*")
+            scriptButton->setText(previousText + "*");
+    }
+}
+
+void MenuBarWidget::changeSheetState(const bool isSaved)
+{
+    const QString previousText = sheetButton->text();
+    if(isSaved)
+    {
+        if(previousText.last(1) == "*")
+            sheetButton->setText(previousText.left(previousText.size() - 1));
+    }
+    else
+    {
+        if(previousText.last(1) != "*")
+            sheetButton->setText(previousText + "*");
+    }
 }
 
 

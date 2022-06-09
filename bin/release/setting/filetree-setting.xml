@@ -10,11 +10,19 @@
             <ext>plt</ext>
             <readType>0</readType>
         </item>
+        <item>
+            <ext>html</ext>
+            <readType>0</readType>
+        </item>
     </scriptExtList>
     <sheetExtList>
         <item>
             <ext>csv</ext>
             <readType>0</readType>
+        </item>
+        <item>
+            <ext>tsv</ext>
+            <readType>1</readType>
         </item>
     </sheetExtList>
 </root>

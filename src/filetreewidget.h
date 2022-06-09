@@ -41,6 +41,17 @@ public:
 
     static QHash<QString, TreeFileItem*> list;
     QFileInfo info;
+    bool isSaved() const { return isSavedFlag; }
+
+public slots:
+    void setEdited() { setSavedState(false); }
+
+protected:
+    void setSavedState(const bool isSaved)
+    {
+        isSavedFlag = isSaved;
+        emit editStateChanged(isSaved);
+    }
 
 private:
     const QPixmap scriptIcon = QPixmap(":/icon/file_code");
@@ -48,10 +59,12 @@ private:
     const QPixmap otherIcon = QPixmap(":/icon/file_normal");
     const QIcon folderIcon = QApplication::style()->standardIcon(QStyle::SP_DirIcon);
     void setFileIcon();
+    bool isSavedFlag = true;
 
 signals:
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
     void renamed(TreeFileItem *item);
+    void editStateChanged(const bool isSaved);
 };
 
 
@@ -74,7 +87,7 @@ public:
         delete process; process = nullptr;
     }
 
-    enum class ReadType { Text };
+    enum class ReadType { Text, Html };
     Q_ENUM(ReadType)
 
     void save() override
@@ -87,6 +100,8 @@ public:
             {
             case ReadType::Text:
                 toFileTxt(info.absoluteFilePath(), editor->toPlainText(), &ok); break;
+            case ReadType::Html:
+                /* htmlを読み込んで表示した後はただのtextになるため，htmlとしてセーブできない */ break;
             default:
                 break;
             }
@@ -94,6 +109,8 @@ public:
             if(!ok)
                 emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
+            else
+                setSavedState(true);
         }
 
     }
@@ -108,6 +125,11 @@ public:
             {
             case ReadType::Text:
                 editor->setPlainText(readFileTxt(info.absoluteFilePath(), &ok)); break;
+            case ReadType::Html:
+            {
+                editor->clear();
+                editor->appendHtml(readFileTxt(info.absoluteFilePath(), &ok)); break;
+            }
             default:
                 break;
             }
@@ -115,6 +137,8 @@ public:
             if(!ok)
                 emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
+            else
+                setSavedState(true);
         }
     }
 
@@ -141,7 +165,7 @@ public:
         delete table; table = nullptr;
     }
 
-    enum class ReadType { Csv };
+    enum class ReadType { Csv, Tsv };
     Q_ENUM(ReadType)
 
     void save() override
@@ -154,6 +178,8 @@ public:
             {
             case ReadType::Csv:
                 toFileCsv(info.absoluteFilePath(), table->getData<QString>(), &ok); break;
+            case ReadType::Tsv:
+                toFileTsv(info.absoluteFilePath(), table->getData<QString>(), &ok); break;
             default:
                 break;
             }
@@ -161,6 +187,8 @@ public:
             if(!ok)
                 emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
+            else
+                setSavedState(true);
         }
     }
 
@@ -174,6 +202,8 @@ public:
             {
             case ReadType::Csv:
                 table->setData(readFileCsv(info.absoluteFilePath(), &ok)); break;
+            case ReadType::Tsv:
+                table->setData(readFileTsv(info.absoluteFilePath(), &ok)); break;
             default:
                 break;
             }
@@ -181,6 +211,8 @@ public:
             if(!ok)
                 emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
+            else
+                setSavedState(true);
         }
     }
 

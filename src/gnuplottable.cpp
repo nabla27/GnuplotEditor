@@ -13,6 +13,7 @@
 GnuplotTable::GnuplotTable(QWidget *parent)
     : TableWidget(parent)
     , process(new QProcess(this))
+    , optionCmd("with linespoints pointtype 2 linewidth 2")
     , updateTimer(new QTimer(this))
 {
     /* contextMenu初期化 */
@@ -115,6 +116,18 @@ void GnuplotTable::mouseReleaseEvent(QMouseEvent *event)
 
 
 
+void GnuplotTable::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key::Key_Backspace)
+    {
+        if(QTableWidgetItem *item = currentItem()) item->setText("");
+    }
+
+    QTableWidget::keyPressEvent(event);
+}
+
+
+
 
 
 
@@ -145,9 +158,14 @@ void GnuplotTable::initializeContextMenu()
     connect(actPaste, &QAction::triggered, this, &GnuplotTable::pasteCell);
 
     /* claer */
-    QAction *actDelete = new QAction("clear", normalMenu);
+    QAction *actClear = new QAction("clear", normalMenu);
+    normalMenu->addAction(actClear);
+    connect(actClear, &QAction::triggered, this, &GnuplotTable::clearCell);
+
+    /* delete */
+    QAction *actDelete = new QAction("delete", normalMenu);
     normalMenu->addAction(actDelete);
-    connect(actDelete, &QAction::triggered, this, &GnuplotTable::clearCell);
+    connect(actDelete, &QAction::triggered, this, &GnuplotTable::deleteCell);
 
     /* insert */
     QMenu *insertMenu = new QMenu(normalMenu);
