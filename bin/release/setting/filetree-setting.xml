@@ -10,6 +10,10 @@
             <ext>plt</ext>
             <readType>0</readType>
         </item>
+        <item>
+            <ext>html</ext>
+            <readType>1</readType>
+        </item>
     </scriptExtList>
     <sheetExtList>
         <item>
