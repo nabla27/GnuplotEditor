@@ -116,6 +116,18 @@ void GnuplotTable::mouseReleaseEvent(QMouseEvent *event)
 
 
 
+void GnuplotTable::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key::Key_Backspace)
+    {
+        if(QTableWidgetItem *item = currentItem()) item->setText("");
+    }
+
+    QTableWidget::keyPressEvent(event);
+}
+
+
+
 
 
 
