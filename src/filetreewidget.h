@@ -158,7 +158,7 @@ public:
         delete table; table = nullptr;
     }
 
-    enum class ReadType { Csv };
+    enum class ReadType { Csv, Tsv };
     Q_ENUM(ReadType)
 
     void save() override
@@ -171,6 +171,8 @@ public:
             {
             case ReadType::Csv:
                 toFileCsv(info.absoluteFilePath(), table->getData<QString>(), &ok); break;
+            case ReadType::Tsv:
+                toFileTsv(info.absoluteFilePath(), table->getData<QString>(), &ok); break;
             default:
                 break;
             }
@@ -193,6 +195,8 @@ public:
             {
             case ReadType::Csv:
                 table->setData(readFileCsv(info.absoluteFilePath(), &ok)); break;
+            case ReadType::Tsv:
+                table->setData(readFileTsv(info.absoluteFilePath(), &ok)); break;
             default:
                 break;
             }

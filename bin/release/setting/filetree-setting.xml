@@ -20,5 +20,9 @@
             <ext>csv</ext>
             <readType>0</readType>
         </item>
+        <item>
+            <ext>tsv</ext>
+            <readType>1</readType>
+        </item>
     </sheetExtList>
 </root>
