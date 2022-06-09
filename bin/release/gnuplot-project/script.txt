@@ -1,1 +1,1 @@
-a
+plot sin(x) with lines
