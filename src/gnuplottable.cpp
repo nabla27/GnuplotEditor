@@ -145,9 +145,14 @@ void GnuplotTable::initializeContextMenu()
     connect(actPaste, &QAction::triggered, this, &GnuplotTable::pasteCell);
 
     /* claer */
-    QAction *actDelete = new QAction("clear", normalMenu);
+    QAction *actClear = new QAction("clear", normalMenu);
+    normalMenu->addAction(actClear);
+    connect(actClear, &QAction::triggered, this, &GnuplotTable::clearCell);
+
+    /* delete */
+    QAction *actDelete = new QAction("delete", normalMenu);
     normalMenu->addAction(actDelete);
-    connect(actDelete, &QAction::triggered, this, &GnuplotTable::clearCell);
+    connect(actDelete, &QAction::triggered, this, &GnuplotTable::deleteCell);
 
     /* insert */
     QMenu *insertMenu = new QMenu(normalMenu);
