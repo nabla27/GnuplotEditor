@@ -99,8 +99,9 @@ public:
             switch(suffix.value(info.suffix()))
             {
             case ReadType::Text:
-            case ReadType::Html:
                 toFileTxt(info.absoluteFilePath(), editor->toPlainText(), &ok); break;
+            case ReadType::Html:
+                /* htmlを読み込んで表示した後はただのtextになるため，htmlとしてセーブできない */ break;
             default:
                 break;
             }

@@ -12,7 +12,7 @@
         </item>
         <item>
             <ext>html</ext>
-            <readType>1</readType>
+            <readType>0</readType>
         </item>
     </scriptExtList>
     <sheetExtList>
