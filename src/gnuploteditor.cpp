@@ -39,6 +39,10 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     fileTree->setFolderPath(path);
     gnuplot->setWorkingDirectory(path);
 
+    /* ショートカットキー */
+    QShortcut *saveShortcut = new QShortcut(QKeySequence("Ctrl+s"), this);
+    connect(saveShortcut, &QShortcut::activated, this, &GnuplotEditor::saveCurrentFile);
+
     connect(this, &GnuplotEditor::workingDirectoryChanged, fileTree, &FileTreeWidget::setFolderPath);
     connect(this, &GnuplotEditor::workingDirectoryChanged, gnuplot, &Gnuplot::setWorkingDirectory);
     connect(fileTree, &FileTreeWidget::scriptSelected, this, &GnuplotEditor::setEditorWidget);
@@ -364,6 +368,18 @@ void GnuplotEditor::saveAsTemplate()
     }
 
     templateCustom->addTemplate(currentEditor->toPlainText());
+}
+
+void GnuplotEditor::saveCurrentFile()
+{
+    if(editorTab->currentIndex() == 0) //Gnuplot Tab
+    {
+        if(currentScript) currentScript->save();
+    }
+    else if(editorTab->currentIndex() == 1) //Table Tab
+    {
+        if(currentSheet) currentSheet->save();
+    }
 }
 
 void GnuplotEditor::showCommandHelp(const QString& command)
