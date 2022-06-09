@@ -41,6 +41,13 @@ public:
 
     static QHash<QString, TreeFileItem*> list;
     QFileInfo info;
+    bool isSaved() const { return isSavedFlag; }
+
+public slots:
+    void setEditedState() { isSavedFlag = false; }
+
+protected:
+    bool isSavedFlag = true;
 
 private:
     const QPixmap scriptIcon = QPixmap(":/icon/file_code");
@@ -94,6 +101,8 @@ public:
             if(!ok)
                 emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
+            else
+                isSavedFlag = true;
         }
 
     }
@@ -115,6 +124,8 @@ public:
             if(!ok)
                 emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
+            else
+                isSavedFlag = true;
         }
     }
 
@@ -161,6 +172,8 @@ public:
             if(!ok)
                 emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
+            else
+                isSavedFlag = true;
         }
     }
 
@@ -181,6 +194,8 @@ public:
             if(!ok)
                 emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
+            else
+                isSavedFlag = true;
         }
     }
 
