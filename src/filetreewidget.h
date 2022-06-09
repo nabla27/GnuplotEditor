@@ -81,7 +81,7 @@ public:
         delete process; process = nullptr;
     }
 
-    enum class ReadType { Text };
+    enum class ReadType { Text, Html };
     Q_ENUM(ReadType)
 
     void save() override
@@ -93,6 +93,7 @@ public:
             switch(suffix.value(info.suffix()))
             {
             case ReadType::Text:
+            case ReadType::Html:
                 toFileTxt(info.absoluteFilePath(), editor->toPlainText(), &ok); break;
             default:
                 break;
@@ -117,6 +118,11 @@ public:
             {
             case ReadType::Text:
                 editor->setPlainText(readFileTxt(info.absoluteFilePath(), &ok)); break;
+            case ReadType::Html:
+            {
+                editor->clear();
+                editor->appendHtml(readFileTxt(info.absoluteFilePath(), &ok)); break;
+            }
             default:
                 break;
             }
