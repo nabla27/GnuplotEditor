@@ -136,8 +136,14 @@ void TextEdit::changeCompleterModel()
     const qsizetype commentsStartPoint = currentBlockText.indexOf('#');                     //コメントのスタート位置
     if(commentsStartPoint != qsizetype(-1)){                                                //カーソル行にシャープ記号があれば
         if(positionInBlock >= commentsStartPoint){                                          //カーソル位置がコメントスタート位置より後であれば
-            completer()->setModel(getEditCompleter_non()); return;                          //予測変換を無効に
+            if(c) c->popup()->hide();
+            return;
         }
+    }
+    else if(positionInBlock == 0)
+    {
+        if(c) c->popup()->hide();
+        return;
     }
 
     emit completionRequested(firstCmd, previousCmd, textForwardCursor.size() - 1);
@@ -347,8 +353,9 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
 
     /* 予測変換を非表示にする場合 */
     if(!isShortcut && (hasModifier ||
-                       e->text().isEmpty() ||
-                       eow.contains(e->text().right(1)))){
+                       (!e->text().isEmpty() && eow.contains(e->text().right(1)))))
+    {
+        if(c) c->popup()->hide();
         return;
     }
 
