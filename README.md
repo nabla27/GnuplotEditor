@@ -43,13 +43,13 @@
 # Installation
 
 - gnuplot<br>
-  gnuplotを持っていない場合、gnuplotを公式サイト( http://www.gnuplot.info/ )からダウンロードする。
+  gnuplotを持っていない場合、gnuplotを公式サイト[(http://www.gnuplot.info/)](http://www.gnuplot.info/)からダウンロードする。
 
 # Usage
 
 1. gnuplotを持っていない場合、gnuplotをダウンロードする。
 1. このリポジトリをClone `git clone https://github.com/nabla27/GnuplotEditor.git`
-   またはzipファイルでダウンロード( https://github.com/nabla27/GnuplotEditor/archive/refs/heads/master.zip )する。
+   またはzipファイルでダウンロード[(https://github.com/nabla27/GnuplotEditor/archive/refs/heads/master.zip)](https://github.com/nabla27/GnuplotEditor/archive/refs/heads/master.zip)する。
 3. フォルダー内の bin/release/GnuplotEditor.exe を実行して起動する。
 4. 起動後、メニューバーの Widget->Gnuplot Setting のPathに gnuplot.exe 実行ファイルのパスを指定する。
 
