@@ -217,7 +217,7 @@ void MenuBarWidget::setName(TreeFileItem *item)
     {
         scriptButton->setMenu(scriptMenu);
         scriptButton->setStyleSheet(activeButtonSheet);
-        scriptButton->setText(item->info.fileName());
+        scriptButton->setText((item->isSaved()) ? item->info.fileName() : item->info.fileName() + "*");
         scriptButton->setToolTip(item->info.absoluteFilePath());
         break;
     }
@@ -225,7 +225,7 @@ void MenuBarWidget::setName(TreeFileItem *item)
     {
         sheetButton->setMenu(sheetMenu);
         sheetButton->setStyleSheet(activeButtonSheet);
-        sheetButton->setText(item->info.fileName());
+        sheetButton->setText((item->isSaved()) ? item->info.fileName() : item->info.fileName() + "*");
         sheetButton->setToolTip(item->info.absoluteFilePath());
         break;
     }
