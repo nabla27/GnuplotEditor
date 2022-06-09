@@ -44,10 +44,14 @@ public:
     bool isSaved() const { return isSavedFlag; }
 
 public slots:
-    void setEditedState() { isSavedFlag = false; }
+    void setEdited() { setSavedState(false); }
 
 protected:
-    bool isSavedFlag = true;
+    void setSavedState(const bool isSaved)
+    {
+        isSavedFlag = isSaved;
+        emit editStateChanged(isSaved);
+    }
 
 private:
     const QPixmap scriptIcon = QPixmap(":/icon/file_code");
@@ -55,10 +59,12 @@ private:
     const QPixmap otherIcon = QPixmap(":/icon/file_normal");
     const QIcon folderIcon = QApplication::style()->standardIcon(QStyle::SP_DirIcon);
     void setFileIcon();
+    bool isSavedFlag = true;
 
 signals:
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
     void renamed(TreeFileItem *item);
+    void editStateChanged(const bool isSaved);
 };
 
 
@@ -103,7 +109,7 @@ public:
                 emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
             else
-                isSavedFlag = true;
+                setSavedState(true);
         }
 
     }
@@ -131,7 +137,7 @@ public:
                 emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
             else
-                isSavedFlag = true;
+                setSavedState(true);
         }
     }
 
@@ -181,7 +187,7 @@ public:
                 emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
             else
-                isSavedFlag = true;
+                setSavedState(true);
         }
     }
 
@@ -205,7 +211,7 @@ public:
                 emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
                                  BrowserWidget::MessageType::FileSystemErr);
             else
-                isSavedFlag = true;
+                setSavedState(true);
         }
     }
 

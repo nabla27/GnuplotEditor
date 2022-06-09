@@ -90,6 +90,8 @@ private slots:
     void setName(TreeFileItem *item);
     void removeScript();
     void removeSheet();
+    void changeScriptState(const bool isSaved);
+    void changeSheetState(const bool isSaved);
 
 private:
     const QString activeButtonSheet = "QPushButton { background: transparent; text-align: left; } QPushButton:hover { background-color: rgb(231, 241, 255); }";
@@ -111,8 +113,10 @@ private:
 
     QMetaObject::Connection renameScriptConnection;
     QMetaObject::Connection removeScriptConnection;
+    QMetaObject::Connection scriptSavedConnection;
     QMetaObject::Connection renameSheetConnection;
     QMetaObject::Connection removeSheetConnection;
+    QMetaObject::Connection sheetSavedConnection;
 
 signals:
     void closeProcessRequested();

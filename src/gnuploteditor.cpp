@@ -213,7 +213,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
         connect(item->editor, &TextEdit::fontSizeChanged, editorSetting, &EditorSetting::setTextSize);
         connect(item->editor, &TextEdit::commandHelpRequested, this, &GnuplotEditor::showCommandHelp);
         editorSetting->setEditor(item->editor);
-        connect(item->editor, &TextEdit::textChanged, item, &TreeFileItem::setEditedState); //EditorSettingWidget::setEditor()より後に呼び出す。
+        connect(item->editor, &TextEdit::textChanged, item, &TreeFileItem::setEdited); //EditorSettingWidget::setEditor()より後に呼び出す。
         gnuplot->setWorkingDirectory(item->info.absolutePath());
         item->editor->setParentFolderPath(item->info.absolutePath());
     }
@@ -245,7 +245,7 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     {
         connect(currentSheet, &TreeFileItem::errorCaused, browserWidget, &BrowserWidget::outputText);
         item->table = new GnuplotTable(sheetWidget);
-        connect(item->table, &GnuplotTable::itemChanged, item, &TreeFileItem::setEditedState);
+        connect(item->table, &GnuplotTable::itemChanged, item, &TreeFileItem::setEdited);
         item->load();
     }
 

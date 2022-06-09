@@ -161,9 +161,11 @@ void MenuBarWidget::setScript(TreeFileItem *item)
 
     disconnect(renameScriptConnection);
     disconnect(removeScriptConnection);
+    disconnect(scriptSavedConnection);
 
     renameScriptConnection = connect(item, &TreeFileItem::renamed, this, &MenuBarWidget::setName);
     removeScriptConnection = connect(item, &TreeFileItem::destroyed, this, &MenuBarWidget::removeScript);
+    scriptSavedConnection = connect(item, &TreeFileItem::editStateChanged, this, &MenuBarWidget::changeScriptState);
 }
 
 void MenuBarWidget::setSheet(TreeFileItem *item)
@@ -178,9 +180,11 @@ void MenuBarWidget::setSheet(TreeFileItem *item)
 
     disconnect(renameSheetConnection);
     disconnect(removeSheetConnection);
+    disconnect(sheetSavedConnection);
 
     renameSheetConnection = connect(item, &TreeFileItem::renamed, this, &MenuBarWidget::setName);
     removeSheetConnection = connect(item, &TreeFileItem::destroyed, this, &MenuBarWidget::removeSheet);
+    sheetSavedConnection = connect(item, &TreeFileItem::editStateChanged, this, &MenuBarWidget::changeSheetState);
 }
 
 void MenuBarWidget::initializeMenu()
@@ -256,6 +260,36 @@ void MenuBarWidget::changeAutoUpdateSheetMenuText(const bool isAuto)
         autoUpdateAction->setText("Enable auto updating");
     else
         autoUpdateAction->setText("Disable auto updating");
+}
+
+void MenuBarWidget::changeScriptState(const bool isSaved)
+{
+    const QString previousText = scriptButton->text();
+    if(isSaved)
+    {
+        if(previousText.last(1) == "*")
+            scriptButton->setText(previousText.left(previousText.size() - 1));
+    }
+    else
+    {
+        if(previousText.last(1) != "*")
+            scriptButton->setText(previousText + "*");
+    }
+}
+
+void MenuBarWidget::changeSheetState(const bool isSaved)
+{
+    const QString previousText = sheetButton->text();
+    if(isSaved)
+    {
+        if(previousText.last(1) == "*")
+            sheetButton->setText(previousText.left(previousText.size() - 1));
+    }
+    else
+    {
+        if(previousText.last(1) != "*")
+            sheetButton->setText(previousText + "*");
+    }
 }
 
 
