@@ -338,22 +338,46 @@ void GnuplotCompletionModel::setToolTip(const QString& command,
 {
     QString toolTip;
 
-    if(command == "break") toolTip =  toolTipStyle("break",
-                                                   "");
-    else if(command == "cd") toolTip =  toolTipStyle("cd <\"DirName\">",
-                                                     "");
-    else if(command == "call") toolTip =  toolTipStyle("call <\"InputFile\"> <Parameter1> <Parameter2> ... <Parameter9>",
-                                                       "");
-    else if(command == "clear") toolTip = toolTipStyle("clear",
-                                                       "");
-    else if(command == "continue") toolTip = toolTipStyle("continue",
+    if(command == "break")
+    {
+        if(previousCmd.isEmpty()) toolTip =  toolTipStyle("break",
                                                           "");
-    else if(command == "do") toolTip = toolTipStyle("do for <InterationSpec> { }",
-                                                    "");
-    else if(command == "eval") toolTip = toolTipStyle("eval <\"StringExpression\">",
-                                                      "");
-    else if(command == "exit") toolTip = toolTipStyle("exit \n""exit message <\"ErrorMessage\"> \n""exit status <ErrorCode>",
-                                                      "");
+    }
+    else if(command == "cd")
+    {
+        if(previousCmd.isEmpty()) toolTip =  toolTipStyle("cd <\"DirName\">",
+                                                          "");
+    }
+    else if(command == "call")
+    {
+        if(previousCmd.isEmpty()) toolTip =  toolTipStyle("call <\"InputFile\"> <Parameter1> <Parameter2> ... <Parameter9>",
+                                                          "");
+    }
+    else if(command == "clear")
+    {
+        if (previousCmd.isEmpty()) toolTip = toolTipStyle("clear",
+                                                          "");
+    }
+    else if(command == "continue")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("continue",
+                                                         "");
+    }
+    else if(command == "do")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("do for <InterationSpec> { }",
+                                                         "");
+    }
+    else if(command == "eval")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("eval <\"StringExpression\">",
+                                                         "");
+    }
+    else if(command == "exit")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("exit \n""exit message <\"ErrorMessage\"> \n""exit status <ErrorCode>",
+                                                         "");
+    }
     else if(command == "fit")
     {
         if(previousCmd.isEmpty()) toolTip = toolTipStyle("fit {<Ranges>} <Expression> <DataFile> {datafile-modifiers} {unitweights} via <Var1>{,<Var2>,...}\n"
@@ -363,63 +387,114 @@ void GnuplotCompletionModel::setToolTip(const QString& command,
         else if(previousCmd == "save") toolTip = toolTipStyle("fit <\"FileName\">\n",
                                                            "Save fitting parameters to file.");
     }
-    else if(command == "help") toolTip = toolTipStyle("help <Contents>",
-                                                      "");
+    else if(command == "help")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("help <Contents>",
+                                                         "");
+    }
     else if(command == "history")
     {
-        toolTip = toolTipStyle("history\n"
-                               "history {<Count>} <\"OutFile\"> {append}\n"
-                               "history ?<\"Command\">\n"
-                               "history !<\"Command\">\n"
-                               "history !<Count>",
-                               "");
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("history\n"
+                                                         "history {<Count>} <\"OutFile\"> {append}\n"
+                                                         "history ?<\"Command\">\n"
+                                                         "history !<\"Command\">\n"
+                                                         "history !<Count>",
+                                                         "");
     }
-    else if(command == "if") toolTip = toolTipStyle("if (<Condition>) { } else if (<Condition>) { else {} }",
-                                                    "");
+    else if(command == "if")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("if (<Condition>) { } else if (<Condition>) { else {} }",
+                                                         "");
+    }
     else if(command == "for")
     {
         toolTip = toolTipStyle("for [<IntVar> = <Start>:<End>{:<Increment>}]\n"
                                "for [<StringVar> in \"Str1 Str2 ...\"]",
                                "");
     }
-    else if(command == "import") toolTip = toolTipStyle("import <FuncName>(x{y,z,...}) from <\"ObjectFile\"{:<Symbol>}\">",
-                                                        "");
-    else if(command == "load") toolTip = toolTipStyle("load <\"FileName\">",
-                                                      "");
-    else if(command == "lower") toolTip = toolTipStyle("lower {<PlotWindowId>}",
-                                                       "");
-    else if(command == "pause") toolTip = toolTipStyle("pause <Time> {<\"Message\">}",
-                                                       "");
-    else if(command == "pause") toolTip = toolTipStyle("pause mouse {<EndCondition>}{, <EndCondition>...} {<\"Message\">}",
-                                                       "");
+    else if(command == "import")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("import <FuncName>(x{y,z,...}) from <\"ObjectFile\"{:<Symbol>}\">",
+                                                         "");
+    }
+    else if(command == "load")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("load <\"FileName\">",
+                                                         "");
+    }
+    else if(command == "lower")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("lower {<PlotWindowId>}",
+                                                         "");
+    }
+    else if(command == "pause")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("pause <Time> {<\"Message\">}",
+                                                         "");
+    }
+    else if(command == "pause")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("pause mouse {<EndCondition>}{, <EndCondition>...} {<\"Message\">}",
+                                                         "");
+    }
     else if(command == "plot")
     {
-        toolTip = toolTipStyle("plot {<Ranges>} <Definition> {ases <Axes>} {<TitleSpec>} {with <Style>}\n"
-                               "plot {<Ranges>} {sampling-range} <Function> {axes <Axes>} {<TitleSpec>} {with <Style>}\n"
-                               "plot {<Ranges>} <DataSource> {<Modifier>} {axes <Axes>} {<TitleSpec>} {with <Style>}\n"
-                               "plot {<Ranges>} keyentry {axes <Axes>} {<TitleSpec>} {with <Style>}",
-                               "");
-    }
-    else if(command == "print") toolTip = toolTipStyle("print <Formula> {, <Formula>, ...}",
-                                                       "");
-    else if(command == "printerr") toolTip = toolTipStyle("print <Formula> {, <Formula>, ...}",
-                                                          "");
-    else if(command == "pwd") toolTip = toolTipStyle("pwd",
-                                                     "");
-    else if(command == "quit") toolTip = toolTipStyle("quit",
-                                                      "");
-    else if(command == "raise") toolTip = toolTipStyle("raise {<PlotWindowId>}",
-                                                       "");
-    else if(command == "refresh") toolTip = toolTipStyle("refresh",
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("plot {<Ranges>} <Definition> {ases <Axes>} {<TitleSpec>} {with <Style>}\n"
+                                                         "plot {<Ranges>} {sampling-range} <Function> {axes <Axes>} {<TitleSpec>} {with <Style>}\n"
+                                                         "plot {<Ranges>} <DataSource> {<Modifier>} {axes <Axes>} {<TitleSpec>} {with <Style>}\n"
+                                                         "plot {<Ranges>} keyentry {axes <Axes>} {<TitleSpec>} {with <Style>}",
                                                          "");
-    else if(command == "replot") toolTip = toolTipStyle("replot",
-                                                        "");
-    else if(command == "reread") toolTip = toolTipStyle("reread",
-                                                        "");
-    else if(command == "reset") toolTip = toolTipStyle("reset",
-                                                       "");
-    else if(command == "save") toolTip = toolTipStyle("save {<SaveCmd> {<SaveCmd>,}...} <\"FileName\">",
-                                                      "");
+    }
+    else if(command == "print")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("print <Formula> {, <Formula>, ...}",
+                                                         "");
+    }
+    else if(command == "printerr")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("print <Formula> {, <Formula>, ...}",
+                                                         "");
+    }
+    else if(command == "pwd")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("pwd",
+                                                         "");
+    }
+    else if(command == "quit")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("quit",
+                                                         "");
+    }
+    else if(command == "raise")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("raise {<PlotWindowId>}",
+                                                         "");
+    }
+    else if(command == "refresh")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("refresh",
+                                                         "");
+    }
+    else if(command == "replot")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("replot",
+                                                         "");
+    }
+    else if(command == "reread")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("reread",
+                                                         "");
+    }
+    else if(command == "reset")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("reset",
+                                                         "");
+    }
+    else if(command == "save")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("save {<SaveCmd> {<SaveCmd>,}...} <\"FileName\">",
+                                                         "");
+    }
     else if(command == "set")
     {
         if(previousCmd.isEmpty()) toolTip = toolTipStyle("set <Option>",
@@ -427,44 +502,69 @@ void GnuplotCompletionModel::setToolTip(const QString& command,
         else if(previousCmd == "save") toolTip = toolTipStyle("set <\"FileName\">\n",
                                                           "Save setting options to file.");
     }
-    else if(command == "show") toolTip = toolTipStyle("show <Option>",
-                                                      "");
-    else if(command == "shell") toolTip = toolTipStyle("shell",
-                                                       "");
+    else if(command == "show")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("show <Option>",
+                                                         "");
+    }
+    else if(command == "shell")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("shell",
+                                                         "");
+    }
     else if(command == "splot")
     {
-        toolTip = toolTipStyle("splot {<Ranges>} <Function> {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
-                               "splot {<Ranges>} <FileName> {datafile-modifiers} {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
-                               "splot {<Ranges>} <DataBolockName> {<Modifier>} {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
-                               "splot {<Ranges>} keyentry {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}",
-                               "");
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("splot {<Ranges>} <Function> {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
+                                                         "splot {<Ranges>} <FileName> {datafile-modifiers} {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
+                                                         "splot {<Ranges>} <DataBolockName> {<Modifier>} {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}\n"
+                                                         "splot {<Ranges>} keyentry {<TitleSpec>} {with <Style>} {, {definitions} <Function> ...}",
+                                                         "");
     }
-    else if(command == "stats") toolTip = toolTipStyle("stats {<Ranges>} <\"FileName\"> {<StatsType>} {name <Prefix>} {{no}output}",
-                                                       "");
-    else if(command == "system") toolTip = toolTipStyle("system <\"Command\">",
-                                                        "");
-    else if(command == "test") toolTip = toolTipStyle("test <TestType>",
-                                                      "");
+    else if(command == "stats")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("stats {<Ranges>} <\"FileName\"> {<StatsType>} {name <Prefix>} {{no}output}",
+                                                         "");
+    }
+    else if(command == "system")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("system <\"Command\">",
+                                                         "");
+    }
+    else if(command == "test")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("test <TestType>",
+                                                         "");
+    }
     else if(command == "toggle")
     {
-        toolTip = toolTipStyle("toggle <PlotNo>\n"
-                               "toggle <\"Title\">\n"
-                               "toggle all",
-                               "");
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("toggle <PlotNo>\n"
+                                                         "toggle <\"Title\">\n"
+                                                         "toggle all",
+                                                         "");
     }
     else if(command == "undefine")
     {
-        toolTip = toolTipStyle("undefine <Variable>\n"
-                               "undefine <StrExpression>",
-                               "");
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("undefine <Variable>\n"
+                                                         "undefine <StrExpression>",
+                                                         "");
     }
-    else if(command == "unset") toolTip = toolTipStyle("unset <Option>",
-                                                       "");
-    else if(command == "update") toolTip = toolTipStyle("update <\"FileName\"> {<\"FileName\">}",
-                                                        "");
-    else if(command == "while") toolTip = toolTipStyle("while (<Expression>) {}",
-                                                       "");
+    else if(command == "unset")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("unset <Option>",
+                                                         "");
+    }
+    else if(command == "update")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("update <\"FileName\"> {<\"FileName\">}",
+                                                         "");
+    }
+    else if(command == "while")
+    {
+        if(previousCmd.isEmpty()) toolTip = toolTipStyle("while (<Expression>) {}",
+                                                         "");
+    }
 
+    //if文の分岐が多くなりすぎてコンパイルの制限がかかるので，firstCmdの分岐で一度分ける
     if(!toolTip.isEmpty())
     {
         emit toolTipSet(toolTip); return;
