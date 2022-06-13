@@ -13,6 +13,7 @@ HEADERS += \
     $$PWD/gnuplotsettingwidget.h \
     $$PWD/gnuplottable.h \
     $$PWD/imagedisplay.h \
+    $$PWD/iofile.h \
     $$PWD/menubar.h \
     $$PWD/templatecustomwidget.h \
     $$PWD/texteditor.h \
@@ -38,6 +39,7 @@ SOURCES += \
     $$PWD/gnuplotsettingwidget.cpp \
     $$PWD/gnuplottable.cpp \
     $$PWD/imagedisplay.cpp \
+    $$PWD/iofile.cpp \
     $$PWD/main.cpp \
     $$PWD/menubar.cpp \
     $$PWD/templatecustomwidget.cpp \
