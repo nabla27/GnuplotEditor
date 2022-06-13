@@ -11,12 +11,19 @@
 #include <QApplication>
 
 
+
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    GnuplotEditor w;
-    w.show();
+    //GnuplotEditor w;
+    //w.show();
 
-    return a.exec();
+    //return a.exec();
+
+    ExcelDocument doc("test");
+    doc.readXml();
+
+    return 0;
 }

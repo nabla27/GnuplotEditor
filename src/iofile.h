@@ -5,6 +5,9 @@
 #include <QString>
 #include <QFile>
 #include <QTextStream>
+#include <QObject>
+#include <QDomDocument>
+#include <QApplication>
 
 inline void toFileTxt(const QString& fileName, const QString& data, bool* ok = nullptr)
 {
@@ -157,6 +160,150 @@ inline QList<QList<QString> > readFileTsv(const QString& fileName, bool *ok = nu
         return sheet;
     }
 }
+
+
+
+
+
+class ReadTxtFile : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ReadTxtFile(QObject *parent) : QObject(parent) {}
+
+public:
+    static void getTxt(const QString& path, QString& text, bool &ok);
+
+public slots:
+    void read(const QString& path);
+
+signals:
+    void finished(const QString& text, const bool& ok);
+};
+
+
+
+
+class WriteTxtFile : public QObject
+{
+    Q_OBJECT
+public:
+    explicit WriteTxtFile(QObject *parent) : QObject(parent) {}
+
+public:
+    static void toTxt(const QString& path, const QString& text, bool &ok);
+
+public slots:
+    void write(const QString& path, const QString& text);
+
+signals:
+    void finished(const bool& ok);
+};
+
+
+
+
+
+class ReadCsvFile : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ReadCsvFile(QObject *parent) : QObject(parent) {}
+
+public slots:
+    void read(const QString& path);
+
+signals:
+    void finished(const QList<QList<QString> >& data, const bool& ok);
+};
+
+
+
+
+
+class WriteCsvFile : public QObject
+{
+    Q_OBJECT
+public:
+    explicit WriteCsvFile(QObject *parent) : QObject(parent) {}
+
+public slots:
+    void write(const QString& path, const QList<QList<QString> >& data);
+
+signals:
+    void finished(const bool& ok);
+};
+
+
+
+
+
+class ReadTsvFile : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ReadTsvFile(QObject *parent) : QObject(parent) {}
+
+public slots:
+    void read(const QString& path);
+
+signals:
+    void finished(const QList<QList<QString> >& data, const bool& ok);
+};
+
+
+
+
+
+class WriteTsvFile : public QObject
+{
+    Q_OBJECT
+public:
+    explicit WriteTsvFile(QObject *parent) : QObject(parent) {}
+
+public slots:
+    void write(const QString& path, const QList<QList<QString> >& sheet);
+
+signals:
+    void finished(const bool& ok);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class ExcelDocument
+{
+public:
+    explicit ExcelDocument(const QString& path)
+        : path(path) {}
+
+public: //debug
+    void readXml();
+    void setTableData(const QString& row, const QString& col, const QString& value);
+
+private:
+    static QString intToAlphabet(int index);
+    static int alphabetToInt(const QString& alphabet);
+
+private:
+    const QString unzipExpPath = QApplication::applicationDirPath() + "/unzip.exe";
+    const QString path;
+    QList<QList<QString> > tableData;
+};
 
 
 
