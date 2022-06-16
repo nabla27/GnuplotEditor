@@ -347,7 +347,10 @@ void FileTreeWidget::setFolderPath(const QString& folderPath)
 void FileTreeWidget::saveAllFile()
 {
     foreach(TreeFileItem *item, TreeFileItem::list)
-        item->save();
+    {
+        if(!item->isSaved())
+            item->save();
+    }
 }
 
 void FileTreeWidget::saveAndLoad()
