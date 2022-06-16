@@ -491,6 +491,7 @@ void FileTreeWidget::updateGnuplotModelTree(const QString &path)
 
         const QString rootFolderName = rootTreeItem->info.fileName();
         item->setText(0, absPath.sliced(absPath.lastIndexOf(rootFolderName) + rootFolderName.count() + 1)); //作業ディレクトリからの相対パスを表示する
+        item->setToolTip(0, absPath);
         item->info = info;
         TreeFileItem::list.insert(absPath, item);
     }
@@ -536,6 +537,7 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
             item = new TreeFileItem(parent, (int)TreeItemType::Other);
 
         item->setText(0, info.fileName());
+        item->setToolTip(0, absPath);
         item->info = info;
         TreeFileItem::list.insert(absPath, item);
     }
@@ -553,6 +555,7 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
         {
             TreeFileItem *item = new TreeFileItem(parent, (int)TreeItemType::Dir);
             item->setText(0, info.fileName());
+            item->setToolTip(0, absPath);
             item->info = info;
             TreeFileItem::list.insert(absPath, item);
         }
@@ -729,6 +732,7 @@ void FileTreeWidget::renameFile()
     TreeFileItem::list.insert(newAbsoluteFilePath, item);
     item->info.setFile(newAbsoluteFilePath);
     item->setText(0, item->info.fileName());
+    item->setToolTip(0, newAbsoluteFilePath);
 }
 
 void FileTreeWidget::removeFile()
