@@ -92,60 +92,98 @@ public:
 
     void save() override
     {
-        if(editor)
+        if(!editor) return; //まだ一度も選択されていない場合など
+
+        switch(suffix.value(info.suffix()))
         {
-            bool ok = false;
-
-            switch(suffix.value(info.suffix()))
-            {
-            case ReadType::Text:
-                toFileTxt(info.absoluteFilePath(), editor->toPlainText(), &ok); break;
-            case ReadType::Html:
-                /* htmlを読み込んで表示した後はただのtextになるため，htmlとしてセーブできない */ break;
-            default:
-                break;
-            }
-
-            if(!ok)
-                emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
-                                 BrowserWidget::MessageType::FileSystemErr);
-            else
-                setSavedState(true);
+        case ReadType::Text:
+        {
+            WriteTxtFile *writeTxt = new WriteTxtFile(nullptr);
+            connect(this, &TreeScriptItem::saveRequested, writeTxt, &WriteTxtFile::write);
+            connect(writeTxt, &WriteTxtFile::finished, this, &TreeScriptItem::receiveSavedResult);
+            connect(writeTxt, &WriteTxtFile::finished, writeTxt, &WriteTxtFile::deleteLater);
+            break;
+        }
+        case ReadType::Html:
+            /* htmlを読み込んで表示した後はただのtextになるため，htmlとしてセーブできない */
+        default:
+            emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
+                             BrowserWidget::MessageType::FileSystemErr);
+            return;
         }
 
+        emit saveRequested(info.absoluteFilePath(), editor->toPlainText());
     }
 
     void load() override
     {
-        if(editor)
+        switch(suffix.value(info.suffix()))
         {
-            bool ok = false;
+        case ReadType::Text:
+        case ReadType::Html:
+        {
+            ReadTxtFile *readTxt = new ReadTxtFile(nullptr);
+            connect(this, &TreeScriptItem::loadRequested, readTxt, &ReadTxtFile::read);
+            connect(readTxt, &ReadTxtFile::finished, this, &TreeScriptItem::receiveLoadedResult);
+            connect(readTxt, &ReadTxtFile::finished, readTxt, &ReadTxtFile::deleteLater);
+            break;
+        }
+        default:
+            return;
+        }
 
+        emit loadRequested(info.absoluteFilePath());
+    }
+
+public slots:
+    void receiveSavedResult(const bool& ok)
+    {
+        setSavedState(ok);
+        if(!ok)
+        {
+            emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
+                             BrowserWidget::MessageType::FileSystemErr);
+        }
+    }
+
+    void receiveLoadedResult(const QString& text, const bool& ok)
+    {
+        if(ok)
+        {
             switch(suffix.value(info.suffix()))
             {
             case ReadType::Text:
-                editor->setPlainText(readFileTxt(info.absoluteFilePath(), &ok)); break;
+            {
+                editor->setPlainText(text);
+                break;
+            }
             case ReadType::Html:
             {
                 editor->clear();
-                editor->appendHtml(readFileTxt(info.absoluteFilePath(), &ok)); break;
-            }
-            default:
+                editor->appendHtml(text);
                 break;
             }
+            default:
+                return;
+            }
 
-            if(!ok)
-                emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
-                                 BrowserWidget::MessageType::FileSystemErr);
-            else
-                setSavedState(true);
+            setSavedState(true);
+
+            return;
         }
+
+        emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
+                         BrowserWidget::MessageType::FileSystemErr);
     }
 
 public:
     static QHash<QString, ReadType> suffix;
     TextEdit *editor;
     QProcess *process;
+
+signals:
+    void saveRequested(const QString& path, const QString& text);
+    void loadRequested(const QString& path);
 };
 
 
