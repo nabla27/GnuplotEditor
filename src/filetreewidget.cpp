@@ -13,6 +13,7 @@
 #include <QInputDialog>
 #include <QFileDialog>
 
+QThread TreeFileItem::iothread = QThread();
 QHash<QString, TreeScriptItem::ReadType> TreeScriptItem::suffix = QHash<QString, TreeScriptItem::ReadType>();
 QHash<QString, TreeSheetItem::ReadType> TreeSheetItem::suffix = QHash<QString, TreeSheetItem::ReadType>();
 QHash<QString, TreeFileItem*> TreeFileItem::list = QHash<QString, TreeFileItem*>();
@@ -58,6 +59,8 @@ FileTreeWidget::FileTreeWidget(QWidget *parent)
     , fileMenu(nullptr)
     , dirMenu(nullptr)
 {
+    TreeFileItem::iothread.start();
+
     setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
     connect(this, &FileTreeWidget::customContextMenuRequested, this, &FileTreeWidget::onCustomContextMenu);
     initializeContextMenu();
@@ -65,6 +68,12 @@ FileTreeWidget::FileTreeWidget(QWidget *parent)
     connect(dirWatcher, &QFileSystemWatcher::directoryChanged, this, &FileTreeWidget::updateFileTree);
 
     connect(this, &FileTreeWidget::itemDoubleClicked, this, &FileTreeWidget::selectItem);
+}
+
+FileTreeWidget::~FileTreeWidget()
+{
+    TreeFileItem::iothread.quit();
+    TreeFileItem::iothread.wait();
 }
 
 void FileTreeWidget::initializeContextMenu()

@@ -41,6 +41,7 @@ public:
 
     static QHash<QString, TreeFileItem*> list;
     QFileInfo info;
+    static QThread iothread;
     bool isSaved() const { return isSavedFlag; }
 
 public slots:
@@ -99,6 +100,7 @@ public:
         case ReadType::Text:
         {
             WriteTxtFile *writeTxt = new WriteTxtFile(nullptr);
+            writeTxt->moveToThread(&iothread);
             connect(this, &TreeScriptItem::saveRequested, writeTxt, &WriteTxtFile::write);
             connect(writeTxt, &WriteTxtFile::finished, this, &TreeScriptItem::receiveSavedResult);
             connect(writeTxt, &WriteTxtFile::finished, writeTxt, &WriteTxtFile::deleteLater);
@@ -123,6 +125,7 @@ public:
         case ReadType::Html:
         {
             ReadTxtFile *readTxt = new ReadTxtFile(nullptr);
+            readTxt->moveToThread(&iothread);
             connect(this, &TreeScriptItem::loadRequested, readTxt, &ReadTxtFile::read);
             connect(readTxt, &ReadTxtFile::finished, this, &TreeScriptItem::receiveLoadedResult);
             connect(readTxt, &ReadTxtFile::finished, readTxt, &ReadTxtFile::deleteLater);
@@ -270,6 +273,7 @@ class FileTreeWidget : public QTreeWidget
     Q_OBJECT
 public:
     FileTreeWidget(QWidget *parent);
+    ~FileTreeWidget();
 
     enum class FileTreeModel { FileSystem, Gnuplot };
     enum class TreeItemType { Script = 1000, Sheet, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
