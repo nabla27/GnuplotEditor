@@ -57,7 +57,7 @@ void ReadCsvFile::read(const QString& path)
 {
     QString data;
     bool ok = false;
-    ReadTxtFile::getTxt(data, data, ok);                 //ファイルの内容(text)をQString型で保持
+    ReadTxtFile::getTxt(path, data, ok);                 //ファイルの内容(text)をQString型で保持
 
     /* ファイルの読み取り失敗 または 空文字だった場合 */
     if(!ok || data.isEmpty())
@@ -99,7 +99,7 @@ void WriteCsvFile::write(const QString& path, const QList<QList<QString> >& shee
         for(qsizetype col = 0; col < sheet.at(row).size(); ++col)
         {
             data += sheet.at(row).at(col);
-            if(col != sheet.at(row).size() - 1) { data += '\t'; }
+            if(col != sheet.at(row).size() - 1) { data += ','; }
         }
         if(row != sheet.size() - 1) { data += '\n'; }
     }
