@@ -32,12 +32,7 @@ public:
 public:
     virtual void save() {}
     virtual void load() {}
-    void setText(int column, const QString& text)
-    {
-        QTreeWidgetItem::setText(column, text);
-        if(column == 0)
-            emit renamed(this);
-    }
+    void setText(int column, const QString& text);
 
     static QHash<QString, TreeFileItem*> list;
     QFileInfo info;
@@ -48,11 +43,7 @@ public slots:
     void setEdited() { setSavedState(false); }
 
 protected:
-    void setSavedState(const bool isSaved)
-    {
-        isSavedFlag = isSaved;
-        emit editStateChanged(isSaved);
-    }
+    void setSavedState(const bool isSaved);
 
 private:
     const QPixmap scriptIcon = QPixmap(":/icon/file_code");
@@ -81,105 +72,17 @@ public:
         , editor(nullptr)
         , process(new QProcess(nullptr)) {}
 
-    ~TreeScriptItem()
-    {
-        delete editor; editor = nullptr;
-        process->close();
-        delete process; process = nullptr;
-    }
+    ~TreeScriptItem();
 
     enum class ReadType { Text, Html };
     Q_ENUM(ReadType)
 
-    void save() override
-    {
-        if(!editor) return; //まだ一度も選択されていない場合など
-
-        switch(suffix.value(info.suffix()))
-        {
-        case ReadType::Text:
-        {
-            WriteTxtFile *writeTxt = new WriteTxtFile(nullptr);
-            writeTxt->moveToThread(&iothread);
-            connect(this, &TreeScriptItem::saveRequested, writeTxt, &WriteTxtFile::write);
-            connect(writeTxt, &WriteTxtFile::finished, this, &TreeScriptItem::receiveSavedResult);
-            connect(writeTxt, &WriteTxtFile::finished, writeTxt, &WriteTxtFile::deleteLater);
-            break;
-        }
-        case ReadType::Html:
-            /* htmlを読み込んで表示した後はただのtextになるため，htmlとしてセーブできない */
-        default:
-            emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
-                             BrowserWidget::MessageType::FileSystemErr);
-            return;
-        }
-
-        emit saveRequested(info.absoluteFilePath(), editor->toPlainText());
-    }
-
-    void load() override
-    {
-        switch(suffix.value(info.suffix()))
-        {
-        case ReadType::Text:
-        case ReadType::Html:
-        {
-            ReadTxtFile *readTxt = new ReadTxtFile(nullptr);
-            readTxt->moveToThread(&iothread);
-            connect(this, &TreeScriptItem::loadRequested, readTxt, &ReadTxtFile::read);
-            connect(readTxt, &ReadTxtFile::finished, this, &TreeScriptItem::receiveLoadedResult);
-            connect(readTxt, &ReadTxtFile::finished, readTxt, &ReadTxtFile::deleteLater);
-            break;
-        }
-        default:
-            emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
-                             BrowserWidget::MessageType::FileSystemErr);
-            return;
-        }
-
-        emit loadRequested(info.absoluteFilePath());
-    }
+    void save() override;
+    void load() override;
 
 private slots:
-    void receiveSavedResult(const bool& ok)
-    {
-        setSavedState(ok);
-        if(!ok)
-        {
-            emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
-                             BrowserWidget::MessageType::FileSystemErr);
-        }
-    }
-
-    void receiveLoadedResult(const QString& text, const bool& ok)
-    {
-        if(ok)
-        {
-            switch(suffix.value(info.suffix()))
-            {
-            case ReadType::Text:
-            {
-                editor->setPlainText(text);
-                break;
-            }
-            case ReadType::Html:
-            {
-                editor->clear();
-                editor->appendHtml(text);
-                break;
-            }
-            default:
-                return;
-            }
-
-            setSavedState(true); //データをセットしてから
-
-            return;
-        }
-
-        emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
-                         BrowserWidget::MessageType::FileSystemErr);
-    }
+    void receiveSavedResult(const bool& ok);
+    void receiveLoadedResult(const QString& text, const bool& ok);
 
 public:
     static QHash<QString, ReadType> suffix;
@@ -203,143 +106,18 @@ public:
         : TreeFileItem(parent, type)
         , table(nullptr) {}
 
-    ~TreeSheetItem()
-    {
-        delete table; table = nullptr;
-    }
+    ~TreeSheetItem();
 
     enum class ReadType { Csv, Tsv };
     Q_ENUM(ReadType)
 
-    void save() override
-    {
-        //if(table)
-        //{
-        //    bool ok = false;
+    void save() override;
 
-        //    switch(suffix.value(info.suffix()))
-        //    {
-        //    case ReadType::Csv:
-        //        toFileCsv(info.absoluteFilePath(), table->getData<QString>(), &ok); break;
-        //    case ReadType::Tsv:
-        //        toFileTsv(info.absoluteFilePath(), table->getData<QString>(), &ok); break;
-        //    default:
-        //        break;
-        //    }
-
-        //    if(!ok)
-        //        emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
-        //                         BrowserWidget::MessageType::FileSystemErr);
-        //    else
-        //        setSavedState(true);
-        //}
-
-        if(!table) return;  //まだ一度も表示されていない場合
-
-        switch(suffix.value(info.suffix()))
-        {
-        case ReadType::Csv:
-        {
-            WriteCsvFile *writeCsv = new WriteCsvFile(nullptr);
-            writeCsv->moveToThread(&iothread);
-            connect(this, &TreeSheetItem::saveRequested, writeCsv, &WriteCsvFile::write);
-            connect(writeCsv, &WriteCsvFile::finished, this, &TreeSheetItem::receiveSavedResult);
-            connect(writeCsv, &WriteCsvFile::finished, writeCsv, &WriteCsvFile::deleteLater);
-            break;
-        }
-        case ReadType::Tsv:
-        {
-            WriteTsvFile *writeTsv = new WriteTsvFile(nullptr);
-            writeTsv->moveToThread(&iothread);
-            connect(this, &TreeSheetItem::saveRequested, writeTsv, &WriteTsvFile::write);
-            connect(writeTsv, &WriteTsvFile::finished, this, &TreeSheetItem::receiveSavedResult);
-            connect(writeTsv, &WriteTsvFile::finished, writeTsv, &WriteTsvFile::deleteLater);
-            break;
-        }
-        default:
-            emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
-                             BrowserWidget::MessageType::FileSystemErr);
-            return;
-        }
-
-        emit saveRequested(info.absoluteFilePath(), table->getData<QString>());
-    }
-
-    void load() override
-    {
-        //if(table)
-        //{
-        //    bool ok = false;
-
-        //    switch(suffix.value(info.suffix()))
-        //    {
-        //    case ReadType::Csv:
-        //        table->setData(readFileCsv(info.absoluteFilePath(), &ok)); break;
-        //    case ReadType::Tsv:
-        //        table->setData(readFileTsv(info.absoluteFilePath(), &ok)); break;
-        //    default:
-        //        break;
-        //    }
-
-        //    if(!ok)
-        //        emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
-        //                         BrowserWidget::MessageType::FileSystemErr);
-        //    else
-        //        setSavedState(true);
-        //}
-
-        switch(suffix.value(info.suffix()))
-        {
-        case ReadType::Csv:
-        {
-            ReadCsvFile *readCsv = new ReadCsvFile(nullptr);
-            readCsv->moveToThread(&iothread);
-            connect(this, &TreeSheetItem::loadRequested, readCsv, &ReadCsvFile::read);
-            connect(readCsv, &ReadCsvFile::finished, this, &TreeSheetItem::receiveLoadResult);
-            connect(readCsv, &ReadCsvFile::finished, readCsv, &ReadCsvFile::deleteLater);
-            break;
-        }
-        case ReadType::Tsv:
-        {
-            ReadTsvFile *readTsv = new ReadTsvFile(nullptr);
-            readTsv->moveToThread(&iothread);
-            connect(this, &TreeSheetItem::loadRequested, readTsv, &ReadTsvFile::read);
-            connect(readTsv, &ReadTsvFile::finished, this, &TreeSheetItem::receiveLoadResult);
-            connect(readTsv, &ReadTsvFile::finished, readTsv, &ReadTsvFile::deleteLater);
-            break;
-        }
-        default:
-            emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
-                             BrowserWidget::MessageType::FileSystemErr);
-            return;
-        }
-
-        emit loadRequested(info.absoluteFilePath());
-    }
+    void load() override;
 
 private slots:
-    void receiveSavedResult(const bool& ok)
-    {
-        setSavedState(ok);
-        if(!ok)
-        {
-            emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
-                             BrowserWidget::MessageType::FileSystemErr);
-        }
-    }
-    void receiveLoadResult(const QList<QList<QString> >& data, const bool& ok)
-    {
-        if(ok)
-        {
-            table->setData(data);
-            setSavedState(true);  //データをセットしてから
-        }
-        else
-        {
-            emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
-                             BrowserWidget::MessageType::FileSystemErr);
-        }
-    }
+    void receiveSavedResult(const bool& ok);
+    void receiveLoadResult(const QList<QList<QString> >& data, const bool& ok);
 
 public:
     static QHash<QString, ReadType> suffix;
