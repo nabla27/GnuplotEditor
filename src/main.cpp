@@ -17,13 +17,13 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    //GnuplotEditor w;
-    //w.show();
+    //ExcelDocument doc("test");
+    //doc.readXml();
 
-    //return a.exec();
+    GnuplotEditor w;
+    w.show();
 
-    ExcelDocument doc("test");
-    doc.readXml();
+    return a.exec();
 
     return 0;
 }
