@@ -132,13 +132,15 @@ public:
             break;
         }
         default:
+            emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
+                             BrowserWidget::MessageType::FileSystemErr);
             return;
         }
 
         emit loadRequested(info.absoluteFilePath());
     }
 
-public slots:
+private slots:
     void receiveSavedResult(const bool& ok)
     {
         setSavedState(ok);
@@ -170,7 +172,7 @@ public slots:
                 return;
             }
 
-            setSavedState(true);
+            setSavedState(true); //データをセットしてから
 
             return;
         }
@@ -211,55 +213,141 @@ public:
 
     void save() override
     {
-        if(table)
+        //if(table)
+        //{
+        //    bool ok = false;
+
+        //    switch(suffix.value(info.suffix()))
+        //    {
+        //    case ReadType::Csv:
+        //        toFileCsv(info.absoluteFilePath(), table->getData<QString>(), &ok); break;
+        //    case ReadType::Tsv:
+        //        toFileTsv(info.absoluteFilePath(), table->getData<QString>(), &ok); break;
+        //    default:
+        //        break;
+        //    }
+
+        //    if(!ok)
+        //        emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
+        //                         BrowserWidget::MessageType::FileSystemErr);
+        //    else
+        //        setSavedState(true);
+        //}
+
+        if(!table) return;  //まだ一度も表示されていない場合
+
+        switch(suffix.value(info.suffix()))
         {
-            bool ok = false;
-
-            switch(suffix.value(info.suffix()))
-            {
-            case ReadType::Csv:
-                toFileCsv(info.absoluteFilePath(), table->getData<QString>(), &ok); break;
-            case ReadType::Tsv:
-                toFileTsv(info.absoluteFilePath(), table->getData<QString>(), &ok); break;
-            default:
-                break;
-            }
-
-            if(!ok)
-                emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
-                                 BrowserWidget::MessageType::FileSystemErr);
-            else
-                setSavedState(true);
+        case ReadType::Csv:
+        {
+            WriteCsvFile *writeCsv = new WriteCsvFile(nullptr);
+            writeCsv->moveToThread(&iothread);
+            connect(this, &TreeSheetItem::saveRequested, writeCsv, &WriteCsvFile::write);
+            connect(writeCsv, &WriteCsvFile::finished, this, &TreeSheetItem::receiveSavedResult);
+            connect(writeCsv, &WriteCsvFile::finished, writeCsv, &WriteCsvFile::deleteLater);
+            break;
         }
+        case ReadType::Tsv:
+        {
+            WriteTsvFile *writeTsv = new WriteTsvFile(nullptr);
+            writeTsv->moveToThread(&iothread);
+            connect(this, &TreeSheetItem::saveRequested, writeTsv, &WriteTsvFile::write);
+            connect(writeTsv, &WriteTsvFile::finished, this, &TreeSheetItem::receiveSavedResult);
+            connect(writeTsv, &WriteTsvFile::finished, writeTsv, &WriteTsvFile::deleteLater);
+            break;
+        }
+        default:
+            emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
+                             BrowserWidget::MessageType::FileSystemErr);
+            return;
+        }
+
+        emit saveRequested(info.absoluteFilePath(), table->getData<QString>());
     }
 
     void load() override
     {
-        if(table)
+        //if(table)
+        //{
+        //    bool ok = false;
+
+        //    switch(suffix.value(info.suffix()))
+        //    {
+        //    case ReadType::Csv:
+        //        table->setData(readFileCsv(info.absoluteFilePath(), &ok)); break;
+        //    case ReadType::Tsv:
+        //        table->setData(readFileTsv(info.absoluteFilePath(), &ok)); break;
+        //    default:
+        //        break;
+        //    }
+
+        //    if(!ok)
+        //        emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
+        //                         BrowserWidget::MessageType::FileSystemErr);
+        //    else
+        //        setSavedState(true);
+        //}
+
+        switch(suffix.value(info.suffix()))
         {
-            bool ok = false;
+        case ReadType::Csv:
+        {
+            ReadCsvFile *readCsv = new ReadCsvFile(nullptr);
+            readCsv->moveToThread(&iothread);
+            connect(this, &TreeSheetItem::loadRequested, readCsv, &ReadCsvFile::read);
+            connect(readCsv, &ReadCsvFile::finished, this, &TreeSheetItem::receiveLoadResult);
+            connect(readCsv, &ReadCsvFile::finished, readCsv, &ReadCsvFile::deleteLater);
+            break;
+        }
+        case ReadType::Tsv:
+        {
+            ReadTsvFile *readTsv = new ReadTsvFile(nullptr);
+            readTsv->moveToThread(&iothread);
+            connect(this, &TreeSheetItem::loadRequested, readTsv, &ReadTsvFile::read);
+            connect(readTsv, &ReadTsvFile::finished, this, &TreeSheetItem::receiveLoadResult);
+            connect(readTsv, &ReadTsvFile::finished, readTsv, &ReadTsvFile::deleteLater);
+            break;
+        }
+        default:
+            emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
+                             BrowserWidget::MessageType::FileSystemErr);
+            return;
+        }
 
-            switch(suffix.value(info.suffix()))
-            {
-            case ReadType::Csv:
-                table->setData(readFileCsv(info.absoluteFilePath(), &ok)); break;
-            case ReadType::Tsv:
-                table->setData(readFileTsv(info.absoluteFilePath(), &ok)); break;
-            default:
-                break;
-            }
+        emit loadRequested(info.absoluteFilePath());
+    }
 
-            if(!ok)
-                emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
-                                 BrowserWidget::MessageType::FileSystemErr);
-            else
-                setSavedState(true);
+private slots:
+    void receiveSavedResult(const bool& ok)
+    {
+        setSavedState(ok);
+        if(!ok)
+        {
+            emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
+                             BrowserWidget::MessageType::FileSystemErr);
+        }
+    }
+    void receiveLoadResult(const QList<QList<QString> >& data, const bool& ok)
+    {
+        if(ok)
+        {
+            table->setData(data);
+            setSavedState(true);  //データをセットしてから
+        }
+        else
+        {
+            emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
+                             BrowserWidget::MessageType::FileSystemErr);
         }
     }
 
 public:
     static QHash<QString, ReadType> suffix;
     GnuplotTable *table;
+
+signals:
+    void saveRequested(const QString& path, const QList<QList<QString> >& data);
+    void loadRequested(const QString& path);
 };
 
 
