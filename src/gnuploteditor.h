@@ -49,10 +49,12 @@ public:
     explicit GnuplotEditor(QWidget *parent = nullptr);
     ~GnuplotEditor();
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
 private:
     void initializeMenuBar();
     void initializeLayout();
-    void postProcessing();
 
     void setupScriptItem(TreeScriptItem *item);
     void setupSheetItem(TreeSheetItem *item);

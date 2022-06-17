@@ -1,2 +1,2 @@
 plot "data.csv" using 1:2 with lines
-replot sin(x) with lines
+replot sin(x) with lines 
