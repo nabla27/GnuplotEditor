@@ -74,12 +74,16 @@ void TreeFileItem::setSavedState(const bool isSaved)
 
 
 
+TreeScriptItem::TreeScriptItem(QTreeWidgetItem *parent, int type)
+    : TreeFileItem(parent, type)
+    , editor(nullptr)
+    , process(nullptr)
+{
+}
 
 TreeScriptItem::~TreeScriptItem()
 {
     delete editor; editor = nullptr;
-    process->close();
-    delete process; process = nullptr;
 }
 
 void TreeScriptItem::save()
@@ -129,6 +133,11 @@ void TreeScriptItem::load()
     }
 
     emit loadRequested(info.absoluteFilePath());
+}
+
+void TreeScriptItem::requestCloseProcess()
+{
+    emit closeProcessRequested();
 }
 
 void TreeScriptItem::receiveSavedResult(const bool& ok)

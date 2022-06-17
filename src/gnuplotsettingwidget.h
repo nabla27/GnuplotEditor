@@ -22,23 +22,24 @@ class GnuplotSettingWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit GnuplotSettingWidget(Gnuplot *gnuplot, QWidget *parent);
+    explicit GnuplotSettingWidget(QWidget *parent);
     ~GnuplotSettingWidget();
+    void loadXmlSetting();
+
+public slots:
+    void addLogToBrowser(const QString& text);
 
 private slots:
-    void addLogToBrowser(const QString& text);
     void selectGnuplotPath();
-    void setGnuplotPath() { gnuplot->setExePath(pathEdit->text()); }
-    void setGnuplotInitCmd() { gnuplot->setInitCmd(initializeCmd->toPlainText()); }
-    void setGnuplotPreCmd() { gnuplot->setPreCmd(preCmd->toPlainText()); };
+    void setGnuplotPath() { emit exePathSet(pathEdit->text()); }
+    void setGnuplotInitCmd() { emit initCmdSet(initializeCmd->toPlainText()); }
+    void setGnuplotPreCmd() { emit preCmdSet(preCmd->toPlainText()); }
 
 private:
     void initializeLayout();
-    void loadXmlSetting();
     void saveXmlSetting();
 
 private:
-    Gnuplot *gnuplot;
     QTextBrowser *browser;
     QLineEdit *pathEdit;
     QToolButton *pathTool;
@@ -50,6 +51,9 @@ private:
 
 signals:
     void autoCompileMsecSet(const int msec);
+    void exePathSet(const QString& path);
+    void initCmdSet(const QString& initCmd);
+    void preCmdSet(const QString& preCmd);
 };
 
 #endif // GNUPLOTSETTINGWIDGET_H
