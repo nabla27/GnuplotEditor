@@ -69,10 +69,10 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 
 GnuplotEditor::~GnuplotEditor()
 {
-    postProcessing();
+
 }
 
-void GnuplotEditor::postProcessing()
+void GnuplotEditor::closeEvent(QCloseEvent *event)
 {
     /* セーブしていないファイルがあれば，確認して保存する */
     QHashIterator<QString, TreeFileItem*> fileIter(TreeFileItem::list);
@@ -425,11 +425,11 @@ void GnuplotEditor::showGnuplotHelp()
 
 void GnuplotEditor::reboot()
 {
-    postProcessing();
+    /* アプリを終了させる。アプリが終了する前にQMainWindow::closeEvent()が呼び出される */
+    QCoreApplication::quit();
 
+    /* 実行ファイルを指定して新しく立ち上げる */
     QProcess::startDetached(QApplication::applicationFilePath());
-
-    exit(0);
 }
 
 
