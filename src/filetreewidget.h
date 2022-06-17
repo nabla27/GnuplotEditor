@@ -67,18 +67,19 @@ class TreeScriptItem : public TreeFileItem
 {
     Q_OBJECT
 public:
-    explicit TreeScriptItem(QTreeWidgetItem *parent, int type)
-        : TreeFileItem(parent, type)
-        , editor(nullptr)
-        , process(new QProcess(nullptr)) {}
+    explicit TreeScriptItem(QTreeWidgetItem *parent, int type);
 
     ~TreeScriptItem();
 
     enum class ReadType { Text, Html };
     Q_ENUM(ReadType)
 
+public:
     void save() override;
     void load() override;
+
+public:
+    void requestCloseProcess();
 
 private slots:
     void receiveSavedResult(const bool& ok);
@@ -92,6 +93,7 @@ public:
 signals:
     void saveRequested(const QString& path, const QString& text);
     void loadRequested(const QString& path);
+    void closeProcessRequested();
 };
 
 
@@ -127,6 +129,7 @@ signals:
     void saveRequested(const QString& path, const QList<QList<QString> >& data);
     void loadRequested(const QString& path);
 };
+
 
 
 

@@ -28,7 +28,7 @@ class Gnuplot : public QObject
 public:
     Gnuplot(QObject *parent);
 
-public:
+public slots:
     void exc(QProcess *process, const QList<QString>& cmdlist, const bool preHandling = true);
     void setExePath(const QString& path) { this->path = path; }
     void setInitCmd(const QString& initCmd) { this->initCmdList = initCmd.split('\n'); }

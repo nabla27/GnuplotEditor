@@ -14,17 +14,14 @@
 #include <QFileDialog>
 #include "utility.h"
 
-GnuplotSettingWidget::GnuplotSettingWidget(Gnuplot *gnuplot, QWidget *parent)
+GnuplotSettingWidget::GnuplotSettingWidget(QWidget *parent)
     : QWidget(parent)
-    , gnuplot(gnuplot)
     , browser(new QTextBrowser(this))
     , pathEdit(new QLineEdit(this))
     , pathTool(new QToolButton(this))
     , initializeCmd(new TextEdit(this))
     , preCmd(new TextEdit(this))
 {
-    connect(gnuplot, &Gnuplot::cmdPushed, this, &GnuplotSettingWidget::addLogToBrowser);
-
     initializeLayout();
 
     /* 設定の反映 */
@@ -32,9 +29,6 @@ GnuplotSettingWidget::GnuplotSettingWidget(Gnuplot *gnuplot, QWidget *parent)
     connect(pathTool, &QToolButton::released, this, &GnuplotSettingWidget::selectGnuplotPath);
     connect(initializeCmd, &TextEdit::textChanged, this, &GnuplotSettingWidget::setGnuplotInitCmd);
     connect(preCmd, &TextEdit::textChanged, this, &GnuplotSettingWidget::setGnuplotPreCmd);
-
-    /* ファイルから設定の読み込み */
-    loadXmlSetting();
 }
 
 GnuplotSettingWidget::~GnuplotSettingWidget()

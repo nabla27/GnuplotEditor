@@ -54,6 +54,9 @@ private:
     void initializeLayout();
     void postProcessing();
 
+    void setupScriptItem(TreeScriptItem *item);
+    void setupSheetItem(TreeSheetItem *item);
+
 private slots:
     void setEditorWidget(TreeScriptItem *item);
     void setSheetWidget(TreeSheetItem *item);
@@ -82,6 +85,7 @@ private:
 
     Gnuplot *gnuplot;
     QProcess *gnuplotProcess;
+    QThread gnuplotThread;
 
     EditorSetting *editorSetting;
     GnuplotSettingWidget *gnuplotSetting;
@@ -97,11 +101,12 @@ private:
     ConsoleWidget *consoleWidget;
     BrowserWidget *browserWidget;
 
-    TreeFileItem *currentScript = nullptr;
-    TreeFileItem *currentSheet = nullptr;
+    TreeScriptItem *currentScript = nullptr;
+    TreeSheetItem *currentSheet = nullptr;
 
 signals:
-    void workingDirectoryChanged(const QString& path);
+    void scriptPathChanged(const QString& path);
+    void exeGnuplotRequested(QProcess *process, const QList<QString>& cmdlist, const bool preHandling = true);
 };
 
 
