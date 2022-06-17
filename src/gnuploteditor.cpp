@@ -81,9 +81,27 @@ void GnuplotEditor::closeEvent(QCloseEvent *event)
         fileIter.next();
         if(!fileIter.value()->isSaved())
         {
-            const QMessageBox::StandardButton button = QMessageBox::question(this, "Gnuplot Editor", "Do you want to save all file??");
-            if(button == QMessageBox::StandardButton::Yes)
+            QMessageBox question(this);
+            question.setIcon(QMessageBox::Icon::Question);
+            question.setText("Some files are not saved. Do you want to save the files??");
+            question.setStandardButtons(QMessageBox::StandardButton::Save | QMessageBox::StandardButton::No | QMessageBox::Cancel);
+            question.setEscapeButton(QMessageBox::StandardButton::Cancel);
+
+            switch(QMessageBox::StandardButton(question.exec()))
+            {
+            case QMessageBox::StandardButton::Save:
                 fileTree->saveAllFile();
+                break;
+            case QMessageBox::StandardButton::No:
+                break;
+            case QMessageBox::StandardButton::Cancel:
+                event->ignore(); //アプリ閉じるのをキャンセル
+                return;
+            default:
+                break;
+            }
+
+            /* 一度確認したら抜け出す */
             break;
         }
     }
