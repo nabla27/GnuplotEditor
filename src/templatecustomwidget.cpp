@@ -71,6 +71,7 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     connect(templateItemPanel, &TemplateItemPanel::createFolderRequested, this, &TemplateCustomWidget::createNewFolder);
     connect(editorPanel, &TemplateEditorPanel::importButtonReleased, this, &TemplateCustomWidget::requestImportingTemplate);
     connect(editorPanel, &TemplateEditorPanel::readOnlyChanged, editor, &TextEdit::setReadOnly);
+    connect(editorPanel, &TemplateEditorPanel::readOnlyChanged, this, &TemplateCustomWidget::saveCurrentTemplateFile);
 
     /* フォルダーの設定 */
     QDir settingFolderDir(settingFolderPath());
