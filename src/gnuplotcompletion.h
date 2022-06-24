@@ -64,6 +64,8 @@ class GnuplotCompletionModel : public QObject
     Q_OBJECT
 public:
     explicit GnuplotCompletionModel(QObject *parent) : QObject(parent) {}
+    static void getFilesRecursively(const QString& parentPath, const QString& folderPath, QStringList& list,
+                                    const QString& prefix = QString(), const QString& suffix = QString());
 
 public slots:
     void setCompletionList(const QString& firstCmd, const QString& preCmd, const int index);
@@ -1275,7 +1277,6 @@ private:
                                                       << "default";}
 
 private:
-    void getFilesRecursively(const QString& parentPath, const QString& folderPath);
     QString toolTipStyle(const QString& formula, const QString& message)
     {
         QString toolTip = formula;

@@ -67,6 +67,7 @@ private:
     void changeCompleterModel();                                //入力コマンドから予測変換候補を変更
 
 private:
+    static const QChar tmlChar;
     QCompleter *c = nullptr;
     QString firstCmd = "";
     QString previousCmd = "";

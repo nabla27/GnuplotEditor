@@ -1113,10 +1113,11 @@ void GnuplotCompletionModel::setParentFolder(const QString& folderPath)
 {
     dirList.clear();
     fileList.clear();
-    getFilesRecursively(folderPath, folderPath);
+    getFilesRecursively(folderPath, folderPath, fileList, "\"", "\"");
 }
 
-void GnuplotCompletionModel::getFilesRecursively(const QString &parentPath, const QString &folderPath)
+void GnuplotCompletionModel::getFilesRecursively(const QString &parentPath, const QString &folderPath, QStringList& list,
+                                                 const QString& prefix, const QString& suffix)
 {
     QDir parent(parentPath);
     QDir dir(folderPath);
@@ -1126,11 +1127,11 @@ void GnuplotCompletionModel::getFilesRecursively(const QString &parentPath, cons
     for(const QFileInfo& info : infoList)
     {
         if(info.isFile())
-            fileList << "\"" + parent.relativeFilePath(info.absoluteFilePath()) + "\"";
+            list << prefix + parent.relativeFilePath(info.absoluteFilePath()) + suffix;   //parentPathからのfolderPathの相対パス
         else
         {
-            dirList << "\"" + parent.relativeFilePath(info.absoluteFilePath()) + "\"";   //parentPathからのfolderPathの相対パス
-            getFilesRecursively(parentPath, info.absoluteFilePath());                    //フォルダー内を再帰
+            //list << prefix + parent.relativeFilePath(info.absoluteFilePath()) + suffix";   //フォルダーは無視
+            getFilesRecursively(parentPath, info.absoluteFilePath(), list, prefix, suffix);  //フォルダー内を再帰
         }
     }
 }

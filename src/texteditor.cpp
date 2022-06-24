@@ -11,6 +11,9 @@
 #include <QScrollBar>
 #include <QToolTip>
 #include <QShortcut>
+#include "templatecustomwidget.h"
+#include "iofile.h"
+
 
 /* <firstCmd, previousCmd, currentCmd>
  * example.
@@ -19,6 +22,8 @@
  *          plot sin wit|  --> firstCmd="plot", previousCmd="sin", currentCmd="wit"
  */
 
+
+const QChar TextEdit::tmlChar = '@';  //テンプレートを呼び出す接頭語
 
 TextEdit::TextEdit(QWidget *parent)
     : QPlainTextEdit(parent)
@@ -146,6 +151,15 @@ void TextEdit::changeCompleterModel()
         return;
     }
 
+    /* テンプレート用の補完機能 */
+    if(currentCmd.size() > 0 && currentCmd.front() == tmlChar)
+    {
+        QStringList templateFileList;
+        gnuplot_cpl::GnuplotCompletionModel::getFilesRecursively(TemplateCustomWidget::rootFolderPath(), TemplateCustomWidget::rootFolderPath(), templateFileList, tmlChar);
+        setCompletionList(templateFileList);
+        return;
+    }
+
     emit completionRequested(firstCmd, previousCmd, textForwardCursor.size() - 1);
 }
 
@@ -175,17 +189,47 @@ void TextEdit::insertCompletion(QString completion)
 {
     if(c->widget() != this) return;
 
-    const QString prefix = c->completionPrefix().remove('"').remove('\'');
-    completion.remove('"').remove('\'');
-    const int extra = completion.length() - prefix.length();
+    if(currentCmd.size() > 0 && currentCmd.front() == tmlChar)
+    {
+        bool ok = false;
+        QString text;
+        ReadTxtFile::getTxt(TemplateCustomWidget::rootFolderPath() + '/' + completion.remove(tmlChar), text, ok);
+        if(ok)
+        {
+            QTextCursor tc = textCursor();
 
-    /* 予測変換入力後のカーソルの移動と挿入 */
-    QTextCursor tc = textCursor();
-    tc.movePosition(QTextCursor::Left);
-    tc.setPosition(textCursor().position());
-    tc.insertText(completion.right(extra));
-    tc.movePosition(QTextCursor::EndOfWord, QTextCursor::MoveMode::MoveAnchor);
-    setTextCursor(tc);
+            for(;;)
+            {
+                tc.movePosition(QTextCursor::WordLeft, QTextCursor::KeepAnchor);
+
+                if(tc.atStart()) break;
+                else if(tc.selectedText().contains(tmlChar))
+                {
+                    tc.removeSelectedText();
+                    break;
+                }
+
+                tc.removeSelectedText();
+            }
+
+            tc.insertText(text);
+            setTextCursor(tc);
+        }
+    }
+    else
+    {
+        const QString prefix = c->completionPrefix().remove('"').remove('\'');
+        completion.remove('"').remove('\'');
+        const int extra = completion.length() - prefix.length();
+
+        /* 予測変換入力後のカーソルの移動と挿入 */
+        QTextCursor tc = textCursor();
+        tc.movePosition(QTextCursor::Left);
+        tc.setPosition(textCursor().position());
+        tc.insertText(completion.right(extra));
+        tc.movePosition(QTextCursor::EndOfWord, QTextCursor::MoveMode::MoveAnchor);
+        setTextCursor(tc);
+    }
 }
 
 /* 予測玄関の候補を出すために参照するテキスト */
@@ -348,7 +392,7 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
                               e->modifiers().testFlag(Qt::ShiftModifier));
     if(!c || (ctr10rShift && e->text().isEmpty())) return;
 
-    static QString eow("~!@#$%{}|:<>?,./;\\"); //入力された時に予測変換を非表示にする文字
+    static QString eow("~!#$%{}|:<>?,;\\"); //入力された時に予測変換を非表示にする文字
     const bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctr10rShift;
 
     /* 予測変換を非表示にする場合 */

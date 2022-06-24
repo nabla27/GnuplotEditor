@@ -22,17 +22,14 @@
 
 TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     : QWidget(parent)
-    , settingFolderPath(QApplication::applicationDirPath() + "/setting")
-    , rootFolderName("script-template")
-    , rootFolderPath(settingFolderPath + '/' + rootFolderName)
 
     , templateItemPanel(new TemplateItemPanel(this))
     , templateScriptTreeArea(new QScrollArea(this))
     , templateScriptTree(nullptr)
     , templateScriptTreeLayout(nullptr)
 
-    , currentTemplateFolderPath(settingFolderPath + '/' + rootFolderName)
-    , editorPanel(new TemplateEditorPanel(rootFolderName, this))
+    , currentTemplateFolderPath(rootFolderPath())
+    , editorPanel(new TemplateEditorPanel(rootFolderName(), this))
     , editor(new TextEdit(this))
 {
     setWindowFlag(Qt::WindowType::Window, true);
@@ -76,9 +73,9 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     connect(editorPanel, &TemplateEditorPanel::readOnlyChanged, editor, &TextEdit::setReadOnly);
 
     /* フォルダーの設定 */
-    QDir settingFolderDir(settingFolderPath);
-    if(!settingFolderDir.exists()) settingFolderDir.mkdir(settingFolderPath);
-    templateItemPanel->setFolderPath(rootFolderPath);
+    QDir settingFolderDir(settingFolderPath());
+    if(!settingFolderDir.exists()) settingFolderDir.mkdir(settingFolderPath());
+    templateItemPanel->setFolderPath(rootFolderPath());
     setupTemplateList(currentTemplateFolderPath);
 }
 
@@ -102,8 +99,8 @@ void TemplateCustomWidget::addTemplate(const QString& script)
 
     /* comboにフォルダー一覧を設定 */
     QStringList folderList;
-    folderList << rootFolderName;
-    getDirRecursively(rootFolderPath, folderList);
+    folderList << rootFolderName();
+    getDirRecursively(rootFolderPath(), folderList);
     folderCombo.addItems(folderList);
 
     connect(&button, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
@@ -113,7 +110,7 @@ void TemplateCustomWidget::addTemplate(const QString& script)
     if(templateName.text().isEmpty()) return;
     if(templateName.text().contains('.')) return;
 
-    const QString templateFilePath = settingFolderPath + '/' + folderCombo.currentText() + '/' + templateName.text() + ".txt";
+    const QString templateFilePath = settingFolderPath() + '/' + folderCombo.currentText() + '/' + templateName.text() + ".txt";
 
     QFile newFile(templateFilePath);
     if(newFile.open(QFile::OpenModeFlag::WriteOnly))
@@ -123,7 +120,7 @@ void TemplateCustomWidget::addTemplate(const QString& script)
 
         newFile.close();
 
-        if(currentTemplateFolderPath == settingFolderPath + '/' + folderCombo.currentText())
+        if(currentTemplateFolderPath == settingFolderPath() + '/' + folderCombo.currentText())
         {
             setupNewTemplate(newFile.fileName());
             setTemplate(newFile.fileName());
@@ -141,7 +138,7 @@ void TemplateCustomWidget::getDirRecursively(const QString& folderPath, QStringL
     for(const QFileInfo& info : infoList)
     {
         const QString absolutePath = info.absoluteFilePath();
-        folderList << absolutePath.sliced(absolutePath.lastIndexOf(rootFolderName));
+        folderList << absolutePath.sliced(absolutePath.lastIndexOf(rootFolderName()));
         getDirRecursively(absolutePath, folderList);
     }
 }
@@ -312,7 +309,7 @@ void TemplateCustomWidget::removeFolder(TemplateItemWidget *item, const QString&
 
 void TemplateCustomWidget::backDirectory()
 {
-    if(currentTemplateFolderPath == rootFolderPath) return;
+    if(currentTemplateFolderPath == rootFolderPath()) return;
 
     currentTemplateFolderPath = currentTemplateFolderPath.first(currentTemplateFolderPath.lastIndexOf('/'));
     templateItemPanel->setFolderPath(currentTemplateFolderPath);
@@ -323,13 +320,13 @@ void TemplateCustomWidget::showFolderList()
 {
     QMenu menu(this);
     QStringList folderList;
-    folderList << rootFolderName;
-    getDirRecursively(rootFolderPath, folderList);
+    folderList << rootFolderName();
+    getDirRecursively(rootFolderPath(), folderList);
 
     /* menuからactionが選択されて、actionに設定されたobjectName(=選択されたパス)からフォルダーを設定する */
     auto setFolderFromAction = [this](QAction *action)
     {
-        setFolder(settingFolderPath + '/' + action->objectName());
+        setFolder(settingFolderPath() + '/' + action->objectName());
     };
 
     for(const QString& folderName : folderList)
