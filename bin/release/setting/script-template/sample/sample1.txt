@@ -1,3 +1,0 @@
-set terminal postscript eps
-set output "test.eps"
-set size ratio 0.5,0.2

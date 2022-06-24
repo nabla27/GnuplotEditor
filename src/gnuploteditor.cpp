@@ -31,7 +31,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     initializeMenuBar();
 
     /* workingDirectoryの設定 */
-    const QString path = QApplication::applicationDirPath() + "/gnuplot-project";
+    const QString path = QApplication::applicationDirPath() + "/setting/gnuplot-project";
     //フォルダーが存在していなければ作成
     QDir workingDir(path);
     if(!workingDir.exists()) workingDir.mkpath(path);
@@ -40,7 +40,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 
     /* ショートカットキー */
     QShortcut *saveShortcut = new QShortcut(QKeySequence("Ctrl+s"), this);
-    //connect(saveShortcut, &QShortcut::activated, this, &GnuplotEditor::saveCurrentFile);
+    connect(saveShortcut, &QShortcut::activated, this, &GnuplotEditor::saveCurrentFile);
 
     connect(fileTree, &FileTreeWidget::scriptSelected, this, &GnuplotEditor::setEditorWidget);
     connect(fileTree, &FileTreeWidget::sheetSelected, this, &GnuplotEditor::setSheetWidget);
