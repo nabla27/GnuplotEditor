@@ -126,23 +126,30 @@ void TemplateCustomWidget::addTemplate(const QString& script)
 
     dialog.exec();
 
+    /* エラー条件 */
     if(templateName.text().isEmpty()) return;
-    if(templateName.text().contains('.')) return;
+    if(templateName.text().contains('.'))
+    {
+        QMessageBox::critical(this, "Error", "Do not include '.'");
+        return;
+    }
+    if(QFile::exists(currentTemplateFolderPath + '/' + templateName.text() + ".txt"))
+    {
+        QMessageBox::critical(this, "Error", "The same file already exists");
+        return;
+    }
 
     const QString templateFilePath = settingFolderPath() + '/' + folderCombo.currentText() + '/' + templateName.text() + ".txt";
 
-    QFile newFile(templateFilePath);
-    if(newFile.open(QFile::OpenModeFlag::WriteOnly))
+    bool ok = false;
+    WriteTxtFile::toTxt(templateFilePath, script, ok);
+
+    if(ok)
     {
-        QTextStream write(&newFile);
-        write << script;
-
-        newFile.close();
-
         if(currentTemplateFolderPath == settingFolderPath() + '/' + folderCombo.currentText())
         {
-            setupNewTemplate(newFile.fileName());
-            setTemplate(newFile.fileName());
+            setupNewTemplate(templateFilePath);
+            setTemplate(templateFilePath);
         }
     }
     else
@@ -292,7 +299,10 @@ void TemplateCustomWidget::setTemplate(const QString& filePath)
 void TemplateCustomWidget::renameTemplate(const QString& oldFilePath, const QString& newFilePath)
 {
     if(currentTemplateFilePath == oldFilePath)
+    {
         editorPanel->setTemplateName(newFilePath);
+        currentTemplateFilePath = newFilePath;
+    }
 }
 
 void TemplateCustomWidget::removeTemplate(TemplateItemWidget *item, const QString& filePath)
@@ -301,6 +311,7 @@ void TemplateCustomWidget::removeTemplate(TemplateItemWidget *item, const QStrin
     {
         editorPanel->setTemplateName("");
         editor->setPlainText("");
+        currentTemplateFilePath = "";
     }
 
     templateScriptTreeLayout->removeWidget(item);
@@ -320,6 +331,7 @@ void TemplateCustomWidget::removeFolder(TemplateItemWidget *item, const QString&
     {
         editorPanel->setTemplateName("");
         editor->setPlainText("");
+        currentTemplateFilePath = "";
     }
 
     templateScriptTreeLayout->removeWidget(item);

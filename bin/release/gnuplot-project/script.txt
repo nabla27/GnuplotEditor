@@ -1,2 +1,8 @@
 plot "data.csv" using 1:2 with lines
 replot cos(x)
+
+A = 1
+B = 0
+C = 1
+D = 0
+G(x) = A * exp(-(x-B)**2/(2*C**2)) + D
