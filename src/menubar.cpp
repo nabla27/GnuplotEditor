@@ -132,6 +132,7 @@ MenuBarWidget::MenuBarWidget(QWidget *parent)
     hLayout->setContentsMargins(0, 0, 0, 0);
 
     runButton->setText("&Run");
+    runButton->setToolTip("run the gnuplot [Alt+R]");
 
     scriptButton->setStyleSheet(emptyButtonSheet);
     sheetButton->setStyleSheet(emptyButtonSheet);

@@ -40,7 +40,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 
     /* ショートカットキー */
     QShortcut *saveShortcut = new QShortcut(QKeySequence("Ctrl+s"), this);
-    connect(saveShortcut, &QShortcut::activated, this, &GnuplotEditor::saveCurrentFile);
+    //connect(saveShortcut, &QShortcut::activated, this, &GnuplotEditor::saveCurrentFile);
 
     connect(fileTree, &FileTreeWidget::scriptSelected, this, &GnuplotEditor::setEditorWidget);
     connect(fileTree, &FileTreeWidget::sheetSelected, this, &GnuplotEditor::setSheetWidget);
