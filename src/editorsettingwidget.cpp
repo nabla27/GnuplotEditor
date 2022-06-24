@@ -319,7 +319,7 @@ void EditorSetting::loadDefaultSetting()
     textColorDialog->setCurrentColor(Qt::GlobalColor::white);
     setTextColor(Qt::GlobalColor::white);
 
-    const QFont font("Yu Gothic UI", 12, QFont::Normal, false);
+    const QFont font("Yu Gothic UI", 14, QFont::Normal, false);
     textFontDialog->setCurrentFont(font);
     setTextFont(font);
 
