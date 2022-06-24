@@ -68,6 +68,9 @@ Thumbs.db
 # Python byte code
 *.pyc
 
+#project file
+setting
+
 # Binaries
 # --------
 #*.dll
