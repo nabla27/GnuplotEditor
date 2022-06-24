@@ -23,6 +23,7 @@ Only this software can edit scripts and data, and display generated images. In a
   - Standard output / Standard error console output
   - Registration of preprocessing command
 - Create / insert script template
+  - The function like VsCode snippet
 
 # DEMO
 
