@@ -37,6 +37,8 @@ public slots:
     void addTemplate(const QString& script);
 
 private:
+    void setupLayout();
+
     void setupTemplateList(const QString& folderPath);
     void setupNewTemplate(const QString& filePath);
     void setupNewFolder(const QString& folderPath);

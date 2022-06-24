@@ -17,6 +17,7 @@
 #include <QMessageBox>
 #include <QFormLayout>
 #include <QDialogButtonBox>
+#include <QSplitter>
 #include "utility.h"
 #include "iofile.h"
 
@@ -36,33 +37,7 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.4f));
     setWindowTitle("GnuplotEditor  Script-Template");
 
-    QHBoxLayout *hLayout = new QHBoxLayout(this);
-    QVBoxLayout *templateListLayout = new QVBoxLayout;
-    QVBoxLayout *displayLayout = new QVBoxLayout;
-
-    setLayout(hLayout);
-    hLayout->addLayout(templateListLayout);
-    hLayout->addLayout(displayLayout);
-
-    templateListLayout->addWidget(templateItemPanel);
-    templateListLayout->addWidget(templateScriptTreeArea);
-    displayLayout->addWidget(editorPanel);
-    displayLayout->addWidget(editor);
-
-    templateItemPanel->setMaximumWidth(200);
-    templateScriptTreeArea->setLayout(new QVBoxLayout);
-    templateScriptTreeArea->setMaximumWidth(200);
-    templateScriptTreeArea->setWidgetResizable(true);
-    editor->setReadOnly(true);
-
-    setContentsMargins(0, 0, 0, 0);
-    templateListLayout->setContentsMargins(0, 0, 0, 0);
-    hLayout->setContentsMargins(0, 0, 0, 0);
-    hLayout->setSpacing(0);
-    templateListLayout->setSpacing(0);
-    templateScriptTreeArea->setContentsMargins(0, 0, 0, 0);
-    templateScriptTreeArea->layout()->setContentsMargins(0, 0, 0, 0);
-    templateScriptTreeArea->layout()->setSpacing(0);
+    setupLayout();
 
     connect(templateItemPanel, &TemplateItemPanel::backDirRequested, this, &TemplateCustomWidget::backDirectory);
     connect(templateItemPanel, &TemplateItemPanel::showFolderListRequested, this, &TemplateCustomWidget::showFolderList);
@@ -83,6 +58,49 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
 TemplateCustomWidget::~TemplateCustomWidget()
 {
     saveCurrentTemplateFile();
+}
+
+void TemplateCustomWidget::setupLayout()
+{
+    QHBoxLayout *hLayout = new QHBoxLayout(this);
+    QSplitter *splitter = new QSplitter(Qt::Orientation::Horizontal, this);
+    QWidget *templateListWidget = new QWidget(this);
+    QWidget *displayWidget = new QWidget(this);
+    QVBoxLayout *templateListLayout = new QVBoxLayout(templateListWidget);
+    QVBoxLayout *displayLayout = new QVBoxLayout(displayWidget);
+
+    setLayout(hLayout);
+    hLayout->addWidget(splitter);
+    splitter->addWidget(templateListWidget);
+    splitter->addWidget(displayWidget);
+
+    templateListWidget->setLayout(templateListLayout);
+    displayWidget->setLayout(displayLayout);
+    templateListLayout->addWidget(templateItemPanel);
+    templateListLayout->addWidget(templateScriptTreeArea);
+    displayLayout->addWidget(editorPanel);
+    displayLayout->addWidget(editor);
+
+    constexpr int defaultTreeWidth = 200;
+    splitter->setSizes(QList<int>() << defaultTreeWidth << geometry().width() - defaultTreeWidth);
+    templateItemPanel->setMaximumWidth(defaultTreeWidth);
+    templateScriptTreeArea->setLayout(new QVBoxLayout);
+    templateScriptTreeArea->setWidgetResizable(true);
+    editor->setReadOnly(true);
+
+    setContentsMargins(0, 0, 0, 0);
+    splitter->setContentsMargins(0, 0, 0, 0);
+    templateListWidget->setContentsMargins(0, 0, 0, 0);
+    displayWidget->setContentsMargins(0, 0, 0, 0);
+    hLayout->setContentsMargins(0, 0, 0, 0);
+    hLayout->setSpacing(0);
+    templateListLayout->setContentsMargins(0, 0, 0, 0);
+    templateListLayout->setSpacing(0);
+    displayLayout->setSpacing(0);
+    displayLayout->setContentsMargins(0, 0, 0, 0);
+    templateScriptTreeArea->setContentsMargins(0, 0, 0, 0);
+    templateScriptTreeArea->layout()->setContentsMargins(0, 0, 0, 0);
+    templateScriptTreeArea->layout()->setSpacing(0);
 }
 
 void TemplateCustomWidget::addTemplate(const QString& script)
