@@ -29,6 +29,10 @@ public:
     explicit TemplateCustomWidget(QWidget *parent = nullptr);
     ~TemplateCustomWidget();
 
+    static QString settingFolderPath() { return QApplication::applicationDirPath() + "/setting"; }
+    static QString rootFolderName() { return "script-template"; }
+    static QString rootFolderPath() { return settingFolderPath() + '/' + rootFolderName(); }
+
 public slots:
     void addTemplate(const QString& script);
 
@@ -58,10 +62,6 @@ private slots:
     void createNewFolder();
 
 private:
-    const QString settingFolderPath;
-    const QString rootFolderName;
-    const QString rootFolderPath;
-
     TemplateItemPanel *templateItemPanel;
     QScrollArea *templateScriptTreeArea;
 
