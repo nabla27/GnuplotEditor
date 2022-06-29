@@ -247,6 +247,10 @@ void GnuplotEditor::setupScriptItem(TreeScriptItem *item)
 void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
 {
     if(!item) return;
+
+    /* タブをGnuplotに設定 */
+    editorTab->setCurrentIndex(0);
+
     if(item == currentScript) return;
 
     currentScript = item;
@@ -267,9 +271,6 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     /* プロセスをセット */
     gnuplotProcess = item->process;
 
-    /* タブをGnuplotに設定 */
-    editorTab->setCurrentIndex(0);
-
     /* メニューバーの名前変更 */
     menuBarWidget->setScript(item);
 
@@ -287,6 +288,10 @@ void GnuplotEditor::setupSheetItem(TreeSheetItem *item)
 void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
 {
     if(!item) return;
+
+    /* タブをSheetに設定 */
+    editorTab->setCurrentIndex(1);
+
     if(item == currentSheet) return;
 
     currentSheet = item;
@@ -301,9 +306,6 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     /* 新しくセット */
     sheetWidget->addWidget(item->table);
     item->table->setGnuplot(gnuplot);
-
-    /* タブをSheetに設定 */
-    editorTab->setCurrentIndex(1);
 
     /* メニューバーの名前変更 */
     menuBarWidget->setSheet(item);
