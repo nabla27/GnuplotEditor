@@ -39,7 +39,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     fileTree->setFolderPath(path);
 
     /* ショートカットキー */
-    QShortcut *saveShortcut = new QShortcut(QKeySequence("Ctrl+s"), this);
+    QShortcut *saveShortcut = new QShortcut(QKeySequence("Ctrl+S"), this);
     connect(saveShortcut, &QShortcut::activated, this, &GnuplotEditor::saveCurrentFile);
 
     connect(fileTree, &FileTreeWidget::scriptSelected, this, &GnuplotEditor::setEditorWidget);

@@ -16,6 +16,7 @@ FileMenu::FileMenu(const QString& title, QWidget *parent)
     QAction *openFolder = new QAction("Open folder", this);
     addAction(openFolder);
     connect(openFolder, &QAction::triggered, this, &FileMenu::openFolder);
+    openFolder->setShortcut(QKeySequence("Ctrl+O"));
 
     QAction *addFolder = new QAction("Add folder", this);
     addAction(addFolder);
@@ -60,22 +61,27 @@ WidgetMenu::WidgetMenu(const QString& title, QWidget *parent)
     QAction *clearOutputWindow = new QAction("Clear Output Widget", this);
     addAction(clearOutputWindow);
     connect(clearOutputWindow, &QAction::triggered, this, &WidgetMenu::clearOutputWindowRequested);
+    clearOutputWindow->setShortcut(QKeySequence("Ctrl+Shift+C"));
 
     QAction *openFileTreeSetting = new QAction("FileTree Setting", this);
     addAction(openFileTreeSetting);
     connect(openFileTreeSetting, &QAction::triggered, this, &WidgetMenu::openFileTreeSettingRequested);
+    openFileTreeSetting->setShortcut(QKeySequence("Ctrl+Shift+F"));
 
     QAction *openEditorSetting = new QAction("Editor Setting", this);
     addAction(openEditorSetting);
     connect(openEditorSetting, &QAction::triggered, this, &WidgetMenu::openEditorSettingRequested);
+    openEditorSetting->setShortcut(QKeySequence("Ctrl+Shift+E"));
 
     QAction *openGnuplotSetting = new QAction("Gnuplot Setting", this);
     addAction(openGnuplotSetting);
     connect(openGnuplotSetting, &QAction::triggered, this, &WidgetMenu::openGnuplotSettingRequested);
+    openGnuplotSetting->setShortcut(QKeySequence("Ctrl+Shift+G"));
 
     QAction *openTemplateCustom = new QAction("Script Template", this);
     addAction(openTemplateCustom);
     connect(openTemplateCustom, &QAction::triggered, this, &WidgetMenu::openTemplateCustomRequested);
+    openTemplateCustom->setShortcut(QKeySequence("Ctrl+Shift+T"));
 }
 
 
@@ -85,9 +91,10 @@ WidgetMenu::WidgetMenu(const QString& title, QWidget *parent)
 HelpMenu::HelpMenu(const QString& title, QWidget *parent)
     : QMenu(title, parent)
 {
-    QAction *gnuplotHelpAction = new QAction("Gnuplot", this);
+    QAction *gnuplotHelpAction = new QAction("Gnuplot help", this);
     addAction(gnuplotHelpAction);
     connect(gnuplotHelpAction, &QAction::triggered, this, &HelpMenu::gnuplotHelpRequested);
+    gnuplotHelpAction->setShortcut(QKeySequence("Ctrl+Shift+H"));
 
     QAction *rebootAction = new QAction("Reboot", this);
     addAction(rebootAction);
@@ -190,6 +197,7 @@ void MenuBarWidget::setSheet(TreeFileItem *item)
 
 void MenuBarWidget::initializeMenu()
 {
+    /* script menubar */
     QAction *replot = new QAction("Replot", scriptMenu);
     QAction *closeProcess = new QAction("Close this process", scriptMenu);
     QAction *saveAsTemplate = new QAction("Save as template", scriptMenu);
@@ -198,16 +206,24 @@ void MenuBarWidget::initializeMenu()
     scriptMenu->addAction(closeProcess);
     scriptMenu->addAction(saveAsTemplate);
 
+    replot->setShortcut(QKeySequence("Ctrl+Alt+R"));
+    closeProcess->setShortcut(QKeySequence("Ctrl+Alt+C"));
+    saveAsTemplate->setShortcut(QKeySequence("Ctrl+Alt+S"));
+
     connect(replot, &QAction::triggered, this, &MenuBarWidget::replotRequested);
     connect(closeProcess, &QAction::triggered, this, &MenuBarWidget::closeProcessRequested);
     connect(saveAsTemplate, &QAction::triggered, this, &MenuBarWidget::saveAsTemplateRequested);
 
 
+    /* sheet menubar */
     QAction *openInNewWindow = new QAction("Open in new window.", this);
     autoUpdateAction = new QAction("Enable auto updating", this);
 
     sheetMenu->addAction(openInNewWindow);
     sheetMenu->addAction(autoUpdateAction);
+
+    openInNewWindow->setShortcut(QKeySequence("Ctrl+Alt+O"));
+    autoUpdateAction->setShortcut(QKeySequence("Ctrl+Alt+U"));
 
     connect(openInNewWindow, &QAction::triggered, this, &MenuBarWidget::openInNewWindowRequested);
     connect(autoUpdateAction, &QAction::triggered, this, &MenuBarWidget::autoSheetUpdateRequested);
