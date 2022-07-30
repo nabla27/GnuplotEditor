@@ -68,6 +68,7 @@ private slots:
     void receiveGnuplotStdOut(const QString& text);
     void receiveGnuplotStdErr(const QString& text, const int line);
 
+    void replot();
     void closeCurrentProcess();
     void moveSheetToNewWindow();
     void changeSheetAutoUpdating();

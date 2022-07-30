@@ -190,12 +190,15 @@ void MenuBarWidget::setSheet(TreeFileItem *item)
 
 void MenuBarWidget::initializeMenu()
 {
+    QAction *replot = new QAction("Replot", scriptMenu);
     QAction *closeProcess = new QAction("Close this process", scriptMenu);
     QAction *saveAsTemplate = new QAction("Save as template", scriptMenu);
 
+    scriptMenu->addAction(replot);
     scriptMenu->addAction(closeProcess);
     scriptMenu->addAction(saveAsTemplate);
 
+    connect(replot, &QAction::triggered, this, &MenuBarWidget::replotRequested);
     connect(closeProcess, &QAction::triggered, this, &MenuBarWidget::closeProcessRequested);
     connect(saveAsTemplate, &QAction::triggered, this, &MenuBarWidget::saveAsTemplateRequested);
 

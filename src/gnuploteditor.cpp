@@ -150,6 +150,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(helpMenu, &HelpMenu::gnuplotHelpRequested, this, &GnuplotEditor::showGnuplotHelp);
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
 
+    connect(menuBarWidget, &MenuBarWidget::replotRequested, this, &GnuplotEditor::replot);
     connect(menuBarWidget, &MenuBarWidget::closeProcessRequested, this, &GnuplotEditor::closeCurrentProcess);
     connect(menuBarWidget, &MenuBarWidget::saveAsTemplateRequested, this, &GnuplotEditor::saveAsTemplate);
     connect(menuBarWidget, &MenuBarWidget::openInNewWindowRequested, this, &GnuplotEditor::moveSheetToNewWindow);
@@ -369,6 +370,17 @@ void GnuplotEditor::receiveGnuplotStdErr(const QString& text, const int line)
     qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->highlightLine();
 }
 
+void GnuplotEditor::replot()
+{
+    if(gnuplotProcess)
+    {
+        if(gnuplotProcess->state() == QProcess::ProcessState::Running)
+            emit exeGnuplotRequested(gnuplotProcess, QList<QString>() << "replot", false);
+        else
+            browserWidget->outputText("Current gnuplot process is running.", BrowserWidget::MessageType::SystemErr);
+    }
+}
+
 void GnuplotEditor::closeCurrentProcess()
 {
     if(gnuplotProcess)
@@ -435,7 +447,7 @@ void GnuplotEditor::saveCurrentFile()
 
 void GnuplotEditor::showCommandHelp(const QString& command)
 {
-    emit exeGnuplotRequested(gnuplotProcess, QList<QString>() << "help " + command + "\n", false);
+    emit exeGnuplotRequested(gnuplotProcess, QList<QString>() << "help " + command, false);
 }
 
 void GnuplotEditor::showGnuplotHelp()

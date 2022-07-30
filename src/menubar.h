@@ -119,6 +119,7 @@ private:
     QMetaObject::Connection sheetSavedConnection;
 
 signals:
+    void replotRequested();
     void closeProcessRequested();
     void saveAsTemplateRequested();
     void openInNewWindowRequested();
