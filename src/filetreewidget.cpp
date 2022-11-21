@@ -406,7 +406,10 @@ void FileTreeWidget::onCustomContextMenu(const QPoint& pos)
     case TreeItemType::ScriptFolder:
     case TreeItemType::SheetFolder:
     case TreeItemType::OtherFolder:
+    {
+        rootMenu->exec(viewport()->mapToGlobal(pos));
         break;
+    }
     default:
         break;
     }
@@ -809,8 +812,32 @@ void FileTreeWidget::addFile()
 
     if(!item) return;
 
+    /* 選択されたフォルダーによって，ダイアログのフィルターを設定する */
+    QString nameFilter;
+    switch((TreeItemType)item->type())
+    {
+    case TreeItemType::ScriptFolder:
+        nameFilter += "Script files (";
+        foreach(const QString& suffix, TreeScriptItem::suffix.keys())
+            nameFilter += "*." + suffix + " ";
+        nameFilter += ")";
+        break;
+    case TreeItemType::SheetFolder:
+        nameFilter += "Sheet files (";
+        foreach(const QString& suffix, TreeSheetItem::suffix.keys())
+            nameFilter += "*." + suffix + " ";
+        nameFilter += ")";
+        break;
+    default:
+        break;
+    }
+
     /* ファイルを選択するダイアログ。複数選択可能 */
-    const QStringList filePathList = QFileDialog::getOpenFileNames(this);
+    QFileDialog fileDialog(this);
+    fileDialog.setFileMode(QFileDialog::FileMode::ExistingFiles);
+    fileDialog.setNameFilter(nameFilter);
+    if(!fileDialog.exec()) return;
+    const QStringList filePathList = fileDialog.selectedFiles();
 
     for(const QString& filePath : filePathList)
     {
@@ -835,6 +862,22 @@ void FileTreeWidget::newFile()
     TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
     const QString folderPath = item->info.absoluteFilePath();
 
+    /* ファイル名を入力する際のデフォルトテキストを拡張子によって変更 */
+    QString defaultFileName = "";
+    switch((TreeItemType)item->type())
+    {
+    case TreeItemType::ScriptFolder:
+        if(TreeScriptItem::suffix.count() > 0)
+            defaultFileName = "." + TreeScriptItem::suffix.begin().key();
+        break;
+    case TreeItemType::SheetFolder:
+        if(TreeSheetItem::suffix.count() > 0)
+            defaultFileName = "." + TreeSheetItem::suffix.begin().key();
+        break;
+    default:
+        break;
+    }
+
     if(!item) return;
 
     /* 新規ファイルの名前を取得するダイアログ */
@@ -842,7 +885,7 @@ void FileTreeWidget::newFile()
     for(;;)
     {
         bool ok = false;
-        newFileName = QInputDialog::getText(this, "FileTree", "Enter the new file name.", QLineEdit::EchoMode::Normal, "", &ok);
+        newFileName = QInputDialog::getText(this, "FileTree", "Enter the new file name.", QLineEdit::EchoMode::Normal, defaultFileName, &ok);
 
         if(!ok || newFileName.isEmpty()) return;
 
