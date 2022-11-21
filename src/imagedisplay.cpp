@@ -41,13 +41,23 @@ void PaintImage::paintEvent(QPaintEvent*)
 
 
 
-
+#include <QFileSystemWatcher>
+#include <QTimer>
 ImageDisplay::ImageDisplay(QWidget *parent)
     : QWidget(parent)
+    , fileWatcher(new QFileSystemWatcher(this))
+    , timer(new QTimer(this))
     , painter(new PaintImage(this))
     , originalSize(new QLineEdit(this))
     , currentSize(new QLineEdit(this))
 {
+    //対象の画像ファイルが変更されたら，画像画面が更新するようにする．
+    //ファイルに変更があった瞬間に読み込んでも画像はNULLになるのでtimer->setInterval()だけ待つ．
+    timer->setSingleShot(true);
+    timer->setInterval(500);
+    connect(fileWatcher, &QFileSystemWatcher::fileChanged, timer, QOverload<>::of(&QTimer::start));
+    connect(timer, &QTimer::timeout, this, &ImageDisplay::updateImage);
+
     QVBoxLayout *vLayout = new QVBoxLayout(this);
     QHBoxLayout *hLayout = new QHBoxLayout;
     QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -67,23 +77,26 @@ ImageDisplay::ImageDisplay(QWidget *parent)
     currentSize->setFixedWidth(60);
 
     connect(painter, &PaintImage::imageResized, this, &ImageDisplay::setCurrentSizeText);
-
-    //ウィンドウ閉じたら自動でdelete
-    setAttribute(Qt::WA_DeleteOnClose);
 }
 
 ImageDisplay::~ImageDisplay() {}
 
-
-bool ImageDisplay::setImageFile(const QString &fullPath)
+void ImageDisplay::setImagePath(const QString &fullPath)
 {
-    QImage img(fullPath);
+    if(fileWatcher->files().count() > 0) fileWatcher->removePath(imagePath);
+    fileWatcher->addPath(fullPath);
+    imagePath = fullPath;
+
+    updateImage();
+}
+
+void ImageDisplay::updateImage()
+{
+    QImage img(imagePath);
     painter->setImage(img);
 
     originalSize->setText(QString::number(img.size().width()) + ":" +
                           QString::number(img.size().height()));
-
-    return !img.isNull();
 }
 
 bool ImageDisplay::isValidExtension(const QString &ext)

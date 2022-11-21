@@ -319,11 +319,24 @@ void GnuplotEditor::setOtherWidget(TreeFileItem *item)
 
     const QString suffix = item->info.completeSuffix(); //拡張子
 
-    if(ImageDisplay::isValidExtension(suffix))
-    {   //画像の表示
-        ImageDisplay *imageDisplay = new ImageDisplay(nullptr);  //ウィンドウ閉じたら自動でdeleteされるよ!
-        imageDisplay->setImageFile(item->info.absoluteFilePath());
-        imageDisplay->show();
+    if(item->type() == (int)FileTreeWidget::TreeItemType::Image)
+    {
+        if(TreeImageItem *imageItem = static_cast<TreeImageItem*>(item))
+        {
+            if(imageItem->imageDisplay)
+            {
+                imageItem->imageDisplay->updateImage();
+                imageItem->imageDisplay->show(); //ウィンドウが閉じられていたら表示
+                imageItem->imageDisplay->activateWindow(); //他アプリ含めて一番前面にする
+                imageItem->imageDisplay->raise(); //同アプリ内で一番上に
+            }
+            else
+            {
+                imageItem->imageDisplay = new ImageDisplay(nullptr);
+                imageItem->imageDisplay->setImagePath(item->info.absoluteFilePath());
+                imageItem->imageDisplay->show();
+            }
+        }
     }
 }
 

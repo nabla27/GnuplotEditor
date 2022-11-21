@@ -48,6 +48,7 @@ protected:
 private:
     const QPixmap scriptIcon = QPixmap(":/icon/file_code");
     const QPixmap sheetIcon = QPixmap(":/icon/file_doc");
+    const QPixmap imageIcon = QPixmap(":/icon/file_image");
     const QPixmap otherIcon = QPixmap(":/icon/file_normal");
     const QIcon folderIcon = QApplication::style()->standardIcon(QStyle::SP_DirIcon);
     void setFileIcon();
@@ -133,6 +134,24 @@ signals:
 
 
 
+class ImageDisplay;
+class TreeImageItem : public TreeFileItem
+{
+    Q_OBJECT
+public:
+    explicit TreeImageItem(QTreeWidgetItem *parent, int type)
+        : TreeFileItem(parent, type)
+        , imageDisplay(nullptr) {}
+
+    ~TreeImageItem();
+
+public:
+    ImageDisplay *imageDisplay;
+};
+
+
+
+
 
 
 
@@ -145,7 +164,7 @@ public:
     ~FileTreeWidget();
 
     enum class FileTreeModel { FileSystem, Gnuplot };
-    enum class TreeItemType { Script = 1000, Sheet, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
+    enum class TreeItemType { Script = 1000, Sheet, Image, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
     Q_ENUM(FileTreeModel)
     static QStringList fileFilter;
     void setTreeModel(const int type);
@@ -186,10 +205,6 @@ private:
     QTreeWidgetItem *scriptFolderItem;
     QTreeWidgetItem *sheetFolderItem;
     QTreeWidgetItem *otherFolderItem;
-
-    const QPixmap scriptIcon = QPixmap(":/icon/file_code");
-    const QPixmap sheetIcon = QPixmap(":/icon/file_doc");
-    const QPixmap otherIcon = QPixmap(":/icon/file_normal");
 
     QString folderPath;
     QFileSystemWatcher *dirWatcher;

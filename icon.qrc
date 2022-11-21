@@ -3,5 +3,6 @@
         <file alias="file_code">bin/release/icon/icon_file_code.png</file>
         <file alias="file_doc">bin/release/icon/icon_file_doc.png</file>
         <file alias="file_normal">bin/release/icon/icon_file_normal.png</file>
+        <file alias="file_image">bin/release/icon/image.png</file>
     </qresource>
 </RCC>
