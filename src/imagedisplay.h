@@ -35,7 +35,7 @@ signals:
 
 
 
-
+class QFileSystemWatcher;
 class ImageDisplay : public QWidget
 {
     Q_OBJECT
@@ -44,13 +44,19 @@ public:
     ~ImageDisplay();
 
 public:
-    bool setImageFile(const QString& fullpath);
+    void setImagePath(const QString& fullpath);
     static bool isValidExtension(const QString& ext);
 
 public slots:
+    void updateImage();
+
+private slots:
     void setCurrentSizeText(const QSize& size);
 
 private:
+    QFileSystemWatcher *fileWatcher;
+    QTimer *timer;
+    QString imagePath;
     PaintImage *painter;
     QLineEdit *originalSize;
     QLineEdit *currentSize;

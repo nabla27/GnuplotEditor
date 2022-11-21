@@ -12,6 +12,7 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QFileDialog>
+#include "imagedisplay.h"
 
 
 
@@ -34,6 +35,8 @@ void TreeFileItem::setFileIcon()
         setIcon(0, scriptIcon); break;
     case FileTreeWidget::TreeItemType::Sheet:
         setIcon(0, sheetIcon); break;
+    case FileTreeWidget::TreeItemType::Image:
+        setIcon(0, imageIcon); break;
     case FileTreeWidget::TreeItemType::Other:
         setIcon(0, otherIcon); break;
     case FileTreeWidget::TreeItemType::Dir:
@@ -289,6 +292,19 @@ void TreeSheetItem::receiveLoadResult(const QList<QList<QString> >& data, const 
 
 
 
+TreeImageItem::~TreeImageItem()
+{
+    if(imageDisplay)
+    {
+        imageDisplay->deleteLater();
+        imageDisplay = nullptr;
+    }
+}
+
+
+
+
+
 
 
 
@@ -408,6 +424,9 @@ void FileTreeWidget::selectItem(QTreeWidgetItem *item, int)
     case TreeItemType::Sheet:
         emit sheetSelected(static_cast<TreeSheetItem*>(item));
         break;
+    case TreeItemType::Image:
+        emit otherSelected(static_cast<TreeFileItem*>(item)); //DEBUG
+        break;
     case TreeItemType::Other:
         emit otherSelected(static_cast<TreeFileItem*>(item));
         break;
@@ -495,6 +514,8 @@ void FileTreeWidget::updateGnuplotModelTree(const QString &path)
             item = new TreeScriptItem(scriptFolderItem, (int)TreeItemType::Script);
         else if(TreeSheetItem::suffix.contains(info.suffix()))
             item = new TreeSheetItem(sheetFolderItem, (int)TreeItemType::Sheet);
+        else if(ImageDisplay::isValidExtension(info.suffix()))
+            item = new TreeImageItem(otherFolderItem, (int)TreeItemType::Image);
         else
             item = new TreeFileItem(otherFolderItem, (int)TreeItemType::Other);
 
@@ -542,6 +563,8 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
             item = new TreeScriptItem(parent, (int)TreeItemType::Script);
         else if(TreeSheetItem::suffix.contains(info.suffix()))
             item = new TreeSheetItem(parent, (int)TreeItemType::Sheet);
+        else if(ImageDisplay::isValidExtension(info.suffix()))
+            item = new TreeImageItem(parent, (int)TreeItemType::Image);
         else
             item = new TreeFileItem(parent, (int)TreeItemType::Other);
 
