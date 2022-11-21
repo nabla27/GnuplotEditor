@@ -213,6 +213,7 @@ private:
     QMenu *rootMenu;
 
 signals:
+    void folderPathChanged(const QString& path);
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
 };
 

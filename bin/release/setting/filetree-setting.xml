@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+    <previousPath>F:/repos/PhysicsExp/B3/gnuplot</previousPath>
     <filterList/>
     <scriptExtList>
         <item>
@@ -15,5 +16,14 @@
             <readType>0</readType>
         </item>
     </scriptExtList>
-    <sheetExtList/>
+    <sheetExtList>
+        <item>
+            <ext>csv</ext>
+            <readType>0</readType>
+        </item>
+        <item>
+            <ext>tsv</ext>
+            <readType>1</readType>
+        </item>
+    </sheetExtList>
 </root>

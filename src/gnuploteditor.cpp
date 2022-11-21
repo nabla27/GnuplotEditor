@@ -31,12 +31,15 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     initializeMenuBar();
 
     /* workingDirectoryの設定 */
-    const QString path = QApplication::applicationDirPath() + "/setting/gnuplot-project";
-    //フォルダーが存在していなければ作成
-    QDir workingDir(path);
-    if(!workingDir.exists()) workingDir.mkpath(path);
-    //初期化
-    fileTree->setFolderPath(path);
+    QString workingDirectory = fileTreeSetting->previousFolderPath();
+    QDir dir(workingDirectory);
+    if(workingDirectory.isEmpty() || !dir.exists())
+    {
+        workingDirectory = QApplication::applicationDirPath() + "/setting/gnuplot-project";
+        dir.mkdir(workingDirectory);
+    }
+    fileTree->setFolderPath(workingDirectory);
+    fileTreeSetting->setPreviousFolderPath(workingDirectory);
 
     /* ショートカットキー */
     QShortcut *saveShortcut = new QShortcut(QKeySequence("Ctrl+s"), this);
@@ -44,6 +47,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 
     connect(fileTree, &FileTreeWidget::itemDoubleClicked, this, &GnuplotEditor::receiveTreeItem);
     connect(fileTree, &FileTreeWidget::errorCaused, browserWidget, &BrowserWidget::outputText);
+    connect(fileTree, &FileTreeWidget::folderPathChanged, fileTreeSetting, &FileTreeSettingWidget::setPreviousFolderPath);
     connect(gnuplot, &Gnuplot::standardOutputPassed, this, &GnuplotEditor::receiveGnuplotStdOut);
     connect(gnuplot, &Gnuplot::standardErrorPassed, this, &GnuplotEditor::receiveGnuplotStdErr);
     connect(gnuplot, &Gnuplot::errorCaused, browserWidget, &BrowserWidget::outputText);

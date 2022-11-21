@@ -600,6 +600,8 @@ void FileTreeWidget::setFolderPath(const QString& folderPath)
     this->folderPath = folderPath;
     dirWatcher->addPath(folderPath);
     loadFileTree();
+
+    emit folderPathChanged(folderPath);
 }
 
 

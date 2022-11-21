@@ -30,6 +30,11 @@ public:
     explicit FileTreeSettingWidget(QWidget *parent = nullptr);
     ~FileTreeSettingWidget();
 
+    QString previousFolderPath() const { return _previousFolderPath; }
+
+public slots:
+    void setPreviousFolderPath(const QString& path) { _previousFolderPath = path; }
+
 private:
     void setupLayout();
     void loadXmlSetting();
@@ -47,6 +52,7 @@ private slots:
 private:
     const QString settingFolderPath = QApplication::applicationDirPath() + "/setting";
     const QString settingFileName = "filetree-setting.xml";
+    QString _previousFolderPath = "";
 
     QStackedWidget *settingPage;
     QTreeWidget *filterList;
