@@ -58,11 +58,12 @@ private:
 
     void setupScriptItem(TreeScriptItem *item);
     void setupSheetItem(TreeSheetItem *item);
-
-private slots:
     void setEditorWidget(TreeScriptItem *item);
     void setSheetWidget(TreeSheetItem *item);
-    void setOtherWidget(TreeFileItem *item);
+    void setImageWidget(TreeImageItem *item);
+
+private slots:
+    void receiveTreeItem(QTreeWidgetItem *item, const int column);
 
     void executeGnuplot();
     void receiveGnuplotStdOut(const QString& text);

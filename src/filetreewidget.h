@@ -181,7 +181,6 @@ public slots:
 
 private slots:
     void onCustomContextMenu(const QPoint& pos);
-    void selectItem(QTreeWidgetItem *item, int column);
 
     void loadFileTree();
 
@@ -214,9 +213,6 @@ private:
     QMenu *rootMenu;
 
 signals:
-    void scriptSelected(TreeScriptItem *item);
-    void sheetSelected(TreeSheetItem *item);
-    void otherSelected(TreeFileItem *item);
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
 };
 

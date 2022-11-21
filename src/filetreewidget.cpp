@@ -337,8 +337,6 @@ FileTreeWidget::FileTreeWidget(QWidget *parent)
     initializeContextMenu();
 
     connect(dirWatcher, &QFileSystemWatcher::directoryChanged, this, &FileTreeWidget::updateFileTree);
-
-    connect(this, &FileTreeWidget::itemDoubleClicked, this, &FileTreeWidget::selectItem);
 }
 
 FileTreeWidget::~FileTreeWidget()
@@ -405,33 +403,6 @@ void FileTreeWidget::onCustomContextMenu(const QPoint& pos)
         rootMenu->exec(viewport()->mapToGlobal(pos));
         break;
     }
-    case TreeItemType::ScriptFolder:
-    case TreeItemType::SheetFolder:
-    case TreeItemType::OtherFolder:
-        break;
-    default:
-        break;
-    }
-}
-
-void FileTreeWidget::selectItem(QTreeWidgetItem *item, int)
-{
-    switch(TreeItemType(item->type()))
-    {
-    case TreeItemType::Script:
-        emit scriptSelected(static_cast<TreeScriptItem*>(item));
-        break;
-    case TreeItemType::Sheet:
-        emit sheetSelected(static_cast<TreeSheetItem*>(item));
-        break;
-    case TreeItemType::Image:
-        emit otherSelected(static_cast<TreeFileItem*>(item)); //DEBUG
-        break;
-    case TreeItemType::Other:
-        emit otherSelected(static_cast<TreeFileItem*>(item));
-        break;
-    case TreeItemType::Dir:
-    case TreeItemType::Root:
     case TreeItemType::ScriptFolder:
     case TreeItemType::SheetFolder:
     case TreeItemType::OtherFolder:

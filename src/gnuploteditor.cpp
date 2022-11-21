@@ -42,9 +42,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     QShortcut *saveShortcut = new QShortcut(QKeySequence("Ctrl+s"), this);
     connect(saveShortcut, &QShortcut::activated, this, &GnuplotEditor::saveCurrentFile);
 
-    connect(fileTree, &FileTreeWidget::scriptSelected, this, &GnuplotEditor::setEditorWidget);
-    connect(fileTree, &FileTreeWidget::sheetSelected, this, &GnuplotEditor::setSheetWidget);
-    connect(fileTree, &FileTreeWidget::otherSelected, this, &GnuplotEditor::setOtherWidget);
+    connect(fileTree, &FileTreeWidget::itemDoubleClicked, this, &GnuplotEditor::receiveTreeItem);
     connect(fileTree, &FileTreeWidget::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(gnuplot, &Gnuplot::standardOutputPassed, this, &GnuplotEditor::receiveGnuplotStdOut);
     connect(gnuplot, &Gnuplot::standardErrorPassed, this, &GnuplotEditor::receiveGnuplotStdErr);
@@ -244,9 +242,30 @@ void GnuplotEditor::setupScriptItem(TreeScriptItem *item)
     connect(item->editor, &TextEdit::textChanged, item, &TreeFileItem::setEdited);           //EditorSettingWidget::setEditor()より後に呼び出す。
 }
 
+void GnuplotEditor::receiveTreeItem(QTreeWidgetItem *item, const int column)
+{
+    if(column != 0) return;
+
+    switch((FileTreeWidget::TreeItemType)item->type())
+    {
+    case FileTreeWidget::TreeItemType::Script:
+        setEditorWidget(static_cast<TreeScriptItem*>(item)); break;
+    case FileTreeWidget::TreeItemType::Sheet:
+        setSheetWidget(static_cast<TreeSheetItem*>(item)); break;
+    case FileTreeWidget::TreeItemType::Image:
+        setImageWidget(static_cast<TreeImageItem*>(item)); break;
+    default:
+        break;
+    }
+}
+
 void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
 {
     if(!item) return;
+
+    /* タブをGnuplotに設定 */
+    editorTab->setCurrentIndex(0);
+
     if(item == currentScript) return;
 
     currentScript = item;
@@ -267,9 +286,6 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     /* プロセスをセット */
     gnuplotProcess = item->process;
 
-    /* タブをGnuplotに設定 */
-    editorTab->setCurrentIndex(0);
-
     /* メニューバーの名前変更 */
     menuBarWidget->setScript(item);
 
@@ -287,6 +303,10 @@ void GnuplotEditor::setupSheetItem(TreeSheetItem *item)
 void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
 {
     if(!item) return;
+
+    /* タブをSheetに設定 */
+    editorTab->setCurrentIndex(1);
+
     if(item == currentSheet) return;
 
     currentSheet = item;
@@ -302,9 +322,6 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     sheetWidget->addWidget(item->table);
     item->table->setGnuplot(gnuplot);
 
-    /* タブをSheetに設定 */
-    editorTab->setCurrentIndex(1);
-
     /* メニューバーの名前変更 */
     menuBarWidget->setSheet(item);
     menuBarWidget->changeAutoUpdateSheetMenuText(item->table->isEnablenotifyUpdating());
@@ -313,30 +330,22 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     connect(gnuplotSetting, &GnuplotSettingWidget::autoCompileMsecSet, item->table, &GnuplotTable::setUpdateMsec);
 }
 
-void GnuplotEditor::setOtherWidget(TreeFileItem *item)
+void GnuplotEditor::setImageWidget(TreeImageItem *item)
 {
-    if(!item) return; //消された場合
+    if(!item) return;
 
-    const QString suffix = item->info.completeSuffix(); //拡張子
-
-    if(item->type() == (int)FileTreeWidget::TreeItemType::Image)
+    if(item->imageDisplay)
     {
-        if(TreeImageItem *imageItem = static_cast<TreeImageItem*>(item))
-        {
-            if(imageItem->imageDisplay)
-            {
-                imageItem->imageDisplay->updateImage();
-                imageItem->imageDisplay->show(); //ウィンドウが閉じられていたら表示
-                imageItem->imageDisplay->activateWindow(); //他アプリ含めて一番前面にする
-                imageItem->imageDisplay->raise(); //同アプリ内で一番上に
-            }
-            else
-            {
-                imageItem->imageDisplay = new ImageDisplay(nullptr);
-                imageItem->imageDisplay->setImagePath(item->info.absoluteFilePath());
-                imageItem->imageDisplay->show();
-            }
-        }
+        item->imageDisplay->updateImage();
+        item->imageDisplay->show(); //ウィンドウが閉じられていたら表示
+        item->imageDisplay->activateWindow(); //他アプリ含めて一番前面にする
+        item->imageDisplay->raise(); //同アプリ内で一番上に
+    }
+    else
+    {
+        item->imageDisplay = new ImageDisplay(nullptr);
+        item->imageDisplay->setImagePath(item->info.absoluteFilePath());
+        item->imageDisplay->show();
     }
 }
 
