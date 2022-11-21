@@ -274,6 +274,8 @@ void FileTreeSettingWidget::loadXmlSetting()
         ptree pt;
         read_xml(settingFile.toUtf8().constData(), pt); //存在しないファイルやフォルダーを指定するとエラー(落ちる)
 
+        if(boost::optional<std::string> path = pt.get_optional<std::string>("root.previousPath"))
+            _previousFolderPath = QString::fromStdString(path.value());
 
         BOOST_FOREACH(const ptree::value_type& child, pt.get_child("root.filterList"))
         {
@@ -303,6 +305,7 @@ void FileTreeSettingWidget::saveXmlSetting()
 
     ptree pt;
 
+    pt.add("root.previousPath", _previousFolderPath.toUtf8().constData());
 
     ptree& childFilter = pt.add("root.filterList", "");
     for(int i = 0; i < filterList->topLevelItemCount(); ++i)
