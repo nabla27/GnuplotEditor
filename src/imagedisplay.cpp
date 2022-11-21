@@ -22,6 +22,11 @@ void PaintImage::setImage(const QImage &img)
     viewport()->update();
 }
 
+void PaintImage::changeImageSize(const QSize& size)
+{
+    viewport()->resize(size);
+}
+
 void PaintImage::paintEvent(QPaintEvent*)
 {
     QPainter widgetPainter(viewport());
@@ -43,13 +48,15 @@ void PaintImage::paintEvent(QPaintEvent*)
 
 #include <QFileSystemWatcher>
 #include <QTimer>
+#include <QLabel>
 ImageDisplay::ImageDisplay(QWidget *parent)
     : QWidget(parent)
     , fileWatcher(new QFileSystemWatcher(this))
     , timer(new QTimer(this))
     , painter(new PaintImage(this))
     , originalSize(new QLineEdit(this))
-    , currentSize(new QLineEdit(this))
+    , currentHeight(new QLineEdit(this))
+    , currentWidth(new QLineEdit(this))
 {
     //対象の画像ファイルが変更されたら，画像画面が更新するようにする．
     //ファイルに変更があった瞬間に読み込んでも画像はNULLになるのでtimer->setInterval()だけ待つ．
@@ -64,19 +71,27 @@ ImageDisplay::ImageDisplay(QWidget *parent)
 
     setLayout(vLayout);
     vLayout->addLayout(hLayout);
+    hLayout->addWidget(new QLabel(" Original size", this));
     hLayout->addWidget(originalSize);
-    hLayout->addWidget(currentSize);
+    hLayout->addWidget(new QLabel("Width", this));
+    hLayout->addWidget(currentWidth);
+    hLayout->addWidget(new QLabel("Height", this));
+    hLayout->addWidget(currentHeight);
     hLayout->addItem(spacer);
     vLayout->addWidget(painter, 0);
 
     vLayout->setContentsMargins(0, 0, 0, 0);
     vLayout->setSpacing(0);
+    hLayout->setSpacing(4);
     originalSize->setReadOnly(true);
-    currentSize->setReadOnly(true);    //後々画像サイズを入力で指定できるようにするよいいかも!!
     originalSize->setFixedWidth(60);
-    currentSize->setFixedWidth(60);
+    currentHeight->setFixedWidth(30);
+    currentWidth->setFixedWidth(30);
 
     connect(painter, &PaintImage::imageResized, this, &ImageDisplay::setCurrentSizeText);
+    connect(currentWidth, &QLineEdit::editingFinished, this, &ImageDisplay::setImageWidth);
+    connect(currentHeight, &QLineEdit::editingFinished, this, &ImageDisplay::setImageHeight);
+    connect(this, &ImageDisplay::changeImageRequested, painter, &PaintImage::changeImageSize);
 }
 
 ImageDisplay::~ImageDisplay() {}
@@ -95,8 +110,38 @@ void ImageDisplay::updateImage()
     QImage img(imagePath);
     painter->setImage(img);
 
-    originalSize->setText(QString::number(img.size().width()) + ":" +
-                          QString::number(img.size().height()));
+    const QString widthStr = QString::number(img.size().width());
+    const QString heightStr = QString::number(img.size().height());
+
+    originalSize->setText(widthStr + ":" + heightStr);
+}
+
+void ImageDisplay::setImageWidth()
+{
+    const int width = currentWidth->text().toInt();
+    const int height
+            = (float)painter->img.size().height()
+            / (float)painter->img.size().width()
+            * (float)width;
+
+    //画面の大きさを上部の(ラベル部+画像のViwer部)に設定する．
+    this->resize(width, height + currentHeight->height());
+
+    //viwerの大きさを設定する=画像の大きさを設定
+    emit changeImageRequested(QSize(width, height));
+}
+
+void ImageDisplay::setImageHeight()
+{
+    const int height = currentHeight->text().toInt();
+    const int width
+            = (float)painter->img.size().width()
+            / (float)painter->img.size().height()
+            * (float)height;
+
+    this->resize(width, height + currentWidth->height());
+
+    emit changeImageRequested(QSize(width, height));
 }
 
 bool ImageDisplay::isValidExtension(const QString &ext)
@@ -120,6 +165,6 @@ bool ImageDisplay::isValidExtension(const QString &ext)
 
 void ImageDisplay::setCurrentSizeText(const QSize& size)
 {
-    currentSize->setText(QString::number(size.width()) + ":" +
-                         QString::number(size.height()));
+    currentWidth->setText(QString::number(size.width()));
+    currentHeight->setText(QString::number(size.height()));
 }

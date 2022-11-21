@@ -21,12 +21,13 @@ public:
 
 public:
     void setImage(const QImage& img);
+    QImage img;
+
+public slots:
+    void changeImageSize(const QSize& size);
 
 private:
     void paintEvent(QPaintEvent *event);
-
-private:
-    QImage img;
 
 signals:
     void imageResized(const QSize& size);
@@ -52,6 +53,8 @@ public slots:
 
 private slots:
     void setCurrentSizeText(const QSize& size);
+    void setImageWidth();
+    void setImageHeight();
 
 private:
     QFileSystemWatcher *fileWatcher;
@@ -59,7 +62,11 @@ private:
     QString imagePath;
     PaintImage *painter;
     QLineEdit *originalSize;
-    QLineEdit *currentSize;
+    QLineEdit *currentHeight;
+    QLineEdit *currentWidth;
+
+signals:
+    void changeImageRequested(const QSize& size);
 };
 
 #endif // IMAGEDISPLAY_H
