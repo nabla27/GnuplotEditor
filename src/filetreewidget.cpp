@@ -833,6 +833,16 @@ void FileTreeWidget::addFile()
     default:
         break;
     }
+    /* ファイルを追加する親ディレクトリのパスも選択されたフォルダーによって設定する */
+    QString parentPath;
+    switch((TreeItemType)item->type())
+    {
+    case TreeItemType::Dir:
+        parentPath = item->info.absoluteFilePath();
+        break;
+    default:
+        parentPath = folderPath;
+    }
 
     /* ファイルを選択するダイアログ。複数選択可能 */
     QFileDialog fileDialog(this);
@@ -846,7 +856,7 @@ void FileTreeWidget::addFile()
         if(!TreeFileItem::list.contains(filePath))
         {
             const QString fileName = filePath.sliced(filePath.lastIndexOf('/') + 1);
-            const bool ok = QFile::copy(filePath, item->info.absoluteFilePath() + '/' + fileName);
+            const bool ok = QFile::copy(filePath, parentPath + '/' + fileName);
 
             /* コピーしてこれば、自動的にdirWatcher::directoryChanged() --> updateFileTree() によってTreeに追加される */
 
