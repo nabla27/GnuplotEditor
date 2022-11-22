@@ -7,5 +7,11 @@
         <file alias="edit_copy">bin/release/icon/edit_copy.png</file>
         <file alias="edit_cut">bin/release/icon/edit_cut.png</file>
         <file alias="edit_paste">bin/release/icon/edit_paste.png</file>
+        <file alias="edit_backgroundcolor">bin/release/icon/edit_backgroundcolor.png</file>
+        <file alias="edit_textcolor">bin/release/icon/edit_textcolor.png</file>
+        <file alias="icon_triangle">bin/release/icon/icon_triangle.png</file>
+        <file alias="edit_bold">bin/release/icon/edit_bold.png</file>
+        <file alias="edit_italic">bin/release/icon/edit_italic.png</file>
+        <file alias="edit_underline">bin/release/icon/edit_underline.png</file>
     </qresource>
 </RCC>

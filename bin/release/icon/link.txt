@@ -1,0 +1,19 @@
+edit_copy:
+<a target="_blank" href="https://icons8.com/icon/hJEMt1x2t7S6/clone-figure">Clone Figure</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_paste:
+<a target="_blank" href="https://icons8.com/icon/15065/%E3%83%9A%E3%83%BC%E3%82%B9%E3%83%88">ペースト</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_cut:
+<a target="_blank" href="https://icons8.com/icon/19126/%E3%81%AF%E3%81%95%E3%81%BF">はさみ</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_backgroundcolor:
+<a target="_blank" href="https://icons8.com/icon/15022/%E5%A1%97%E3%82%8A%E3%81%A4%E3%81%B6%E3%81%97%E3%81%AE%E8%89%B2">塗りつぶしの色</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_textcolor:
+<a target="_blank" href="https://icons8.com/icon/15073/%E6%96%87%E5%AD%97%E8%89%B2">文字色</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_triangle:
+<a target="_blank" href="https://icons8.com/icon/93961/%E9%81%93%E3%82%92%E8%AD%B2%E3%82%8B">道を譲る</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_bold:
+<a target="_blank" href="https://icons8.com/icon/8167/%E5%A4%AA%E5%AD%97">太字</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_italic:
+<a target="_blank" href="https://icons8.com/icon/99801/%E6%96%9C%E4%BD%93">斜体</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_underline:
+<a target="_blank" href="https://icons8.com/icon/99845/%E4%B8%8B%E7%B7%9A">下線</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+
