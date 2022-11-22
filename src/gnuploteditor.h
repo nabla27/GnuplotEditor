@@ -30,6 +30,7 @@
 #include "templatecustomwidget.h"
 #include "filetreesettingwidget.h"
 
+class TableArea;
 
 class TabWidget : public QTabWidget
 {
@@ -100,6 +101,7 @@ private:
     TabWidget *editorTab;
     TabWidget *displayTab;
     QStackedWidget *gnuplotWidget;
+    TableArea *tableArea;
     QStackedWidget *sheetWidget;
     ConsoleWidget *consoleWidget;
     BrowserWidget *browserWidget;

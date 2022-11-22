@@ -4,5 +4,8 @@
         <file alias="file_doc">bin/release/icon/icon_file_doc.png</file>
         <file alias="file_normal">bin/release/icon/icon_file_normal.png</file>
         <file alias="file_image">bin/release/icon/image.png</file>
+        <file alias="edit_copy">bin/release/icon/edit_copy.png</file>
+        <file alias="edit_cut">bin/release/icon/edit_cut.png</file>
+        <file alias="edit_paste">bin/release/icon/edit_paste.png</file>
     </qresource>
 </RCC>
