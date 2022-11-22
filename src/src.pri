@@ -15,6 +15,7 @@ HEADERS += \
     $$PWD/imagedisplay.h \
     $$PWD/iofile.h \
     $$PWD/menubar.h \
+    $$PWD/tablesettingwidget.h \
     $$PWD/templatecustomwidget.h \
     $$PWD/texteditor.h \
 #<<<<<<< HEAD
@@ -42,6 +43,7 @@ SOURCES += \
     $$PWD/iofile.cpp \
     $$PWD/main.cpp \
     $$PWD/menubar.cpp \
+    $$PWD/tablesettingwidget.cpp \
     $$PWD/templatecustomwidget.cpp \
     $$PWD/texteditor.cpp \
 #<<<<<<< HEAD

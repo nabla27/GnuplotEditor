@@ -11,6 +11,7 @@
 #include "imagedisplay.h"
 #include <QMessageBox>
 #include <QSplitter>
+#include "tablesettingwidget.h"
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
@@ -219,8 +220,11 @@ void GnuplotEditor::initializeLayout()
     consoleWidget = new ConsoleWidget(displayTab);
     browserWidget = new BrowserWidget(displayTab);
 
+    tableArea = new TableArea(editorTab, sheetWidget);
+
     editorTab->addTab(gnuplotWidget, "&Gnuplot");
-    editorTab->addTab(sheetWidget, "&Sheet");
+    editorTab->addTab(tableArea, "&Sheet");
+    //editorTab->addTab(sheetWidget, "&Sheet");
     displayTab->addTab(consoleWidget, "&Console");
     displayTab->addTab(browserWidget, "&Output");
 
@@ -302,6 +306,7 @@ void GnuplotEditor::setupSheetItem(TreeSheetItem *item)
     item->table = new GnuplotTable(sheetWidget);
     connect(item->table, &GnuplotTable::itemChanged, item, &TreeFileItem::setEdited);
     item->load();
+    tableArea->setupSheetWidget(item->table);
 }
 
 void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
