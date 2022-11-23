@@ -7,7 +7,7 @@
  * see https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 
-#include "tablesettingwidget.h"
+#include "tableSettingWidget.h"
 
 #include <QLayout>
 #include <QStackedWidget>
@@ -16,59 +16,81 @@
 #include <QHeaderView>
 #include <QColorDialog>
 #include <QFontComboBox>
+#include <QScrollArea>
 #include "layoutparts.h"
 #include "gnuplottable.h"
 
 
 TableArea::TableArea(QWidget *parent, QStackedWidget *sheetStack)
     : QWidget(parent)
-    , tableSettingWidget(new TableSettingWidget(this))
+    , settingScrollArea(new QScrollArea(this))
+    , scrollContentsVLayout(new QVBoxLayout)
+    , tableEditSettingWidget(new TableEditSettingWidget(this))
     , sheetStack(sheetStack)
 {
     QVBoxLayout *vLayout = new QVBoxLayout(this);
+    QWidget *scrollContents = new QWidget(settingScrollArea);
 
     setLayout(vLayout);
-    vLayout->addWidget(tableSettingWidget);
+    vLayout->addWidget(settingScrollArea);
     vLayout->addWidget(sheetStack);
+    settingScrollArea->setWidget(scrollContents);
+    scrollContents->setLayout(scrollContentsVLayout);
+
+    scrollContentsVLayout->addWidget(tableEditSettingWidget);
 
     vLayout->setSpacing(0);
+    scrollContentsVLayout->setSpacing(0);
     vLayout->setContentsMargins(0, 0, 0, 0);
+    settingScrollArea->setContentsMargins(0, 0, 0, 0);
+    scrollContents->setContentsMargins(0, 0, 0, 0);
+    scrollContentsVLayout->setContentsMargins(0, 0, 0, 0);
 
+    settingScrollArea->setWidgetResizable(true);
+    //scrollContentsVLayout->setSizeConstraint(QLayout::SetMinimumSize);
+
+    settingScrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    scrollContents->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+    tableEditSettingWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+    sheetStack->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    connect(settingScrollArea->horizontalScrollBar(), &QScrollBar::rangeChanged,
+            this, &TableArea::resizePanelFromHorizontalBar);
     connect(sheetStack, &QStackedWidget::currentChanged, this, &TableArea::setCurrentSheet);
 }
 
 void TableArea::setupSheetWidget(GnuplotTable *table)
 {
-    /* table -> tableSettingWidget */
+    /* table -> tableEditSettingWidget */
     connect(table->verticalHeader(), &QHeaderView::sectionCountChanged,
-            tableSettingWidget, &TableSettingWidget::setRowCountSpinBox);
+            tableEditSettingWidget, &TableEditSettingWidget::setRowCountSpinBox);
     connect(table->horizontalHeader(), &QHeaderView::sectionCountChanged,
-            tableSettingWidget, &TableSettingWidget::setColCountSpinBox);
+            tableEditSettingWidget, &TableEditSettingWidget::setColCountSpinBox);
 
-    /* tableSettingWidget -> table */
-    connect(tableSettingWidget, &TableSettingWidget::rowSpinBoxChanged,
+    /* tableEditSettingWidget -> table */
+    connect(tableEditSettingWidget, &TableEditSettingWidget::rowSpinBoxChanged,
             this, &TableArea::setRowCount);
-    connect(tableSettingWidget, &TableSettingWidget::colSpinBoxChanged,
+    connect(tableEditSettingWidget, &TableEditSettingWidget::colSpinBoxChanged,
             this, &TableArea::setColCount);
-    connect(tableSettingWidget, &TableSettingWidget::pasteRequested,
+    connect(tableEditSettingWidget, &TableEditSettingWidget::pasteRequested,
             this, &TableArea::pasteCell);
-    connect(tableSettingWidget, &TableSettingWidget::copyRequested,
+    connect(tableEditSettingWidget, &TableEditSettingWidget::copyRequested,
             this, &TableArea::copyCell);
-    connect(tableSettingWidget, &TableSettingWidget::cutRequested,
+    connect(tableEditSettingWidget, &TableEditSettingWidget::cutRequested,
             this, &TableArea::cutCell);
-    connect(tableSettingWidget, &TableSettingWidget::cellFontSet,
+    connect(tableEditSettingWidget, &TableEditSettingWidget::cellFontSet,
             this, &TableArea::setCellFont);
-    connect(tableSettingWidget, &TableSettingWidget::cellTextSizeSet,
+    connect(tableEditSettingWidget, &TableEditSettingWidget::cellTextSizeSet,
             this, &TableArea::setCellTextSize);
-    connect(tableSettingWidget, &TableSettingWidget::boldSet,
+    connect(tableEditSettingWidget, &TableEditSettingWidget::boldSet,
             this, &TableArea::setCellBold);
-    connect(tableSettingWidget, &TableSettingWidget::italicSet,
+    connect(tableEditSettingWidget, &TableEditSettingWidget::italicSet,
             this, &TableArea::setCellItalic);
-    connect(tableSettingWidget, &TableSettingWidget::underlineSet,
+    connect(tableEditSettingWidget, &TableEditSettingWidget::underlineSet,
             this, &TableArea::setCellUnderline);
-    connect(tableSettingWidget, &TableSettingWidget::cellColorSet,
+    connect(tableEditSettingWidget, &TableEditSettingWidget::cellColorSet,
             this, &TableArea::setCellColor);
-    connect(tableSettingWidget, &TableSettingWidget::cellTextColorSet,
+    connect(tableEditSettingWidget, &TableEditSettingWidget::cellTextColorSet,
             this, &TableArea::setCellTextColor);
 }
 
@@ -76,11 +98,22 @@ void TableArea::setCurrentSheet(int currentIndex)
 {
     if(GnuplotTable *table = static_cast<GnuplotTable*>(sheetStack->widget(currentIndex)))
     {
-        tableSettingWidget->setRowCountSpinBox(0, table->rowCount());
-        tableSettingWidget->setColCountSpinBox(0, table->columnCount());
+        tableEditSettingWidget->setRowCountSpinBox(0, table->rowCount());
+        tableEditSettingWidget->setColCountSpinBox(0, table->columnCount());
 
         currentTable = table;
     }
+}
+
+/* horizontalScrollBarの有無によってsettingScrollAreaの高さを変更する */
+void TableArea::resizePanelFromHorizontalBar(int, int max)
+{
+    int settingPanelHeight = settingScrollArea->sizeHint().height();
+
+    if(max > 0)
+        settingPanelHeight += settingScrollArea->horizontalScrollBar()->height();
+
+    settingScrollArea->setFixedHeight(settingPanelHeight);
 }
 
 void TableArea::setRowCount(const int row)
@@ -168,7 +201,7 @@ void TableArea::setCellTextColor(const QColor& color)
 
 
 
-TableSettingWidget::TableSettingWidget(QWidget *parent)
+TableEditSettingWidget::TableEditSettingWidget(QWidget *parent)
     : QWidget(parent)
     , rowCountSpinBox(new QSpinBox(this))
     , colCountSpinBox(new QSpinBox(this))
@@ -257,7 +290,7 @@ TableSettingWidget::TableSettingWidget(QWidget *parent)
 
     vLayout->setContentsMargins(0, 0, 0, 0);
     topHLayout->setContentsMargins(0, 0, 0, 0);
-    topHLayout->setSpacing(1);
+    topHLayout->setSpacing(0);
 
     textSizeSpinBox->setValue(9);
     cellColorButton->setPaintFrameColor(Qt::white);
@@ -265,62 +298,62 @@ TableSettingWidget::TableSettingWidget(QWidget *parent)
     textColorButton->setPaintFrameColor(Qt::black);
     textColorButton->setPaintFrameWidth(2);
 
-    connect(rowCountSpinBox, &QSpinBox::editingFinished, this, &TableSettingWidget::emitChangedRowCount);
-    connect(colCountSpinBox, &QSpinBox::editingFinished, this, &TableSettingWidget::emitChangedColCount);
-    connect(pasteButton, &mlayout::IconLabel::released, this, &TableSettingWidget::pasteRequested);
-    connect(copyButton, &mlayout::IconLabel::released, this, &TableSettingWidget::copyRequested);
-    connect(cutButton, &mlayout::IconLabel::released, this, &TableSettingWidget::cutRequested);
-    connect(fontComboBox, &QFontComboBox::currentFontChanged, this, &TableSettingWidget::cellFontSet);
-    connect(textSizeSpinBox, &QSpinBox::valueChanged, this, &TableSettingWidget::cellTextSizeSet);
-    connect(boldButton, &mlayout::IconLabel::released, this, &TableSettingWidget::boldSet);
-    connect(italicButton, &mlayout::IconLabel::released, this, &TableSettingWidget::italicSet);
-    connect(underlineButton, &mlayout::IconLabel::released, this, &TableSettingWidget::underlineSet);
-    connect(cellColorButton, &mlayout::IconLabel::released, this, &TableSettingWidget::emitChangedCellColor);
+    connect(rowCountSpinBox, &QSpinBox::editingFinished, this, &TableEditSettingWidget::emitChangedRowCount);
+    connect(colCountSpinBox, &QSpinBox::editingFinished, this, &TableEditSettingWidget::emitChangedColCount);
+    connect(pasteButton, &mlayout::IconLabel::released, this, &TableEditSettingWidget::pasteRequested);
+    connect(copyButton, &mlayout::IconLabel::released, this, &TableEditSettingWidget::copyRequested);
+    connect(cutButton, &mlayout::IconLabel::released, this, &TableEditSettingWidget::cutRequested);
+    connect(fontComboBox, &QFontComboBox::currentFontChanged, this, &TableEditSettingWidget::cellFontSet);
+    connect(textSizeSpinBox, &QSpinBox::valueChanged, this, &TableEditSettingWidget::cellTextSizeSet);
+    connect(boldButton, &mlayout::IconLabel::released, this, &TableEditSettingWidget::boldSet);
+    connect(italicButton, &mlayout::IconLabel::released, this, &TableEditSettingWidget::italicSet);
+    connect(underlineButton, &mlayout::IconLabel::released, this, &TableEditSettingWidget::underlineSet);
+    connect(cellColorButton, &mlayout::IconLabel::released, this, &TableEditSettingWidget::emitChangedCellColor);
     connect(cellColorExpand, &mlayout::IconLabel::released, cellColorDialog, &QColorDialog::show);
-    connect(cellColorDialog, &QColorDialog::currentColorChanged, this, &TableSettingWidget::changeCellColorButton);
-    connect(textColorButton, &mlayout::IconLabel::released, this, &TableSettingWidget::emitChangedTextColor);
+    connect(cellColorDialog, &QColorDialog::currentColorChanged, this, &TableEditSettingWidget::changeCellColorButton);
+    connect(textColorButton, &mlayout::IconLabel::released, this, &TableEditSettingWidget::emitChangedTextColor);
     connect(textColorExpand, &mlayout::IconLabel::released, textColorDialog, &QColorDialog::show);
-    connect(textColorDialog, &QColorDialog::currentColorChanged, this, &TableSettingWidget::changeTextColorButton);
+    connect(textColorDialog, &QColorDialog::currentColorChanged, this, &TableEditSettingWidget::changeTextColorButton);
 }
 
-void TableSettingWidget::emitChangedRowCount()
+void TableEditSettingWidget::emitChangedRowCount()
 {
     emit rowSpinBoxChanged(rowCountSpinBox->value());
 }
 
-void TableSettingWidget::emitChangedColCount()
+void TableEditSettingWidget::emitChangedColCount()
 {
     emit colSpinBoxChanged(colCountSpinBox->value());
 }
 
-void TableSettingWidget::emitChangedCellColor()
+void TableEditSettingWidget::emitChangedCellColor()
 {
     emit cellColorSet(cellColorDialog->currentColor());
 }
 
-void TableSettingWidget::emitChangedTextColor()
+void TableEditSettingWidget::emitChangedTextColor()
 {
     emit cellTextColorSet(textColorDialog->currentColor());
 }
 
-void TableSettingWidget::changeCellColorButton(const QColor& color)
+void TableEditSettingWidget::changeCellColorButton(const QColor& color)
 {
     cellColorButton->setPaintFrameColor(color);
     emitChangedCellColor();
 }
 
-void TableSettingWidget::changeTextColorButton(const QColor& color)
+void TableEditSettingWidget::changeTextColorButton(const QColor& color)
 {
     textColorButton->setPaintFrameColor(color);
     emitChangedTextColor();
 }
 
-void TableSettingWidget::setRowCountSpinBox(const int, const int rowCount)
+void TableEditSettingWidget::setRowCountSpinBox(const int, const int rowCount)
 {
     rowCountSpinBox->setValue(rowCount);
 }
 
-void TableSettingWidget::setColCountSpinBox(const int, const int colCount)
+void TableEditSettingWidget::setColCountSpinBox(const int, const int colCount)
 {
     colCountSpinBox->setValue(colCount);
 }

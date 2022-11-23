@@ -12,10 +12,11 @@
 
 #include <QWidget>
 
+class QScrollArea;
+class QVBoxLayout;
 class QStackedWidget;
-class TableSettingWidget;
+class TableEditSettingWidget;
 class GnuplotTable;
-
 
 
 class TableArea : public QWidget
@@ -30,6 +31,8 @@ public slots:
     void setCurrentSheet(int currentIndex);
 
 private slots:
+    void resizePanelFromHorizontalBar(int min, int max);
+
     void setRowCount(const int row);
     void setColCount(const int col);
     void pasteCell();
@@ -45,7 +48,10 @@ private slots:
 
 
 private:
-    TableSettingWidget *const tableSettingWidget;
+    QScrollArea *settingScrollArea;
+    QVBoxLayout *scrollContentsVLayout;
+
+    TableEditSettingWidget *const tableEditSettingWidget;
     QStackedWidget *const sheetStack;
     GnuplotTable *currentTable;
 };
@@ -59,11 +65,11 @@ class QColorDialog;
 class QFontComboBox;
 namespace mlayout { class IconLabel; }
 
-class TableSettingWidget : public QWidget
+class TableEditSettingWidget : public QWidget
 {
     Q_OBJECT
 public:
-    TableSettingWidget(QWidget *parent);
+    TableEditSettingWidget(QWidget *parent);
 
 public:
     void setRowCountSpinBox(const int old, const int rowCount);
