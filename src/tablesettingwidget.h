@@ -16,6 +16,7 @@ class QScrollArea;
 class QVBoxLayout;
 class QStackedWidget;
 class TableEditSettingWidget;
+class TableCellSettingWidget;
 class GnuplotTable;
 
 
@@ -46,12 +47,25 @@ private slots:
     void setCellColor(const QColor& color);
     void setCellTextColor(const QColor& color);
 
+    void setTextAlignment(const Qt::AlignmentFlag& flag);
+    void reverseRow();
+    void reverseCol();
+    void transposeCell();
+    void clearCellText();
+    void mergeSelectedCells();
+    void splitSelectedCells();
+    void insertRowAbove();
+    void insertRowBelow();
+    void insertColLeft();
+    void insertColRight();
+
 
 private:
     QScrollArea *settingScrollArea;
     QVBoxLayout *scrollContentsVLayout;
 
     TableEditSettingWidget *const tableEditSettingWidget;
+    TableCellSettingWidget *const tableCellSettingWidget;
     QStackedWidget *const sheetStack;
     GnuplotTable *currentTable;
 };
@@ -107,5 +121,32 @@ signals:
     void cellColorSet(const QColor& color);
     void cellTextColorSet(const QColor& color);
 };
+
+
+
+
+
+class TableCellSettingWidget : public QWidget
+{
+    Q_OBJECT
+public:
+    explicit TableCellSettingWidget(QWidget *parent);
+
+signals:
+    void textAlignmentSet(const Qt::AlignmentFlag& flag);
+    void reverseRowRequested();
+    void reverseColRequested();
+    void transposeCellRequested();
+    void clearCellTextRequested();
+    void mergeCellsRequested();
+    void splitCellsRequested();
+    void insertRowAboveRequested();
+    void insertRowBelowRequested();
+    void insertColLeftRequested();
+    void insertColRightRequested();
+};
+
+
+
 
 #endif // TABLESETTINGWIDGET_H
