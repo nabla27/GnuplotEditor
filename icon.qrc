@@ -13,5 +13,22 @@
         <file alias="edit_bold">bin/release/icon/edit_bold.png</file>
         <file alias="edit_italic">bin/release/icon/edit_italic.png</file>
         <file alias="edit_underline">bin/release/icon/edit_underline.png</file>
+        <file alias="edit_alignjust">bin/release/icon/edit_alignjust.png</file>
+        <file alias="edit_alignleft">bin/release/icon/edit_alignleft.png</file>
+        <file alias="edit_alignright">bin/release/icon/edit_alignright.png</file>
+        <file alias="edit_alignhcenter">bin/release/icon/edit_alignhcenter.png</file>
+        <file alias="edit_alignbaseline">bin/release/icon/edit_alignbaseline.png</file>
+        <file alias="edit_alignbottom">bin/release/icon/edit_alignbottom.png</file>
+        <file alias="edit_aligntop">bin/release/icon/edit_aligntop.png</file>
+        <file alias="edit_alignvcenter">bin/release/icon/edit_alignvcenter.png</file>
+        <file alias="edit_reversecol">bin/release/icon/edit_reversecol.png</file>
+        <file alias="edit_reverserow">bin/release/icon/edit_reverserow.png</file>
+        <file alias="edit_clear">bin/release/icon/edit_clear.png</file>
+        <file alias="edit_mergecells">bin/release/icon/edit_mergecells.png</file>
+        <file alias="edit_splitcells">bin/release/icon/edit_splitcells.png</file>
+        <file alias="edit_insertcolleft">bin/release/icon/edit_insertcolleft.png</file>
+        <file alias="edit_insertcolright">bin/release/icon/edit_insertcolright.png</file>
+        <file alias="edit_insertrowabove">bin/release/icon/edit_insertrowabove.png</file>
+        <file alias="edit_insertrowbelow">bin/release/icon/edit_insertrowbelow.png</file>
     </qresource>
 </RCC>
