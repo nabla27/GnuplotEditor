@@ -25,16 +25,30 @@ TableArea::TableArea(QWidget *parent, QStackedWidget *sheetStack)
     : QWidget(parent)
     , settingScrollArea(new QScrollArea(this))
     , scrollContentsVLayout(new QVBoxLayout)
+    , expandIcon(QPixmap(":/icon/icon_triangle").scaled(iconSize, iconSize))
+    , contractIcon(QPixmap(":/icon/icon_triangle").transformed(QTransform().rotate(180)).scaled(iconSize, iconSize))
+    , expandButton(new mlayout::IconLabel(this))
     , tableEditSettingWidget(new TableEditSettingWidget(this))
     , tableCellSettingWidget(new TableCellSettingWidget(this))
     , sheetStack(sheetStack)
 {
     QVBoxLayout *vLayout = new QVBoxLayout(this);
     QWidget *scrollContents = new QWidget(settingScrollArea);
+    QHBoxLayout *settingHLayout = new QHBoxLayout;
+    QVBoxLayout *panelButtonVLayout = new QVBoxLayout;
+    QHBoxLayout *panelButtonHLayout = new QHBoxLayout;
+
+    expandButton->setPixmap(expandIcon);
+    expandButton->setHoveredPalette(QPalette(expandButton->backgroundRole(), Qt::lightGray));
+    expandButton->setAutoFillBackground(true);
 
     setLayout(vLayout);
-    vLayout->addWidget(settingScrollArea);
+    vLayout->addLayout(settingHLayout);
     vLayout->addWidget(sheetStack);
+    settingHLayout->addWidget(settingScrollArea);
+    settingHLayout->addLayout(panelButtonVLayout);
+    panelButtonVLayout->addLayout(panelButtonHLayout);
+    panelButtonHLayout->addWidget(expandButton);
     settingScrollArea->setWidget(scrollContents);
     scrollContents->setLayout(scrollContentsVLayout);
 
@@ -42,22 +56,28 @@ TableArea::TableArea(QWidget *parent, QStackedWidget *sheetStack)
     scrollContentsVLayout->addWidget(tableCellSettingWidget);
 
     vLayout->setSpacing(0);
-    scrollContentsVLayout->setSpacing(1);
+    scrollContentsVLayout->setSpacing(0);
+    settingHLayout->setSpacing(0);
+    panelButtonVLayout->setSpacing(0);
+    panelButtonHLayout->setSpacing(0);
     vLayout->setContentsMargins(0, 0, 0, 0);
     settingScrollArea->setContentsMargins(0, 0, 0, 0);
     scrollContents->setContentsMargins(0, 0, 0, 0);
     scrollContentsVLayout->setContentsMargins(0, 0, 0, 0);
+    settingHLayout->setContentsMargins(0, 0, 0, 0);
+    panelButtonVLayout->setContentsMargins(0, 0, 0, 0);
+    panelButtonHLayout->setContentsMargins(0, 0, 0, 0);
 
     settingScrollArea->setWidgetResizable(true);
-    //scrollContentsVLayout->setSizeConstraint(QLayout::SetMinimumSize);
+    scrollContentsVLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
     settingScrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     scrollContents->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
     tableEditSettingWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
     sheetStack->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    connect(settingScrollArea->horizontalScrollBar(), &QScrollBar::rangeChanged,
-            this, &TableArea::resizePanelFromHorizontalBar);
+    connect(settingScrollArea->horizontalScrollBar(), &QScrollBar::rangeChanged, this, &TableArea::resizeSettingPanel);
+    connect(expandButton, &mlayout::IconLabel::released, this, &TableArea::setPanelExpand);
     connect(sheetStack, &QStackedWidget::currentChanged, this, &TableArea::setCurrentSheet);
 }
 
@@ -131,15 +151,36 @@ void TableArea::setCurrentSheet(int currentIndex)
     }
 }
 
-/* horizontalScrollBarの有無によってsettingScrollAreaの高さを変更する */
-void TableArea::resizePanelFromHorizontalBar(int, int max)
+void TableArea::resizeSettingPanel()
 {
-    int settingPanelHeight = settingScrollArea->sizeHint().height();
+    int height = (isPanelExpanding) ? scrollContentsVLayout->sizeHint().height()
+                                    : tableEditSettingWidget->sizeHint().height();
 
-    if(max > 0)
-        settingPanelHeight += settingScrollArea->horizontalScrollBar()->height();
+    height += 2;
 
-    settingScrollArea->setFixedHeight(settingPanelHeight);
+    if(settingScrollArea->horizontalScrollBar()->maximum() > 0)
+        height += settingScrollArea->horizontalScrollBar()->height();
+
+    settingScrollArea->setFixedHeight(height);
+}
+
+/* setting panel を広げたり閉じたり */
+void TableArea::setPanelExpand()
+{
+    isPanelExpanding = !isPanelExpanding;
+
+    if(isPanelExpanding)
+    {
+        expandButton->setPixmap(contractIcon);
+        //scrollContentsVLayout->setSpacing(1);
+    }
+    else
+    {
+        expandButton->setPixmap(expandIcon);
+        //scrollContentsVLayout->setSpacing(0);
+    }
+
+    resizeSettingPanel();
 }
 
 void TableArea::setRowCount(const int row)

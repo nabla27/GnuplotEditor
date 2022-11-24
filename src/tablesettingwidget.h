@@ -11,6 +11,7 @@
 #define TABLESETTINGWIDGET_H
 
 #include <QWidget>
+#include <QIcon>
 
 class QScrollArea;
 class QVBoxLayout;
@@ -18,6 +19,7 @@ class QStackedWidget;
 class TableEditSettingWidget;
 class TableCellSettingWidget;
 class GnuplotTable;
+namespace mlayout { class IconLabel; }
 
 
 class TableArea : public QWidget
@@ -28,11 +30,14 @@ public:
 
     void setupSheetWidget(GnuplotTable *table);
 
+    static constexpr int iconSize = 20;
+
 public slots:
     void setCurrentSheet(int currentIndex);
 
 private slots:
-    void resizePanelFromHorizontalBar(int min, int max);
+    void setPanelExpand();
+    void resizeSettingPanel();
 
     void setRowCount(const int row);
     void setColCount(const int col);
@@ -61,8 +66,12 @@ private slots:
 
 
 private:
-    QScrollArea *settingScrollArea;
-    QVBoxLayout *scrollContentsVLayout;
+    bool isPanelExpanding = false;
+    QScrollArea *const settingScrollArea;
+    QVBoxLayout *const scrollContentsVLayout;
+    mlayout::IconLabel *const expandButton;
+    const QPixmap expandIcon;
+    const QPixmap contractIcon;
 
     TableEditSettingWidget *const tableEditSettingWidget;
     TableCellSettingWidget *const tableCellSettingWidget;
@@ -77,7 +86,6 @@ private:
 class QSpinBox;
 class QColorDialog;
 class QFontComboBox;
-namespace mlayout { class IconLabel; }
 
 class TableEditSettingWidget : public QWidget
 {
