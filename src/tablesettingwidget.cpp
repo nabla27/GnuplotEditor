@@ -30,6 +30,7 @@ TableArea::TableArea(QWidget *parent, QStackedWidget *sheetStack)
     , expandButton(new mlayout::IconLabel(this))
     , tableEditSettingWidget(new TableEditSettingWidget(this))
     , tableCellSettingWidget(new TableCellSettingWidget(this))
+    , tablePlotSettingWidget(new TablePlotSettingWidget(this))
     , sheetStack(sheetStack)
 {
     QVBoxLayout *vLayout = new QVBoxLayout(this);
@@ -54,9 +55,10 @@ TableArea::TableArea(QWidget *parent, QStackedWidget *sheetStack)
 
     scrollContentsVLayout->addWidget(tableEditSettingWidget);
     scrollContentsVLayout->addWidget(tableCellSettingWidget);
+    scrollContentsVLayout->addWidget(tablePlotSettingWidget);
 
     vLayout->setSpacing(0);
-    scrollContentsVLayout->setSpacing(0);
+    scrollContentsVLayout->setSpacing(2);
     settingHLayout->setSpacing(0);
     panelButtonVLayout->setSpacing(0);
     panelButtonHLayout->setSpacing(0);
@@ -138,6 +140,12 @@ void TableArea::setupSheetWidget(GnuplotTable *table)
             this, &TableArea::insertColLeft);
     connect(tableCellSettingWidget, &TableCellSettingWidget::insertColRightRequested,
             this, &TableArea::insertColRight);
+
+    /* tablePlotSetting -> table */
+    connect(tablePlotSettingWidget, &TablePlotSettingWidget::plotRequested,
+            this, &TableArea::plotSelectedData);
+    connect(tablePlotSettingWidget, &TablePlotSettingWidget::plotOptionSet,
+            this, &TableArea::setPlotOption);
 }
 
 void TableArea::setCurrentSheet(int currentIndex)
@@ -340,6 +348,15 @@ void TableArea::insertColRight()
     if(currentTable) currentTable->insertColRight();
 }
 
+void TableArea::plotSelectedData(const GnuplotTable::PlotType &plotType)
+{
+    if(currentTable) currentTable->plotSelectedData(plotType);
+}
+
+void TableArea::setPlotOption(const QString &optionCmd)
+{
+    if(currentTable) currentTable->setOptionCmd(optionCmd);
+}
 
 
 
@@ -357,6 +374,8 @@ TableEditSettingWidget::TableEditSettingWidget(QWidget *parent)
 {
     QHBoxLayout *hLayout = new QHBoxLayout(this);
     setLayout(hLayout);
+    hLayout->setContentsMargins(0, 0, 0, 0);
+    setContentsMargins(0, 0, 0, 0);
 
     mlayout::IconLabel *pasteButton = new mlayout::IconLabel(this);
     mlayout::IconLabel *copyButton = new mlayout::IconLabel(this);
@@ -514,6 +533,7 @@ TableCellSettingWidget::TableCellSettingWidget(QWidget *parent)
     setLayout(hLayout);
     hLayout->setSpacing(1);
     hLayout->setContentsMargins(0, 0, 0, 0);
+    setContentsMargins(0, 0, 0, 0);
 
     mlayout::IconLabel *alignLeftButton = new mlayout::IconLabel(this);
     mlayout::IconLabel *alignHCenterButton = new mlayout::IconLabel(this);
@@ -656,6 +676,117 @@ TableCellSettingWidget::TableCellSettingWidget(QWidget *parent)
     connect(insertColLeftButton, &mlayout::IconLabel::released, this, &TableCellSettingWidget::insertColLeftRequested);
     connect(insertColRightButton, &mlayout::IconLabel::released, this, &TableCellSettingWidget::insertColRightRequested);
 }
+
+
+
+
+
+
+TablePlotSettingWidget::TablePlotSettingWidget(QWidget *parent)
+    : QWidget(parent)
+    , plotScatter2DMenu(new QMenu(this))
+    , plotBar2DMenu(new QMenu(this))
+    , plotCustomExpand(new mlayout::IconLabel(this))
+    , optionCmdEdit(new QLineEdit(this))
+{
+    QHBoxLayout *hLayout = new QHBoxLayout(this);
+    setLayout(hLayout);
+    hLayout->setSpacing(0);
+    hLayout->setContentsMargins(0, 0, 0, 0);
+    setContentsMargins(0, 0, 0, 0);
+
+    mlayout::IconLabel *plotScatterButton = new mlayout::IconLabel(this);
+    mlayout::IconLabel *plotScatterExpand = new mlayout::IconLabel(this);
+    mlayout::IconLabel *plotBarButton = new mlayout::IconLabel(this);
+    mlayout::IconLabel *plotBarExpand = new mlayout::IconLabel(this);
+    mlayout::IconLabel *plotCustomButton = new mlayout::IconLabel(this);
+
+    hLayout->addWidget(plotScatterButton);
+    hLayout->addWidget(plotScatterExpand);
+    hLayout->addWidget(plotBarButton);
+    hLayout->addWidget(plotBarExpand);
+    hLayout->addWidget(plotCustomButton);
+    hLayout->addWidget(plotCustomExpand);
+    hLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Preferred));
+
+    plotScatterButton->setPixmap(QPixmap(":/icon/graph_scatter").scaled(TableArea::iconSize, TableArea::iconSize));
+    plotScatterExpand->setPixmap(QPixmap(":/icon/icon_triangle").scaled(TableArea::iconSize / 3, TableArea::iconSize / 3));
+    plotBarButton->setPixmap(QPixmap(":/icon/graph_bar").scaled(TableArea::iconSize, TableArea::iconSize));
+    plotBarExpand->setPixmap(QPixmap(":/icon/icon_triangle").scaled(TableArea::iconSize / 3, TableArea::iconSize / 3));
+    plotCustomButton->setPixmap(QPixmap(":/icon/graph_script").scaled(TableArea::iconSize, TableArea::iconSize));
+    plotCustomExpand->setPixmap(QPixmap(":/icon/icon_triangle").scaled(TableArea::iconSize / 3, TableArea::iconSize / 3));
+
+    QPalette hoveredPalette(plotScatterButton->backgroundRole(), Qt::lightGray);
+    plotScatterButton->setHoveredPalette(hoveredPalette);
+    plotScatterExpand->setHoveredPalette(hoveredPalette);
+    plotBarButton->setHoveredPalette(hoveredPalette);
+    plotBarExpand->setHoveredPalette(hoveredPalette);
+    plotCustomButton->setHoveredPalette(hoveredPalette);
+    plotCustomExpand->setHoveredPalette(hoveredPalette);
+
+    plotScatterButton->setAutoFillBackground(true);
+    plotScatterExpand->setAutoFillBackground(true);
+    plotBarButton->setAutoFillBackground(true);
+    plotBarExpand->setAutoFillBackground(true);
+    plotCustomButton->setAutoFillBackground(true);
+    plotCustomExpand->setAutoFillBackground(true);
+
+    plotScatterButton->setToolTip("plot scatter graph");
+    plotBarButton->setToolTip("plot bar graph");
+    plotCustomButton->setToolTip("plot custom graph");
+
+    plotScatterExpand->setMenu(plotScatter2DMenu);
+    plotBarExpand->setMenu(plotBar2DMenu);
+
+    connect(plotScatterButton, &mlayout::IconLabel::released, [this](){ emit plotRequested(GnuplotTable::PlotType::LinesPoints2D); });
+    connect(plotBarButton, &mlayout::IconLabel::released, [this](){ emit plotRequested(GnuplotTable::PlotType::Boxes2D); });
+    connect(plotCustomButton, &mlayout::IconLabel::released, [this](){ emit plotRequested(GnuplotTable::PlotType::Custom) ;});
+    connect(plotCustomExpand, &mlayout::IconLabel::released, this, &TablePlotSettingWidget::showOptionCmdEditor);
+    connect(optionCmdEdit, &QLineEdit::textChanged, this, &TablePlotSettingWidget::plotOptionSet);
+    connect(optionCmdEdit, &QLineEdit::editingFinished, optionCmdEdit, &QLineEdit::hide);
+
+    setupMenu();
+    optionCmdEdit->setWindowFlags(Qt::WindowType::Tool | Qt::FramelessWindowHint);
+}
+
+void TablePlotSettingWidget::showOptionCmdEditor()
+{
+    optionCmdEdit->setGeometry(cursor().pos().x(), cursor().pos().y(),
+                               geometry().right() - plotCustomExpand->geometry().right(),
+                               TableArea::iconSize);
+    optionCmdEdit->show();
+}
+
+void TablePlotSettingWidget::setupMenu()
+{
+    QAction *scatter2dAct = plotScatter2DMenu->addAction("scatter 2d");
+    QAction *lines2dAct = plotScatter2DMenu->addAction("line 2d");
+    QAction *linespoints2dAct = plotScatter2DMenu->addAction("linespoints 2d");
+
+    connect(scatter2dAct, &QAction::triggered, [this](){ emit plotRequested(GnuplotTable::PlotType::Scatter2D); });
+    connect(lines2dAct, &QAction::triggered, [this](){ emit plotRequested(GnuplotTable::PlotType::Lines2D); });
+    connect(linespoints2dAct, &QAction::triggered, [this](){ emit plotRequested(GnuplotTable::PlotType::LinesPoints2D); });
+
+    QAction *boxes2dAct = plotBar2DMenu->addAction("boxes 2d");
+    QAction *steps2dAct = plotBar2DMenu->addAction("steps 2d");
+    QAction *fsteps2dAct = plotBar2DMenu->addAction("floor steps 2d");
+    QAction *fillsteps2dAct = plotBar2DMenu->addAction("fill steps 2d");
+    QAction *histeps2dAct = plotBar2DMenu->addAction("histogram steps 2d");
+    QAction *impulses2dAct = plotBar2DMenu->addAction("impulses 2d");
+
+    connect(boxes2dAct, &QAction::triggered, [this](){ emit plotRequested(GnuplotTable::PlotType::Boxes2D); });
+    connect(steps2dAct, &QAction::triggered, [this](){ emit plotRequested(GnuplotTable::PlotType::Steps2D); });
+    connect(fsteps2dAct, &QAction::triggered, [this](){ emit plotRequested(GnuplotTable::PlotType::FSteps2D); });
+    connect(fillsteps2dAct, &QAction::triggered, [this](){ emit plotRequested(GnuplotTable::PlotType::FillSteps2D); });
+    connect(histeps2dAct, &QAction::triggered, [this](){ emit plotRequested(GnuplotTable::PlotType::HiSteps2D); });
+    connect(impulses2dAct, &QAction::triggered, [this](){ emit plotRequested(GnuplotTable::PlotType::Impulses2D); });
+}
+
+
+
+
+
+
 
 
 
