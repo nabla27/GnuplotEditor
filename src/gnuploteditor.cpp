@@ -303,7 +303,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
 void GnuplotEditor::setupSheetItem(TreeSheetItem *item)
 {
     connect(currentSheet, &TreeFileItem::errorCaused, browserWidget, &BrowserWidget::outputText);
-    item->table = new GnuplotTable(sheetWidget);
+    item->table = new GnuplotTable(gnuplot, sheetWidget);
     connect(item->table, &GnuplotTable::itemChanged, item, &TreeFileItem::setEdited);
     item->load();
     tableArea->setupSheetWidget(item->table);
@@ -329,7 +329,6 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
 
     /* 新しくセット */
     sheetWidget->addWidget(item->table);
-    item->table->setGnuplot(gnuplot);
 
     /* メニューバーの名前変更 */
     menuBarWidget->setSheet(item);
@@ -394,14 +393,18 @@ void GnuplotEditor::receiveGnuplotStdErr(const QString& text, const int line)
     browserWidget->outputText(text, BrowserWidget::MessageType::GnuplotStdErr);
 
     /* エラー行の設定とハイライト */
-    qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->setErrorLineNumber(line - 1);
-    qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->highlightLine();
+    if(TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->widget(0)))
+    {
+        currentEditor->setErrorLineNumber(line - 1);
+        currentEditor->highlightLine();
+    }
 }
 
 void GnuplotEditor::closeCurrentProcess()
 {
     if(gnuplotProcess)
-        currentScript->requestCloseProcess();
+        if(currentScript)
+            currentScript->requestCloseProcess();
 }
 
 void GnuplotEditor::moveSheetToNewWindow()

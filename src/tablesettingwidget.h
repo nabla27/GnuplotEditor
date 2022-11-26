@@ -12,14 +12,23 @@
 
 #include <QWidget>
 #include <QIcon>
+#include "gnuplottable.h"
+
+
+
+
 
 class QScrollArea;
 class QVBoxLayout;
 class QStackedWidget;
 class TableEditSettingWidget;
 class TableCellSettingWidget;
-class GnuplotTable;
+class TablePlotSettingWidget;
 namespace mlayout { class IconLabel; }
+
+
+
+
 
 
 class TableArea : public QWidget
@@ -64,6 +73,9 @@ private slots:
     void insertColLeft();
     void insertColRight();
 
+    void plotSelectedData(const GnuplotTable::PlotType& plotType);
+    void setPlotOption(const QString& optionCmd);
+
 
 private:
     bool isPanelExpanding = false;
@@ -75,6 +87,7 @@ private:
 
     TableEditSettingWidget *const tableEditSettingWidget;
     TableCellSettingWidget *const tableCellSettingWidget;
+    TablePlotSettingWidget *const tablePlotSettingWidget;
     QStackedWidget *const sheetStack;
     GnuplotTable *currentTable;
 };
@@ -152,6 +165,36 @@ signals:
     void insertRowBelowRequested();
     void insertColLeftRequested();
     void insertColRightRequested();
+};
+
+
+
+
+
+
+
+
+class TablePlotSettingWidget : public QWidget
+{
+    Q_OBJECT
+public:
+    explicit TablePlotSettingWidget(QWidget *parent);
+
+private slots:
+    void showOptionCmdEditor();
+
+private:
+    void setupMenu();
+
+    QMenu *const plotScatter2DMenu;
+    QMenu *const plotBar2DMenu;
+
+    mlayout::IconLabel *const plotCustomExpand;
+    QLineEdit *const optionCmdEdit;
+
+signals:
+    void plotRequested(const GnuplotTable::PlotType& plotType);
+    void plotOptionSet(const QString& option);
 };
 
 

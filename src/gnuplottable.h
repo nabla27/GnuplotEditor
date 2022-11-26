@@ -28,8 +28,13 @@ class GnuplotTable : public TableWidget
 {
     Q_OBJECT
 public:
-    GnuplotTable(QWidget *parent = nullptr);
+    GnuplotTable(Gnuplot *gnuplot, QWidget *parent = nullptr);
     ~GnuplotTable();
+
+    enum class PlotType { Scatter2D, Lines2D, LinesPoints2D,
+                          Boxes2D, Steps2D, FSteps2D, FillSteps2D, HiSteps2D, Impulses2D,
+                          Custom };
+    Q_ENUM(PlotType)
 
     bool isEnablenotifyUpdating() const { return notifyUpdatingEnable; }
 
@@ -38,7 +43,11 @@ public slots:
     void removeLineRow() { removeRow(rowCount() - 1); }
     void appendLineCol() { insertColumn(columnCount()); }
     void removeLineCol() { removeColumn(columnCount() - 1); }
-    void setGnuplot(Gnuplot *gnuplot) { this->gnuplot = gnuplot; }
+
+    void setOptionCmd(const QString& option) { this->optionCmd = option; qDebug() << __LINE__; }
+    void gnuplotClip();
+    void toLatexCode();
+    void plotSelectedData(const GnuplotTable::PlotType& plotType);
 
     void changeUpdateNotification();
     void setUpdateMsec(const int msec) { updateMsec = msec; }
@@ -52,9 +61,8 @@ protected:
 private slots:
     void onCustomContextMenu(const QPoint& point);
     void startItemChangedTimer();
-    void plot();
-    void gnuplotClip();
-    void toLatexCode();
+
+    void plotCellPoints(const QList<std::array<int, 3>>& ranges, const QString& cmd);
 
 private:
     void initializeContextMenu();
@@ -65,8 +73,8 @@ private:
 private:
     QMenu *normalMenu = nullptr;
 
-    Gnuplot *gnuplot = nullptr;
-    QProcess *process;
+    Gnuplot *gnuplot;
+    QThread *gnuplotThread;
     QString optionCmd;
 
     bool notifyUpdatingEnable = false;
@@ -77,6 +85,7 @@ private:
 
 signals:
     void tableUpdated();
+    void plotRequested(QProcess *process, const QStringList& cmdList, bool preCmd);
 };
 
 #endif // TableWidget_H

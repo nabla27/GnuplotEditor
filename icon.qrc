@@ -30,5 +30,8 @@
         <file alias="edit_insertcolright">bin/release/icon/edit_insertcolright.png</file>
         <file alias="edit_insertrowabove">bin/release/icon/edit_insertrowabove.png</file>
         <file alias="edit_insertrowbelow">bin/release/icon/edit_insertrowbelow.png</file>
+        <file alias="graph_bar">bin/release/icon/graph_bar.png</file>
+        <file alias="graph_scatter">bin/release/icon/graph_scatter.png</file>
+        <file alias="graph_script">bin/release/icon/graph_script.png</file>
     </qresource>
 </RCC>

@@ -37,15 +37,19 @@ void Gnuplot::exc(QProcess *process, const QList<QString>& cmdlist, const bool p
         if(process->error() == QProcess::ProcessError::FailedToStart){
             process->close();
             emit errorCaused("failed to start the gnuplot process.", BrowserWidget::MessageType::ProcessErr);
+            return;
         }
     }
 
     emit cmdPushed("\n[ " + QDateTime::currentDateTime().toString() + " ]     ProcessID(" + QString::number(process->processId()) + ")");
 
     /* workingDirectoryに移動 */
-    const QString moveDirCmd = "cd '" + workingDirectory + "'";
-    process->write((moveDirCmd + "\n").toUtf8().constData());
-    emit cmdPushed(moveDirCmd);
+    if(!workingDirectory.isEmpty())
+    {
+        const QString moveDirCmd = "cd '" + workingDirectory + "'";
+        process->write((moveDirCmd + "\n").toUtf8().constData());
+        emit cmdPushed(moveDirCmd);
+    }
 
     if(preHandling)
     {
