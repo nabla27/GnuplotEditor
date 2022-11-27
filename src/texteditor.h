@@ -40,15 +40,21 @@ public slots:
     void setMainCmdColor(const QColor& color) { textHighlight->setFirstCmdColor(color); }
     void setCommentColor(const QColor& color) { textHighlight->setCommentColor(color); }
     void setStringColor(const QColor& color) { textHighlight->setStringColor(color); }
-    void setParentFolderPath(const QString& path) { emit currentFolderChanged(path); };
+    void setParentFolderPath(const QString& path) { emit currentFolderChanged(path); }
+    void insertToSelectedHeadBlock(const QString& text) const;
+    void removeFromSelectedHeadBlock(const QString& text) const;
+    void reverseSelectedCommentState() const;
+    void requestCommandHelp();
+    void enableUpdateTimer(const bool enable);
+
+public:
+    bool isEnableUpdateTimer() const { return updateTimerFlag; }
 
 protected:
     void wheelEvent(QWheelEvent *event) override;
 
 private:
     EditorSyntaxHighlighter *textHighlight;
-    void requestCommandHelp();
-
 
     /* completer */
 public:
@@ -74,6 +80,8 @@ private:
     QString currentCmd = "";
 
     QTimer *toolTipTimer;
+    QTimer *updateTimer;
+    bool updateTimerFlag = false;
 
     gnuplot_cpl::GnuplotCompletionModel *gnuplotcpl;
     QThread completionThread;
@@ -84,10 +92,12 @@ signals:
     void completionRequested(const QString& firstCmd, const QString& preCmd, const int index);
     void toolTipRequested(const QString& text, const QString& firstCmd, const QString& previousCmd);
     void currentFolderChanged(const QString& path);
+    void executeRequested();
 
 private slots:
     void setCompletionList(const QStringList& list);
     void setCompletionToolTip(const QString& text);
+    void setUpdateTimer();
 
     /* lineNumer */
 public:

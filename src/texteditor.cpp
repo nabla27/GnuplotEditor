@@ -28,6 +28,7 @@ const QChar TextEdit::tmlChar = '@';  //テンプレートを呼び出す接頭�
 TextEdit::TextEdit(QWidget *parent)
     : QPlainTextEdit(parent)
     , toolTipTimer(new QTimer(this))
+    , updateTimer(new QTimer(this))
 {
     {
         connect(this, &TextEdit::blockCountChanged,
@@ -66,9 +67,10 @@ TextEdit::TextEdit(QWidget *parent)
     {//ハイライトの初期設定
         textHighlight = new EditorSyntaxHighlighter(document());
     }
-    {//ショートカット
-        QShortcut *showCommandHelp = new QShortcut(QKeySequence(Qt::Key::Key_F1), this);
-        connect(showCommandHelp, &QShortcut::activated, this, &TextEdit::requestCommandHelp);
+    {
+        updateTimer->setSingleShot(true);
+        connect(this, &TextEdit::textChanged, this, &TextEdit::setUpdateTimer);
+        connect(updateTimer, &QTimer::timeout, this, &TextEdit::executeRequested);
     }
 }
 
@@ -76,6 +78,90 @@ TextEdit::~TextEdit()
 {
     completionThread.quit();
     completionThread.wait();
+}
+
+void TextEdit::insertToSelectedHeadBlock(const QString &text) const
+{
+    const int length = text.size();
+    QTextCursor tc = textCursor();
+    const int start = tc.selectionStart();
+    int end = tc.selectionEnd();
+
+    tc.setPosition(start);
+
+    for(int i = 0; i < 500 /*もしもの無限ループを避けるため*/; ++i)
+    {
+        tc.insertText(text);
+        end += length;
+
+        if(!tc.movePosition(QTextCursor::MoveOperation::NextBlock))
+        {
+            /* すでに最終行で移動できなかったなど */
+            break;
+        }
+
+        if(tc.position() > end) break;
+    }
+}
+
+void TextEdit::removeFromSelectedHeadBlock(const QString &text) const
+{
+    const int length = text.size();
+    QTextCursor tc = textCursor();
+    const int start = tc.selectionStart();
+    int end = tc.selectionEnd();
+
+    tc.setPosition(start, QTextCursor::MoveMode::MoveAnchor);
+
+    for(int i = 0; i < 500/*もしもの無限ループを避けるため*/; ++i)
+    {
+        if(!tc.movePosition(QTextCursor::MoveOperation::Right, QTextCursor::MoveMode::KeepAnchor, length)) break;
+
+        if(tc.selectedText() == text)
+        {
+            tc.removeSelectedText();
+            end -= length;
+        }
+
+        if(!tc.movePosition(QTextCursor::MoveOperation::NextBlock,
+                            QTextCursor::MoveMode::MoveAnchor))
+        {
+            /* すでに最終行で移動できなかったなど */
+            break;
+        }
+
+        if(tc.position() > end) break;
+    }
+}
+
+void TextEdit::reverseSelectedCommentState() const
+{
+    QTextCursor tc = textCursor();
+    const int start = tc.selectionStart();
+    int end = tc.selectionEnd();
+
+    tc.setPosition(start, QTextCursor::MoveMode::MoveAnchor);
+
+    for(int i = 0; i < 500; ++i)
+    {
+        if(!tc.movePosition(QTextCursor::MoveOperation::Right, QTextCursor::MoveMode::KeepAnchor, 1)) break;
+
+        if(tc.selectedText() == "#")
+        {
+            tc.removeSelectedText();
+            end -= 1;
+        }
+        else
+        {
+            if(!tc.movePosition(QTextCursor::MoveOperation::StartOfLine, QTextCursor::MoveMode::MoveAnchor)) break;
+            tc.insertText("#");
+            end += 1;
+        }
+
+        if(!tc.movePosition(QTextCursor::MoveOperation::NextBlock, QTextCursor::MoveMode::MoveAnchor)) break;
+
+        if(tc.position() > end) break;
+    }
 }
 
 /* 右クリックしながらホイールで文字サイズ変更 */
@@ -517,14 +603,39 @@ void TextEdit::requestToolTipForCursor()
 
 void TextEdit::requestCommandHelp()
 {
-    QTextCursor tc = cursorForPosition(mapFromGlobal(viewport()->cursor().pos()));
+    QTextCursor tc = textCursor();
+    QString cmd;
 
-    tc.movePosition(QTextCursor::MoveOperation::WordLeft, QTextCursor::MoveAnchor);
-    tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
+    if(tc.hasSelection())
+    {
+        cmd =  tc.selectedText();
+    }
+    else
+    {
+        tc.movePosition(QTextCursor::MoveOperation::StartOfWord, QTextCursor::MoveAnchor);
+        tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
+        cmd = tc.selectedText();
+    }
 
-    const QString textUnderCursor = tc.selectedText();
-    if(!textUnderCursor.isEmpty())
-        emit commandHelpRequested(textUnderCursor);
+    if(!cmd.isEmpty()) emit commandHelpRequested(cmd);
+}
+
+void TextEdit::enableUpdateTimer(const bool enable)
+{
+    updateTimerFlag = enable;
+
+    if(!enable)
+    {
+        updateTimer->stop();
+    }
+}
+
+void TextEdit::setUpdateTimer()
+{
+    if(updateTimerFlag)
+    {
+        updateTimer->start(1000);
+    }
 }
 
 
