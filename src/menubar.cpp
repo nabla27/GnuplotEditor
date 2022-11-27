@@ -296,3 +296,103 @@ void MenuBarWidget::changeSheetState(const bool isSaved)
 
 
 
+
+
+
+
+#include <QKeySequence>
+#include "texteditor.h"
+
+EditorMenu::EditorMenu(const QString &title, QWidget *parent)
+    : QMenu(title, parent)
+    , editor(nullptr)
+    , standardContextMenuAction(nullptr)
+    , commentOutAction(new QAction(tr("Comment Out"), this))
+    , autoRunAction(new QAction(tr("Enable Autorun"), this))
+    , saveAsTemplateAction(new QAction(tr("Save As Template"), this))
+    , showGnuplotHelpAction(new QAction(tr("Show Gnuplot Help"), this))
+    , settingWidgetAction(new QAction(tr("Editor Setting"), this))
+    , reloadScriptAction(new QAction(tr("Reload Script"), this))
+{
+    commentOutAction->setShortcut(QKeySequence("Ctrl+Alt+C"));
+    showGnuplotHelpAction->setShortcut(QKeySequence(Qt::Key::Key_F1));
+
+    connect(commentOutAction, &QAction::triggered, this, &EditorMenu::commentOut);
+    connect(autoRunAction, &QAction::triggered, this, &EditorMenu::enableAutoRun);
+    connect(showGnuplotHelpAction, &QAction::triggered, this, &EditorMenu::showGnuplotHelp);
+    connect(saveAsTemplateAction, &QAction::triggered, this, &EditorMenu::saveAsTemplateRequested);
+    connect(settingWidgetAction, &QAction::triggered, this, &EditorMenu::openEditorSettingRequested);
+    connect(reloadScriptAction, &QAction::triggered, this, &EditorMenu::reloadScriptRequested);
+
+    addAction(commentOutAction);
+    addAction(showGnuplotHelpAction);
+    addAction(autoRunAction);
+    addAction(saveAsTemplateAction);
+    addAction(settingWidgetAction);
+    addAction(reloadScriptAction);
+}
+
+void EditorMenu::mouseReleaseEvent(QMouseEvent *event)
+{
+    bool hasSelection = false;
+
+    if(editor)
+    {
+        if(standardContextMenuAction)
+            removeAction(standardContextMenuAction);
+
+        QMenu *standardContextMenu = editor->createStandardContextMenu();
+        standardContextMenu->setTitle("Edit");
+        standardContextMenuAction = insertMenu(commentOutAction, standardContextMenu);
+
+        hasSelection = editor->textCursor().hasSelection();
+
+        reloadScriptAction->setEnabled(true);
+        autoRunAction->setEnabled(true);
+        saveAsTemplateAction->setEnabled(true);
+    }
+    else
+    {
+        reloadScriptAction->setEnabled(false);
+        autoRunAction->setEnabled(false);
+        saveAsTemplateAction->setEnabled(false);
+    }
+
+    commentOutAction->setEnabled(hasSelection);
+    showGnuplotHelpAction->setEnabled(hasSelection);
+
+    QMenu::mouseReleaseEvent(event);
+}
+
+void EditorMenu::commentOut()
+{
+    if(editor) editor->reverseSelectedCommentState();
+}
+
+void EditorMenu::enableAutoRun()
+{
+    if(editor)
+    {
+        editor->enableUpdateTimer(!editor->isEnableUpdateTimer());
+
+        if(editor->isEnableUpdateTimer())
+            autoRunAction->setText("Disable Autorun");
+        else
+            autoRunAction->setText("Enable Autorun");
+    }
+}
+
+void EditorMenu::showGnuplotHelp()
+{
+    if(editor) editor->requestCommandHelp();
+}
+
+
+
+
+
+
+
+
+
+

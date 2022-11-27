@@ -130,6 +130,46 @@ signals:
 
 
 
+class TextEdit;
+
+class EditorMenu : public QMenu
+{
+    Q_OBJECT
+public:
+    EditorMenu(const QString& title, QWidget *parent);
+
+    void setEditor(TextEdit *editor) { this->editor = editor; }
+
+protected:
+    void mouseReleaseEvent(QMouseEvent *event) override;
+
+private slots:
+    void commentOut();
+    void enableAutoRun();
+    void showGnuplotHelp();
+
+private:
+    TextEdit *editor;
+
+    QAction *standardContextMenuAction;
+
+    QAction *commentOutAction;
+    QAction *showGnuplotHelpAction;
+    QAction *autoRunAction;
+    QAction *saveAsTemplateAction;
+    QAction *settingWidgetAction;
+    QAction *reloadScriptAction;
+
+signals:
+    void openEditorSettingRequested();
+    void reloadScriptRequested();
+    void saveAsTemplateRequested();
+};
+
+
+
+
+
 
 
 

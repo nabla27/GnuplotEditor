@@ -78,6 +78,7 @@ private slots:
     void saveAsTemplate();
 
     void saveCurrentFile();
+    void reloadCurrentScript();
 
     void showGnuplotHelp();
     void showCommandHelp(const QString& command);
@@ -90,6 +91,8 @@ private:
     Gnuplot *gnuplot;
     QProcess *gnuplotProcess;
     QThread gnuplotThread;
+
+    EditorMenu *editorMenu;
 
     EditorSetting *editorSetting;
     GnuplotSettingWidget *gnuplotSetting;

@@ -17,6 +17,9 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
     , gnuplot(new Gnuplot(nullptr))
     , gnuplotProcess(nullptr)
+
+    , editorMenu(new EditorMenu("Editor", nullptr))
+
     , editorSetting(new EditorSetting(nullptr))
     , gnuplotSetting(new GnuplotSettingWidget(nullptr))
     , templateCustom(new TemplateCustomWidget(this))
@@ -137,6 +140,12 @@ void GnuplotEditor::initializeMenuBar()
     menuBar->addMenu(helpMenu);
     menuBar->setCornerWidget(menuBarWidget);
 
+    //DEBUG
+    menuBar->addMenu(editorMenu);
+    connect(editorMenu, &EditorMenu::openEditorSettingRequested, editorSetting, &EditorSetting::show);
+    connect(editorMenu, &EditorMenu::reloadScriptRequested, this, &GnuplotEditor::reloadCurrentScript);
+    connect(editorMenu, &EditorMenu::saveAsTemplateRequested, this, &GnuplotEditor::saveAsTemplate);
+
     setMenuBar(menuBar);
 
     connect(fileMenu, &FileMenu::openFolderPushed, fileTree, &FileTreeWidget::setFolderPath);
@@ -248,6 +257,7 @@ void GnuplotEditor::setupScriptItem(TreeScriptItem *item)
     connect(item, &TreeScriptItem::destroyed, item->process, &QProcess::close);
     connect(item, &TreeScriptItem::destroyed, item->process, &QProcess::deleteLater);
     connect(item->editor, &TextEdit::textChanged, item, &TreeFileItem::setEdited);           //EditorSettingWidget::setEditor()より後に呼び出す。
+    connect(item->editor, &TextEdit::executeRequested, this, &GnuplotEditor::executeGnuplot);
 }
 
 void GnuplotEditor::receiveTreeItem(QTreeWidgetItem *item, const int column)
@@ -293,6 +303,9 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
 
     /* プロセスをセット */
     gnuplotProcess = item->process;
+
+    /* Editorメニュー */
+    editorMenu->setEditor(item->editor);
 
     /* メニューバーの名前変更 */
     menuBarWidget->setScript(item);
@@ -462,6 +475,36 @@ void GnuplotEditor::saveCurrentFile()
     else if(editorTab->currentIndex() == 1) //Table Tab
     {
         if(currentSheet) currentSheet->save();
+    }
+}
+
+void GnuplotEditor::reloadCurrentScript()
+{
+    if(currentScript)
+    {
+        if(currentScript->isSaved())
+            currentScript->load();
+        else
+        {
+            const auto result = QMessageBox::question(this, "Script is not saved.",
+                                                      "Do you save this scirpt ??");
+
+            switch(result)
+            {
+            case QMessageBox::StandardButton::Yes:
+            {
+                currentScript->save();
+                currentScript->load();
+                break;
+            }
+            case QMessageBox::StandardButton::No:
+            {
+                currentScript->load();
+            }
+            default:
+                break;
+            }
+        }
     }
 }
 
