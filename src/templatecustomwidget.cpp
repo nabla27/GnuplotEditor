@@ -51,8 +51,10 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     /* フォルダーの設定 */
     QDir settingFolderDir(settingFolderPath());
     if(!settingFolderDir.exists()) settingFolderDir.mkdir(settingFolderPath());
-    templateItemPanel->setFolderPath(rootFolderPath());
-    setupTemplateList(currentTemplateFolderPath);
+    setFolder(rootFolderPath());
+
+    //templateItemPanel->setFolderPath(rootFolderPath());
+    //setupTemplateList(currentTemplateFolderPath);
 }
 
 TemplateCustomWidget::~TemplateCustomWidget()
