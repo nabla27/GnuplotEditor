@@ -33,5 +33,9 @@
         <file alias="graph_bar">bin/release/icon/graph_bar.png</file>
         <file alias="graph_scatter">bin/release/icon/graph_scatter.png</file>
         <file alias="graph_script">bin/release/icon/graph_script.png</file>
+        <file alias="icon_closewidget">bin/release/icon/icon_closewidget.png</file>
+        <file alias="icon_remove">bin/release/icon/icon_remove.png</file>
+        <file alias="icon_separateh">bin/release/icon/icon_separateh.png</file>
+        <file alias="icon_separatev">bin/release/icon/icon_separatev.png</file>
     </qresource>
 </RCC>

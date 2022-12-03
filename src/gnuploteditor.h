@@ -31,6 +31,7 @@
 #include "filetreesettingwidget.h"
 
 class TableArea;
+class EditorArea; //DEBUG
 
 class TabWidget : public QTabWidget
 {
@@ -105,6 +106,7 @@ private:
     TabWidget *displayTab;
     QStackedWidget *gnuplotWidget;
     TableArea *tableArea;
+    EditorArea *editorArea; //DEBUG
     QStackedWidget *sheetWidget;
     ConsoleWidget *consoleWidget;
     BrowserWidget *browserWidget;

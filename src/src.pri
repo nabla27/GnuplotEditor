@@ -4,6 +4,7 @@ HEADERS += \
     $$PWD/cursorwatcher.h \
     $$PWD/editorsettingwidget.h \
     $$PWD/editorsyntaxhighlighter.h \
+    $$PWD/editorwidget.h \
     $$PWD/filetreesettingwidget.h \
     $$PWD/filetreewidget.h \
     $$PWD/gnuplot.h \
@@ -31,6 +32,7 @@ SOURCES += \
     $$PWD/consolewidget.cpp \
     $$PWD/editorsettingwidget.cpp \
     $$PWD/editorsyntaxhighlighter.cpp \
+    $$PWD/editorwidget.cpp \
     $$PWD/filetreesettingwidget.cpp \
     $$PWD/filetreewidget.cpp \
     $$PWD/gnuplot.cpp \
