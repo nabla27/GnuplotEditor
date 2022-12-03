@@ -872,7 +872,11 @@ void FileTreeWidget::newFile()
     if(selectedItems().count() < 1) return;
 
     TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
-    const QString folderPath = item->info.absoluteFilePath();
+
+    if(!item) return;
+
+    //const QString folderPath = item->info.absoluteFilePath();
+    QString folderPath;
 
     /* ファイル名を入力する際のデフォルトテキストを拡張子によって変更 */
     QString defaultFileName = "";
@@ -881,16 +885,17 @@ void FileTreeWidget::newFile()
     case TreeItemType::ScriptFolder:
         if(TreeScriptItem::suffix.count() > 0)
             defaultFileName = "." + TreeScriptItem::suffix.begin().key();
+        folderPath = this->folderPath;
         break;
     case TreeItemType::SheetFolder:
         if(TreeSheetItem::suffix.count() > 0)
             defaultFileName = "." + TreeSheetItem::suffix.begin().key();
+        folderPath = this->folderPath;
         break;
     default:
+        folderPath = item->info.absoluteFilePath();
         break;
     }
-
-    if(!item) return;
 
     /* 新規ファイルの名前を取得するダイアログ */
     QString newFileName;
