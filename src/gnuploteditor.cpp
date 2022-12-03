@@ -12,6 +12,7 @@
 #include <QMessageBox>
 #include <QSplitter>
 #include "tablesettingwidget.h"
+#include "editorwidget.h"
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
@@ -30,6 +31,10 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 
     /* レイアウト生成 */
     initializeLayout();
+
+    //DEBUG
+    editorArea = new EditorArea(this);
+    editorArea->show();
 
     /* メニュバーの生成 */
     initializeMenuBar();
@@ -311,6 +316,10 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     menuBarWidget->setScript(item);
 
     emit scriptPathChanged(item->info.absolutePath());
+
+    //DEBUG
+    TextEdit *a = new TextEdit(nullptr);
+    editorArea->setWidget(item->info.fileName(), a, QIcon(item->icon(0)));
 }
 
 void GnuplotEditor::setupSheetItem(TreeSheetItem *item)
