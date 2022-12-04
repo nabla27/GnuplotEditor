@@ -25,6 +25,7 @@
 #include <QThread>
 #include <QTimer>
 
+
 class TextEdit : public QPlainTextEdit
 {
     Q_OBJECT

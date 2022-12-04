@@ -7,23 +7,33 @@
 
 //DEBUG
 #include "texteditor.h"
+#include "filetreewidget.h"
 #include <QScrollArea>
 
-EditorStackedWidget::EditorStackedWidget(QWidget *parent, QSplitter *parentSplitter)
-    : QScrollArea(parent)
+EditorStackedWidget::EditorStackedWidget(EditorArea *editorArea, QSplitter *parentSplitter)
+    : QScrollArea(parentSplitter)
+    , editorArea(editorArea)
     , parentSplitter(parentSplitter)
     , contents(new QWidget(this))
     , editorListCombo(new QComboBox(this))
     , editorStack(new QStackedWidget(this))
+    , executeScript(new mlayout::IconLabel(this))
 {
     setWidgetResizable(true);
 
     editorListCombo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
     connect(editorStack, &QStackedWidget::currentChanged, editorListCombo, &QComboBox::setCurrentIndex);
+    connect(editorStack, &QStackedWidget::widgetRemoved, editorListCombo, &QComboBox::removeItem);
+    connect(editorStack, &QStackedWidget::widgetRemoved, this, &EditorStackedWidget::removeItem);
+    connect(editorStack, &QStackedWidget::currentChanged, this, &EditorStackedWidget::setCurrentItem);
     connect(editorListCombo, &QComboBox::currentIndexChanged, editorStack, &QStackedWidget::setCurrentIndex);
 
     setupLayout();
+}
+
+EditorStackedWidget::~EditorStackedWidget()
+{
 }
 
 void EditorStackedWidget::setupLayout()
@@ -43,6 +53,8 @@ void EditorStackedWidget::setupLayout()
     hLayout->addWidget(editorListCombo);
     hLayout->addWidget(removeEditor);
     hLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Preferred));
+    hLayout->addWidget(executeScript);
+    hLayout->addWidget(new mlayout::SeparatorLineWidget(this, Qt::Orientation::Vertical));
     hLayout->addWidget(separateAreaHorizontal);
     hLayout->addWidget(separateAreaVertical);
     hLayout->addWidget(closeArea);
@@ -56,23 +68,30 @@ void EditorStackedWidget::setupLayout()
 
     static int iconSize = 20;
     removeEditor->setPixmap(QPixmap(":/icon/icon_remove").scaled(iconSize, iconSize));
+    executeScript->setPixmap(QPixmap(":/icon/icon_execute").scaled(iconSize, iconSize));
     separateAreaHorizontal->setPixmap(QPixmap(":/icon/icon_separateh").scaled(iconSize, iconSize));
     separateAreaVertical->setPixmap(QPixmap(":/icon/icon_separatev").scaled(iconSize, iconSize));
     closeArea->setPixmap(QPixmap(":/icon/icon_closewidget").scaled(iconSize, iconSize));
 
     QPalette buttonPalette(removeEditor->backgroundRole(), Qt::lightGray);
     removeEditor->setHoveredPalette(buttonPalette);
+    executeScript->setHoveredPalette(buttonPalette);
     separateAreaHorizontal->setHoveredPalette(buttonPalette);
     separateAreaVertical->setHoveredPalette(buttonPalette);
     closeArea->setHoveredPalette(buttonPalette);
 
     removeEditor->setAutoFillBackground(true);
+    executeScript->setAutoFillBackground(true);
     separateAreaHorizontal->setAutoFillBackground(true);
     separateAreaVertical->setAutoFillBackground(true);
     closeArea->setAutoFillBackground(true);
 
+    executeScript->setHidden(true);
+
     connect(removeEditor, &mlayout::IconLabel::released,
             this, &EditorStackedWidget::removeCurrentWidget);
+    connect(executeScript, &mlayout::IconLabel::released,
+            this, &EditorStackedWidget::requestExecute);
     connect(separateAreaHorizontal, &mlayout::IconLabel::released,
             this, &EditorStackedWidget::separateAreaH);
     connect(separateAreaVertical, &mlayout::IconLabel::released,
@@ -105,10 +124,12 @@ void EditorStackedWidget::separateArea(const Qt::Orientation& orient)
 
     QSplitter *splitter = new QSplitter(orient);
     splitter->addWidget(this);
-    splitter->addWidget(new EditorStackedWidget(splitter, splitter));
+    splitter->addWidget(new EditorStackedWidget(editorArea, splitter));
 
     parentSplitter->insertWidget(index, splitter);
     parentSplitter->setSizes(sizes);
+
+    splitter->setSizes(QList<int>() << splitter->width() / 2 << splitter->width() / 2);
 
     parentSplitter = splitter; //順番に気をつける
 }
@@ -124,17 +145,23 @@ void EditorStackedWidget::separateAreaV()
     separateArea(Qt::Orientation::Vertical);
 }
 
-void EditorStackedWidget::addWidget(const QString& name,
-                                    QWidget *widget,
-                                    const QIcon& icon)
+void EditorStackedWidget::addWidget(QWidget *widget, TreeFileItem *item)
 {
+    if(!item) return;
+
     const int index = editorStack->indexOf(widget);
 
     if(index == -1)
     {
         editorStack->addWidget(widget);
-        editorListCombo->addItem(name);
-        editorListCombo->setItemIcon(editorListCombo->count() - 1, icon);
+        editorListCombo->addItem(item->text(0));
+        editorListCombo->setItemIcon(editorListCombo->count() - 1, item->icon(0));
+        items.append(item);
+
+        if((int)item->type() == (int)FileTreeWidget::TreeItemType::Script)
+        {
+            executeScript->setVisible(true);
+        }
     }
 
     editorStack->setCurrentWidget(widget);
@@ -147,12 +174,29 @@ void EditorStackedWidget::removeCurrentWidget()
     QWidget *currentWidget = editorStack->currentWidget();
     editorListCombo->removeItem(editorListCombo->currentIndex());
     editorStack->removeWidget(currentWidget);
+    /* removeしただけでは，親がstackedWidgetのままになる．
+     * そのままではEditorStackedWidgetが削除されたときに，
+     * 一緒にdeleteされるため，再び選択された場合にcrashする．
+     * parentを変更してStackedWidgetが削除されたときにdeleteされないようにする．*/
+    currentWidget->setParent(nullptr);
     currentWidget->hide();
 }
 
 void EditorStackedWidget::closeThisArea()
 {
     setParent(nullptr);
+
+    /*
+     * Sp1(v) --- Sp2(w) --- w1
+     *                    |- Sp3(h) --- Sp4(w) --- w2
+     *                               |          |- w4
+     *                               |- w3
+     */
+
+    /* splitterが空であれば削除 */
+    if(parentSplitter)
+        if(parentSplitter->count() == 0)
+            parentSplitter->deleteLater();
 
     while(editorStack->count() > 0)
     {
@@ -163,6 +207,39 @@ void EditorStackedWidget::closeThisArea()
     }
 
     deleteLater();
+}
+
+void EditorStackedWidget::removeItem(const int index)
+{
+    if(index < 0 || items.count() <= index) return;
+
+    items.removeAt(index);
+}
+
+TreeFileItem* EditorStackedWidget::currentTreeFileItem() const
+{
+    const int currentIndex = editorStack->currentIndex();
+
+    if(currentIndex < 0 || items.count() <= currentIndex) return nullptr;
+
+    return items.at(currentIndex);
+}
+
+void EditorStackedWidget::setCurrentItem(const int index)
+{
+    if(index < 0 || items.count() <= index) return;
+
+    if((int)items.at(index)->type() == (int)FileTreeWidget::TreeItemType::Script)
+    {
+        executeScript->setVisible(true);
+    }
+    else
+        executeScript->setVisible(false);
+}
+
+void EditorStackedWidget::requestExecute()
+{
+    emit editorArea->executeRequested(currentTreeFileItem());
 }
 
 
@@ -181,49 +258,57 @@ void EditorStackedWidget::closeThisArea()
 
 EditorArea::EditorArea(QWidget *parent)
     : QWidget(parent)
+    , vLayout(new QVBoxLayout(this))
+    , rootSplitter(nullptr)
 {
-    //DEBUG
-    setWindowFlag(Qt::Window);
-    setWindowFlag(Qt::WindowTitleHint, false);
-
-    QVBoxLayout *vLayout = new QVBoxLayout(this);
-    QSplitter *splitter = new QSplitter(Qt::Orientation::Vertical, this);
-
     setLayout(vLayout);
     setContentsMargins(0, 0, 0, 0);
     vLayout->setSpacing(0);
     vLayout->setContentsMargins(0, 0, 0, 0);
-    vLayout->addWidget(splitter);
-
-    splitter->addWidget(new EditorStackedWidget(splitter, splitter));
 }
 
-QWidget* EditorArea::currentFocusedWidget(const QString& className) const
+void EditorArea::setWidget(QWidget *widget, TreeFileItem *item)
 {
-    QWidget *targetWidget = focusWidget();
+    if(!rootSplitter) setupRootSplitter();
 
-    for(;;)
-    {
-        if(!targetWidget) return nullptr;
-
-        if(targetWidget->metaObject()->className() == className)
-        {
-            return targetWidget;
-        }
-        else
-        {
-            targetWidget = targetWidget->parentWidget();
-        }
-    }
-}
-
-void EditorArea::setWidget(const QString& name, QWidget *widget, const QIcon& icon)
-{
     if(EditorStackedWidget *focusedStack
-            = static_cast<EditorStackedWidget*>(currentFocusedWidget("EditorStackedWidget")))
+            = static_cast<EditorStackedWidget*>(currentFocusedWidget<EditorStackedWidget>()))
     {
-        focusedStack->addWidget(name, widget, icon);
+        focusedStack->addWidget(widget, item);
+        return;
     }
+    else
+    {
+        if(EditorStackedWidget *stackChild = findChild<EditorStackedWidget*>())
+        {
+            stackChild->addWidget(widget, item);
+            return;
+        }
+
+        EditorStackedWidget *w = new EditorStackedWidget(this, rootSplitter);
+        rootSplitter->addWidget(w);
+        w->addWidget(widget, item);
+    }
+}
+
+void EditorArea::setupRootSplitter()
+{
+    rootSplitter = new QSplitter(Qt::Orientation::Vertical, this);
+
+    rootSplitter->addWidget(new EditorStackedWidget(this, rootSplitter));
+    vLayout->addWidget(rootSplitter);
+
+    connect(rootSplitter, &QSplitter::destroyed, this, &EditorArea::resetRootSplitter);
+}
+
+TreeFileItem* EditorArea::currentTreeFileItem() const
+{
+    if(EditorStackedWidget *stack = static_cast<EditorStackedWidget*>(currentFocusedWidget<EditorStackedWidget>()))
+    {
+        return stack->currentTreeFileItem();
+    }
+    else
+        return nullptr;
 }
 
 

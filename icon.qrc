@@ -37,5 +37,6 @@
         <file alias="icon_remove">bin/release/icon/icon_remove.png</file>
         <file alias="icon_separateh">bin/release/icon/icon_separateh.png</file>
         <file alias="icon_separatev">bin/release/icon/icon_separatev.png</file>
+        <file alias="icon_execute">bin/release/icon/icon_execute.png</file>
     </qresource>
 </RCC>

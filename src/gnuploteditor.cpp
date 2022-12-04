@@ -17,7 +17,7 @@
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
     , gnuplot(new Gnuplot(nullptr))
-    , gnuplotProcess(nullptr)
+    //, gnuplotProcess(nullptr)
 
     , editorMenu(new EditorMenu("Editor", nullptr))
 
@@ -31,10 +31,6 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 
     /* レイアウト生成 */
     initializeLayout();
-
-    //DEBUG
-    editorArea = new EditorArea(this);
-    editorArea->show();
 
     /* メニュバーの生成 */
     initializeMenuBar();
@@ -171,7 +167,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(menuBarWidget, &MenuBarWidget::saveAsTemplateRequested, this, &GnuplotEditor::saveAsTemplate);
     connect(menuBarWidget, &MenuBarWidget::openInNewWindowRequested, this, &GnuplotEditor::moveSheetToNewWindow);
     connect(menuBarWidget, &MenuBarWidget::autoSheetUpdateRequested, this, &GnuplotEditor::changeSheetAutoUpdating);
-    connect(menuBarWidget, &MenuBarWidget::runRequested, this, &GnuplotEditor::executeGnuplot);
+    //connect(menuBarWidget, &MenuBarWidget::runRequested, this, &GnuplotEditor::executeGnuplot);
 }
 
 void GnuplotEditor::initializeLayout()
@@ -193,7 +189,8 @@ void GnuplotEditor::initializeLayout()
 
     //右側のエディター
     QVBoxLayout *vLayout = new QVBoxLayout;
-    editorTab = new TabWidget(editorSplitter);
+    //editorTab = new TabWidget(editorSplitter);
+    editorArea = new EditorArea(editorSplitter);
     displayTab = new TabWidget(editorSplitter);
 
     /* 配置 */
@@ -202,13 +199,14 @@ void GnuplotEditor::initializeLayout()
     mainSplitter->addWidget(fileTreeContents);
     mainSplitter->addWidget(editorSplitter);
 
-    //右側のファイルツリー
+    //左側のファイルツリー
     fileTreeContents->setLayout(treeLayout);
     treeLayout->addWidget(treeModelCombo);
     treeLayout->addWidget(fileTree);
 
-    //左側のファイルツリー
-    editorSplitter->addWidget(editorTab);
+    //右側のエディタ
+    //editorSplitter->addWidget(editorTab);
+    editorSplitter->addWidget(editorArea);
     editorSplitter->addWidget(displayTab);
 
     hLayout->setSpacing(0);
@@ -229,15 +227,15 @@ void GnuplotEditor::initializeLayout()
 
 
     /* 各ウィジェット内のアイテムの初期化 */
-    gnuplotWidget = new QStackedWidget(editorTab);
-    sheetWidget = new QStackedWidget(editorTab);
+    //gnuplotWidget = new QStackedWidget(editorTab);
+    //sheetWidget = new QStackedWidget(editorTab);
     consoleWidget = new ConsoleWidget(displayTab);
     browserWidget = new BrowserWidget(displayTab);
 
-    tableArea = new TableArea(editorTab, sheetWidget);
+    //tableArea = new TableArea(editorTab, sheetWidget);
 
-    editorTab->addTab(gnuplotWidget, "&Gnuplot");
-    editorTab->addTab(tableArea, "&Sheet");
+    //editorTab->addTab(gnuplotWidget, "&Gnuplot");
+    //editorTab->addTab(tableArea, "&Sheet");
     //editorTab->addTab(sheetWidget, "&Sheet");
     displayTab->addTab(consoleWidget, "&Console");
     displayTab->addTab(browserWidget, "&Output");
@@ -245,11 +243,13 @@ void GnuplotEditor::initializeLayout()
     displayTab->setTabPosition(QTabWidget::TabPosition::South);
 
     connect(treeModelCombo, &QComboBox::currentIndexChanged, fileTree, &FileTreeWidget::setTreeModel);
+    connect(editorArea, &EditorArea::executeRequested, this, &GnuplotEditor::executeItem);
 }
 
 void GnuplotEditor::setupScriptItem(TreeScriptItem *item)
 {
-    item->editor = new TextEdit(gnuplotWidget);
+    //item->editor = new TextEdit(gnuplotWidget);
+    item->editor = new TextEdit(nullptr);
     item->process = new QProcess(nullptr);
     item->process->moveToThread(&gnuplotThread);
     item->load();
@@ -262,7 +262,7 @@ void GnuplotEditor::setupScriptItem(TreeScriptItem *item)
     connect(item, &TreeScriptItem::destroyed, item->process, &QProcess::close);
     connect(item, &TreeScriptItem::destroyed, item->process, &QProcess::deleteLater);
     connect(item->editor, &TextEdit::textChanged, item, &TreeFileItem::setEdited);           //EditorSettingWidget::setEditor()より後に呼び出す。
-    connect(item->editor, &TextEdit::executeRequested, this, &GnuplotEditor::executeGnuplot);
+    //connect(item->editor, &TextEdit::executeRequested, this, &GnuplotEditor::executeGnuplot);
 }
 
 void GnuplotEditor::receiveTreeItem(QTreeWidgetItem *item, const int column)
@@ -287,15 +287,15 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     if(!item) return;
 
     /* タブをGnuplotに設定 */
-    editorTab->setCurrentIndex(0);
+    //editorTab->setCurrentIndex(0);
 
-    if(item == currentScript) return;
+    //if(item == currentScript) return;
 
-    currentScript = item;
+    //currentScript = item;
 
     /* 前にセットされてたものは取り除く */
-    if(QWidget *w = gnuplotWidget->widget(gnuplotWidget->currentIndex()))
-        gnuplotWidget->removeWidget(w);
+    //if(QWidget *w = gnuplotWidget->widget(gnuplotWidget->currentIndex()))
+    //    gnuplotWidget->removeWidget(w);
 
     /* 初めて表示する場合 */
     if(!item->editor) setupScriptItem(item);
@@ -304,10 +304,10 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     editorSetting->setEditor(item->editor);
 
     /* 新しくセット */
-    gnuplotWidget->addWidget(item->editor);       //editorのparentは自動的にgnuplotWidgetとなる
+    //gnuplotWidget->addWidget(item->editor);       //editorのparentは自動的にgnuplotWidgetとなる
 
     /* プロセスをセット */
-    gnuplotProcess = item->process;
+    //gnuplotProcess = item->process;
 
     /* Editorメニュー */
     editorMenu->setEditor(item->editor);
@@ -318,17 +318,17 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     emit scriptPathChanged(item->info.absolutePath());
 
     //DEBUG
-    TextEdit *a = new TextEdit(nullptr);
-    editorArea->setWidget(item->info.fileName(), a, QIcon(item->icon(0)));
+    editorArea->setWidget(item->editor, item);
 }
 
 void GnuplotEditor::setupSheetItem(TreeSheetItem *item)
 {
-    connect(currentSheet, &TreeFileItem::errorCaused, browserWidget, &BrowserWidget::outputText);
-    item->table = new GnuplotTable(gnuplot, sheetWidget);
+    //connect(currentSheet, &TreeFileItem::errorCaused, browserWidget, &BrowserWidget::outputText);
+    connect(item, &TreeSheetItem::errorCaused, browserWidget, &BrowserWidget::outputText);
+    item->table = new GnuplotTable(gnuplot, nullptr);
     connect(item->table, &GnuplotTable::itemChanged, item, &TreeFileItem::setEdited);
     item->load();
-    tableArea->setupSheetWidget(item->table);
+    //tableArea->setupSheetWidget(item->table);
 }
 
 void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
@@ -336,27 +336,30 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     if(!item) return;
 
     /* タブをSheetに設定 */
-    editorTab->setCurrentIndex(1);
+    //editorTab->setCurrentIndex(1);
 
-    if(item == currentSheet) return;
+    //if(item == currentSheet) return;
 
-    currentSheet = item;
+    //currentSheet = item;
 
     /* 前にセットされてたものは削除 */
-    if(QWidget *w = sheetWidget->widget(sheetWidget->currentIndex()))
-        sheetWidget->removeWidget(w);
+    //if(QWidget *w = sheetWidget->widget(sheetWidget->currentIndex()))
+    //    sheetWidget->removeWidget(w);
 
     /* 初めて表示する場合 */
     if(!item->table) setupSheetItem(item);
 
     /* 新しくセット */
-    sheetWidget->addWidget(item->table);
+    //sheetWidget->addWidget(item->table);
 
     /* メニューバーの名前変更 */
     menuBarWidget->setSheet(item);
     menuBarWidget->changeAutoUpdateSheetMenuText(item->table->isEnablenotifyUpdating());
 
-    connect(item->table, &GnuplotTable::tableUpdated, this, &GnuplotEditor::executeGnuplot);
+    //DEBUG
+    editorArea->setWidget(item->table, item);
+
+    //connect(item->table, &GnuplotTable::tableUpdated, this, &GnuplotEditor::executeGnuplot);
     connect(gnuplotSetting, &GnuplotSettingWidget::autoCompileMsecSet, item->table, &GnuplotTable::setUpdateMsec);
 }
 
@@ -379,28 +382,73 @@ void GnuplotEditor::setImageWidget(TreeImageItem *item)
     }
 }
 
-void GnuplotEditor::executeGnuplot()
-{
-    if(!currentScript) return;
+//void GnuplotEditor::executeGnuplot()
+//{
+//    if(TreeFileItem *i = editorArea->currentTreeFileItem())
+//    {
+//        qDebug() << i->text(0);
+//    }
+//    else
+//        qDebug() << static_cast<TreeFileItem*>(fileTree->currentItem())->text(0);
+//
+//    return;
+//
+//    //if(!currentScript) return;
+//
+//    /* browserの過去の出力をグレイアウト */
+//    browserWidget->grayOutAll();
+//
+//    /* ファイルが選ばれていない場合は無効 */
+//    //if(gnuplotWidget->count() < 1) {
+//    //    browserWidget->outputText("scripts are not selected.", BrowserWidget::MessageType::SystemErr);
+//    //    return;
+//    //}
+//
+//    /* エラー行のリセット */
+//    //qobject_cast<TextEdit*>(gnuplotWidget->currentWidget())->setErrorLineNumber(-1);
+//    //qobject_cast<TextEdit*>(gnuplotWidget->currentWidget())->highlightLine();
+//    //if(TextEdit *editor = currentScript->editor)
+//    //{
+//    //    editor->setErrorLineNumber(-1);
+//    //    editor->highlightLine();
+//    //}
+//
+//    /* ファイルの保存 */
+//    fileTree->saveAllFile();
+//
+//    /* gnuplotにコマンドを渡す */
+//    //emit exeGnuplotRequested(gnuplotProcess, QList<QString>() << "load '" + currentScript->info.absoluteFilePath() + "'");
+//}
 
-    /* browserの過去の出力をグレイアウト */
+void GnuplotEditor::executeItem(TreeFileItem *item)
+{
+    if(!item) return;
+
+    switch(FileTreeWidget::TreeItemType(item->type()))
+    {
+    case FileTreeWidget::TreeItemType::Script:
+        executeGnuplot(static_cast<TreeScriptItem*>(item));
+        break;
+    default:
+        break;
+    }
+}
+
+void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
+{
+    if(!item) return;
+
     browserWidget->grayOutAll();
 
-    /* ファイルが選ばれていない場合は無効 */
-    if(gnuplotWidget->count() < 1) {
-        browserWidget->outputText("scripts are not selected.", BrowserWidget::MessageType::SystemErr);
-        return;
+    if(TextEdit *textEdit = item->editor)
+    {
+        textEdit->setErrorLineNumber(-1);
+        textEdit->highlightLine();
     }
 
-    /* エラー行のリセット */
-    qobject_cast<TextEdit*>(gnuplotWidget->currentWidget())->setErrorLineNumber(-1);
-    qobject_cast<TextEdit*>(gnuplotWidget->currentWidget())->highlightLine();
-
-    /* ファイルの保存 */
     fileTree->saveAllFile();
 
-    /* gnuplotにコマンドを渡す */
-    emit exeGnuplotRequested(gnuplotProcess, QList<QString>() << "load '" + currentScript->info.absoluteFilePath() + "'");
+    emit exeGnuplotRequested(item->process, QList<QString>() << "load '" + item->info.absoluteFilePath() + "'", true);
 }
 
 void GnuplotEditor::receiveGnuplotStdOut(const QString& text)
@@ -415,116 +463,122 @@ void GnuplotEditor::receiveGnuplotStdErr(const QString& text, const int line)
     browserWidget->outputText(text, BrowserWidget::MessageType::GnuplotStdErr);
 
     /* エラー行の設定とハイライト */
-    if(TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->widget(0)))
-    {
-        currentEditor->setErrorLineNumber(line - 1);
-        currentEditor->highlightLine();
-    }
+    //if(TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->widget(0)))
+    //{
+    //    currentEditor->setErrorLineNumber(line - 1);
+    //    currentEditor->highlightLine();
+    //}
+    //if(!currentScript) return;
+    //if(TextEdit *editor = currentScript->editor)
+    //{
+    //    editor->setErrorLineNumber(line - 1);
+    //    editor->highlightLine();
+    //}
 }
 
 void GnuplotEditor::closeCurrentProcess()
 {
-    if(gnuplotProcess)
-        if(currentScript)
-            currentScript->requestCloseProcess();
+    //if(gnuplotProcess)
+    //    if(currentScript)
+    //        currentScript->requestCloseProcess();
 }
 
 void GnuplotEditor::moveSheetToNewWindow()
 {
-    if(QWidget *widget = sheetWidget->currentWidget())
-    {
-        widget->setParent(nullptr);
-        widget->show();
-        widget->setWindowTitle("GnuplotEditor  " + currentSheet->info.fileName());
-        menuBarWidget->setSheet(nullptr);
-    }
+    //if(QWidget *widget = sheetWidget->currentWidget())
+    //{
+    //    widget->setParent(nullptr);
+    //    widget->show();
+    //    widget->setWindowTitle("GnuplotEditor  " + currentSheet->info.fileName());
+    //    menuBarWidget->setSheet(nullptr);
+    //}
 }
 
 void GnuplotEditor::changeSheetAutoUpdating()
 {
-    if(GnuplotTable *table = qobject_cast<GnuplotTable*>(sheetWidget->currentWidget()))
-    {
-        table->changeUpdateNotification();
-        menuBarWidget->changeAutoUpdateSheetMenuText(table->isEnablenotifyUpdating());
-    }
+    //if(GnuplotTable *table = qobject_cast<GnuplotTable*>(sheetWidget->currentWidget()))
+    //{
+    //    table->changeUpdateNotification();
+    //    menuBarWidget->changeAutoUpdateSheetMenuText(table->isEnablenotifyUpdating());
+    //}
 }
 
 void GnuplotEditor::importTemplate(const QString& script)
 {
-    TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->currentWidget());
+    //TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->currentWidget());
 
-    if(!currentEditor)
-    {
-        QMessageBox::critical(this, "Error", "script is not selected.");
-        return;
-    }
+    //if(!currentEditor)
+    //{
+    //    QMessageBox::critical(this, "Error", "script is not selected.");
+    //    return;
+    //}
 
-    currentEditor->insertPlainText(script);
+    //currentEditor->insertPlainText(script);
 }
 
 void GnuplotEditor::saveAsTemplate()
 {
-    TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->currentWidget());
+    //TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->currentWidget());
 
-    if(!currentEditor)
-    {
-        QMessageBox::critical(this, "Error", "script is not selected.");
-        return;
-    }
+    //if(!currentEditor)
+    //{
+    //    QMessageBox::critical(this, "Error", "script is not selected.");
+    //    return;
+    //}
 
-    templateCustom->addTemplate(currentEditor->toPlainText());
+    //templateCustom->addTemplate(currentEditor->toPlainText());
 }
 
 void GnuplotEditor::saveCurrentFile()
 {
-    if(editorTab->currentIndex() == 0) //Gnuplot Tab
-    {
-        if(currentScript) currentScript->save();
-    }
-    else if(editorTab->currentIndex() == 1) //Table Tab
-    {
-        if(currentSheet) currentSheet->save();
-    }
+    //if(editorTab->currentIndex() == 0) //Gnuplot Tab
+    //{
+    //    if(currentScript) currentScript->save();
+    //}
+    //else if(editorTab->currentIndex() == 1) //Table Tab
+    //{
+    //    if(currentSheet) currentSheet->save();
+    //}
 }
 
 void GnuplotEditor::reloadCurrentScript()
 {
-    if(currentScript)
-    {
-        if(currentScript->isSaved())
-            currentScript->load();
-        else
-        {
-            const auto result = QMessageBox::question(this, "Script is not saved.",
-                                                      "Do you save this scirpt ??");
+    //if(currentScript)
+    //{
+    //    if(currentScript->isSaved())
+    //        currentScript->load();
+    //    else
+    //    {
+    //        const auto result = QMessageBox::question(this, "Script is not saved.",
+    //                                                  "Do you save this scirpt ??");
 
-            switch(result)
-            {
-            case QMessageBox::StandardButton::Yes:
-            {
-                currentScript->save();
-                currentScript->load();
-                break;
-            }
-            case QMessageBox::StandardButton::No:
-            {
-                currentScript->load();
-            }
-            default:
-                break;
-            }
-        }
-    }
+    //        switch(result)
+    //        {
+    //        case QMessageBox::StandardButton::Yes:
+    //        {
+    //            currentScript->save();
+    //            currentScript->load();
+    //            break;
+    //        }
+    //        case QMessageBox::StandardButton::No:
+    //        {
+    //            currentScript->load();
+    //        }
+    //        default:
+    //            break;
+    //        }
+    //    }
+    //}
 }
 
 void GnuplotEditor::showCommandHelp(const QString& command)
 {
-    emit exeGnuplotRequested(gnuplotProcess, QList<QString>() << "help " + command + "\n", false);
+    //emit exeGnuplotRequested(gnuplotProcess, QList<QString>() << "help " + command + "\n", false);
 }
 
 void GnuplotEditor::showGnuplotHelp()
 {
-    emit exeGnuplotRequested(gnuplotProcess, QList<QString>() << "help", false);
+    //emit exeGnuplotRequested(gnuplotProcess, QList<QString>() << "help", false);
 }
 
 void GnuplotEditor::reboot()
