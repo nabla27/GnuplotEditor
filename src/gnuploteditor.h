@@ -67,7 +67,9 @@ private:
 private slots:
     void receiveTreeItem(QTreeWidgetItem *item, const int column);
 
-    void executeGnuplot();
+    //void executeGnuplot();
+    void executeItem(TreeFileItem *item);
+    void executeGnuplot(TreeScriptItem *item);
     void receiveGnuplotStdOut(const QString& text);
     void receiveGnuplotStdErr(const QString& text, const int line);
 
@@ -90,7 +92,7 @@ private:
     MenuBarWidget *menuBarWidget;
 
     Gnuplot *gnuplot;
-    QProcess *gnuplotProcess;
+    //QProcess *gnuplotProcess;
     QThread gnuplotThread;
 
     EditorMenu *editorMenu;
@@ -102,17 +104,19 @@ private:
 
     TreeModelCombo *treeModelCombo;
     FileTreeWidget *fileTree;
-    TabWidget *editorTab;
+    //TabWidget *editorTab;
     TabWidget *displayTab;
-    QStackedWidget *gnuplotWidget;
-    TableArea *tableArea;
+    //QStackedWidget *gnuplotWidget;
+    //TableArea *tableArea;
     EditorArea *editorArea; //DEBUG
-    QStackedWidget *sheetWidget;
+    //QStackedWidget *sheetWidget;
     ConsoleWidget *consoleWidget;
     BrowserWidget *browserWidget;
 
-    TreeScriptItem *currentScript = nullptr;
-    TreeSheetItem *currentSheet = nullptr;
+    //TreeScriptItem *currentScript = nullptr;
+    //TreeSheetItem *currentSheet = nullptr;
+
+
 
 signals:
     void scriptPathChanged(const QString& path);

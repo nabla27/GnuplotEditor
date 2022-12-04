@@ -10,18 +10,24 @@
 
 class QComboBox;
 class QSplitter;
+class QVBoxLayout;
+class TreeFileItem;
+class EditorArea;
+namespace mlayout { class IconLabel; }
 
 
 class EditorStackedWidget : public QScrollArea
 {
     Q_OBJECT
 public:
-    explicit EditorStackedWidget(QWidget *parent, QSplitter *parentSplitter);
+    explicit EditorStackedWidget(EditorArea *editorArea, QSplitter *parentSplitter);
+    ~EditorStackedWidget();
 
     QSize minimumSizeHint() const override { return QSize(0, 0); }
 
 public:
-    void addWidget(const QString& name, QWidget *widget, const QIcon& icon);
+    void addWidget(QWidget *widget, TreeFileItem *item);
+    TreeFileItem* currentTreeFileItem() const;
 
 private:
     void setupLayout();
@@ -32,12 +38,18 @@ private slots:
     void separateAreaV();
     void closeThisArea();
     void removeCurrentWidget();
+    void removeItem(const int index);
+    void setCurrentItem(const int index);
+    void requestExecute();
 
 private:
+    EditorArea *editorArea;
+    QList<TreeFileItem*> items;
     QSplitter *parentSplitter;
     QWidget *contents;
     QComboBox *editorListCombo;
     QStackedWidget *editorStack;
+    mlayout::IconLabel *executeScript;
 };
 
 
@@ -50,11 +62,51 @@ public:
 
     QSize minimumSizeHint() const override { return QSize(0, 0); }
 
-private:
-    QWidget *currentFocusedWidget(const QString& className) const;
+    void setWidget(QWidget *widget, TreeFileItem *item);
 
-public:
-    void setWidget(const QString& name, QWidget *widget, const QIcon& icon);
+    TreeFileItem *currentTreeFileItem() const;
+
+private:
+    template <typename T>
+    QWidget *currentFocusedWidget() const;
+
+private slots:
+    void setupRootSplitter();
+    void resetRootSplitter() { rootSplitter = nullptr; }
+
+private:
+    QVBoxLayout *vLayout;
+    QSplitter *rootSplitter;
+
+signals:
+    void executeRequested(TreeFileItem *item);
 };
+
+
+
+
+template <typename T>
+QWidget* EditorArea::currentFocusedWidget() const
+{
+    QWidget *targetWidget = focusWidget();
+
+    const QString className = T::staticMetaObject.className();
+
+    for(;;)
+    {
+        if(!targetWidget) return nullptr;
+
+        if(targetWidget->metaObject()->className() == className)
+        {
+            return targetWidget;
+        }
+        else
+        {
+            targetWidget = targetWidget->parentWidget();
+        }
+    }
+}
+
+
 
 #endif // EDITORWIDGET_H
