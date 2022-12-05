@@ -24,26 +24,28 @@ class TreeFileItem : public QObject, public QTreeWidgetItem
 {
     Q_OBJECT
 public:
-    explicit TreeFileItem(QTreeWidgetItem *parent, int type)
-        : QTreeWidgetItem(parent, type) { setFileIcon(); }
-    explicit TreeFileItem(QTreeWidget *parent, int type)
-        : QTreeWidgetItem(parent, type) { setFileIcon(); }
+    explicit TreeFileItem(QTreeWidgetItem *parent, int type, const QFileInfo& info);
+    explicit TreeFileItem(QTreeWidget *parent, int type, const QFileInfo& info);
 
 public:
     virtual void save() {}
     virtual void load() {}
-    void setText(int column, const QString& text);
+    //void setText(int column, const QString& text);
+    //void setFileName(const QString& name);
+    void setFilePath(const QString& path);
+    void setData(int column, int role, const QVariant& variant) override;
+    bool isSaved() const { return isSavedFlag; }
+    const QFileInfo& fileInfo() const { return info; }
 
     static QHash<QString, TreeFileItem*> list;
-    QFileInfo info;
     static QThread iothread;
-    bool isSaved() const { return isSavedFlag; }
 
 public slots:
     void setEdited() { setSavedState(false); }
 
 protected:
     void setSavedState(const bool isSaved);
+    QFileInfo info;
 
 private:
     const QPixmap scriptIcon = QPixmap(":/icon/file_code");
@@ -56,7 +58,7 @@ private:
 
 signals:
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
-    void renamed(TreeFileItem *item);
+    void pathChanged(const QString& path);
     void editStateChanged(const bool isSaved);
 };
 
@@ -68,7 +70,7 @@ class TreeScriptItem : public TreeFileItem
 {
     Q_OBJECT
 public:
-    explicit TreeScriptItem(QTreeWidgetItem *parent, int type);
+    explicit TreeScriptItem(QTreeWidgetItem *parent, int type, const QFileInfo& info);
 
     ~TreeScriptItem();
 
@@ -105,9 +107,7 @@ class TreeSheetItem : public TreeFileItem
 {
     Q_OBJECT
 public:
-    explicit TreeSheetItem(QTreeWidgetItem *parent, int type)
-        : TreeFileItem(parent, type)
-        , table(nullptr) {}
+    explicit TreeSheetItem(QTreeWidgetItem *parent, int type, const QFileInfo& info);
 
     ~TreeSheetItem();
 
@@ -139,9 +139,7 @@ class TreeImageItem : public TreeFileItem
 {
     Q_OBJECT
 public:
-    explicit TreeImageItem(QTreeWidgetItem *parent, int type)
-        : TreeFileItem(parent, type)
-        , imageDisplay(nullptr) {}
+    explicit TreeImageItem(QTreeWidgetItem *parent, int type, const QFileInfo& info);
 
     ~TreeImageItem();
 

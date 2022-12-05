@@ -89,11 +89,11 @@ private slots:
     void reboot();
 
 private:
-    MenuBarWidget *menuBarWidget;
+    //MenuBarWidget *menuBarWidget;
 
     Gnuplot *gnuplot;
     //QProcess *gnuplotProcess;
-    QThread gnuplotThread;
+    //QThread gnuplotThread;
 
     EditorMenu *editorMenu;
 
