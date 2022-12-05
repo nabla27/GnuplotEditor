@@ -73,58 +73,58 @@ signals:
 
 
 
-class MenuBarWidget : public QWidget
-{
-    Q_OBJECT
-public:
-    explicit MenuBarWidget(QWidget *parent = nullptr);
-
-public:
-    void setScript(TreeFileItem *item);
-    void setSheet(TreeFileItem *item);
-    void changeAutoUpdateSheetMenuText(const bool isAuto);
-
-
-private slots:
-    void initializeMenu();
-    void setName(TreeFileItem *item);
-    void removeScript();
-    void removeSheet();
-    void changeScriptState(const bool isSaved);
-    void changeSheetState(const bool isSaved);
-
-private:
-    const QString activeButtonSheet = "QPushButton { background: transparent; text-align: left; } QPushButton:hover { background-color: rgb(231, 241, 255); }";
-    const QString emptyButtonSheet = "QPushButton { background:transparent; }";
-
-    const int barHeight = 20;
-
-    QPushButton *scriptButton;
-    QPushButton *sheetButton;
-    mlayout::IconLabel *scriptIcon;
-    mlayout::IconLabel *sheetIcon;
-    QSpacerItem *spacer;
-    QPushButton *runButton;
-
-    QMenu *emptyMenu;
-    QMenu *scriptMenu;
-    QMenu *sheetMenu;
-    QAction *autoUpdateAction;
-
-    QMetaObject::Connection renameScriptConnection;
-    QMetaObject::Connection removeScriptConnection;
-    QMetaObject::Connection scriptSavedConnection;
-    QMetaObject::Connection renameSheetConnection;
-    QMetaObject::Connection removeSheetConnection;
-    QMetaObject::Connection sheetSavedConnection;
-
-signals:
-    void closeProcessRequested();
-    void saveAsTemplateRequested();
-    void openInNewWindowRequested();
-    void autoSheetUpdateRequested();
-    void runRequested();
-};
+//class MenuBarWidget : public QWidget
+//{
+//    Q_OBJECT
+//public:
+//    explicit MenuBarWidget(QWidget *parent = nullptr);
+//
+//public:
+//    void setScript(TreeFileItem *item);
+//    void setSheet(TreeFileItem *item);
+//    void changeAutoUpdateSheetMenuText(const bool isAuto);
+//
+//
+//private slots:
+//    void initializeMenu();
+//    void setName(TreeFileItem *item);
+//    void removeScript();
+//    void removeSheet();
+//    void changeScriptState(const bool isSaved);
+//    void changeSheetState(const bool isSaved);
+//
+//private:
+//    const QString activeButtonSheet = "QPushButton { background: transparent; text-align: left; } QPushButton:hover { background-color: rgb(231, 241, 255); }";
+//    const QString emptyButtonSheet = "QPushButton { background:transparent; }";
+//
+//    const int barHeight = 20;
+//
+//    QPushButton *scriptButton;
+//    QPushButton *sheetButton;
+//    mlayout::IconLabel *scriptIcon;
+//    mlayout::IconLabel *sheetIcon;
+//    QSpacerItem *spacer;
+//    QPushButton *runButton;
+//
+//    QMenu *emptyMenu;
+//    QMenu *scriptMenu;
+//    QMenu *sheetMenu;
+//    QAction *autoUpdateAction;
+//
+//    QMetaObject::Connection renameScriptConnection;
+//    QMetaObject::Connection removeScriptConnection;
+//    QMetaObject::Connection scriptSavedConnection;
+//    QMetaObject::Connection renameSheetConnection;
+//    QMetaObject::Connection removeSheetConnection;
+//    QMetaObject::Connection sheetSavedConnection;
+//
+//signals:
+//    void closeProcessRequested();
+//    void saveAsTemplateRequested();
+//    void openInNewWindowRequested();
+//    void autoSheetUpdateRequested();
+//    void runRequested();
+//};
 
 
 
