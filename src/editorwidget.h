@@ -68,7 +68,7 @@ public:
 
 private:
     template <typename T>
-    QWidget *currentFocusedWidget() const;
+    T* currentFocusedWidget() const;
 
 private slots:
     void setupRootSplitter();
@@ -86,7 +86,7 @@ signals:
 
 
 template <typename T>
-QWidget* EditorArea::currentFocusedWidget() const
+T* EditorArea::currentFocusedWidget() const
 {
     QWidget *targetWidget = focusWidget();
 
@@ -96,9 +96,9 @@ QWidget* EditorArea::currentFocusedWidget() const
     {
         if(!targetWidget) return nullptr;
 
-        if(targetWidget->metaObject()->className() == className)
+        if(QString(targetWidget->metaObject()->className()) == className)
         {
-            return targetWidget;
+            return static_cast<T*>(targetWidget);
         }
         else
         {

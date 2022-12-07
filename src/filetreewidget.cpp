@@ -145,8 +145,9 @@ TreeScriptItem::TreeScriptItem(QTreeWidgetItem *parent, int type, const QFileInf
     , editor(new TextEdit)
     , process(new QProcess())
 {
+    TreeScriptItem::load();
+
     connect(editor, &TextEdit::textChanged, this, &TreeScriptItem::setEdited);
-    connect(editor, &TextEdit::textChanged, [](){ qDebug() << __LINE__; });
     connect(this, &TreeScriptItem::closeProcessRequested, process, &QProcess::close);
     connect(this, &TreeScriptItem::destroyed, process, &QProcess::close);
     connect(this, &TreeScriptItem::destroyed, process, &QProcess::deleteLater);
@@ -211,6 +212,11 @@ void TreeScriptItem::load()
     }
 
     emit loadRequested(info.absoluteFilePath());
+}
+
+QWidget* TreeScriptItem::widget()
+{
+    return editor;
 }
 
 void TreeScriptItem::requestCloseProcess()
@@ -340,6 +346,11 @@ void TreeSheetItem::load()
     }
 
     emit loadRequested(info.absoluteFilePath());
+}
+
+QWidget *TreeSheetItem::widget()
+{
+    return table;
 }
 
 void TreeSheetItem::receiveSavedResult(const bool& ok)
@@ -755,6 +766,15 @@ void FileTreeWidget::saveFolder()
         QMessageBox::critical(this, "Error", "Could not save a folder.");
 }
 
+void FileTreeWidget::openFolder()
+{
+    const QString& folder = QFileDialog::getExistingDirectory(this);
+
+    if(folder.isEmpty() || folder == folderPath) return;
+
+    setFolderPath(folder);
+}
+
 void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QString &toPath)
 {
     /* ファイル */
@@ -918,47 +938,51 @@ void FileTreeWidget::exportFile()
 
 void FileTreeWidget::addFile()
 {
-    if(selectedItems().count() < 1) return;
-
-    TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
-
-    if(!item) return;
-
-    /* 選択されたフォルダーによって，ダイアログのフィルターを設定する */
     QString nameFilter;
-    switch((TreeItemType)item->type())
+    QString parentPath = folderPath;
+
+    if(selectedItems().count() > 0)
     {
-    case TreeItemType::ScriptFolder:
-        nameFilter += "Script files (";
-        foreach(const QString& suffix, TreeScriptItem::suffix.keys())
-            nameFilter += "*." + suffix + " ";
-        nameFilter += ")";
-        break;
-    case TreeItemType::SheetFolder:
-        nameFilter += "Sheet files (";
-        foreach(const QString& suffix, TreeSheetItem::suffix.keys())
-            nameFilter += "*." + suffix + " ";
-        nameFilter += ")";
-        break;
-    default:
-        break;
-    }
-    /* ファイルを追加する親ディレクトリのパスも選択されたフォルダーによって設定する */
-    QString parentPath;
-    switch((TreeItemType)item->type())
-    {
-    case TreeItemType::Dir:
-        //parentPath = item->info.absoluteFilePath();
-        parentPath = item->fileInfo().absoluteFilePath();
-        break;
-    default:
-        parentPath = folderPath;
+        TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
+
+        if(item)
+        {
+            /* 選択されたフォルダーによって，ダイアログのフィルターを設定する */
+            switch((TreeItemType)item->type())
+            {
+            case TreeItemType::ScriptFolder:
+                nameFilter += "Script files (";
+                foreach(const QString& suffix, TreeScriptItem::suffix.keys())
+                    nameFilter += "*." + suffix + " ";
+                nameFilter += ")";
+                break;
+            case TreeItemType::SheetFolder:
+                nameFilter += "Sheet files (";
+                foreach(const QString& suffix, TreeSheetItem::suffix.keys())
+                    nameFilter += "*." + suffix + " ";
+                nameFilter += ")";
+                break;
+            default:
+                break;
+            }
+
+            /* ファイルを追加する親ディレクトリのパスも選択されたフォルダーによって設定する */
+            switch((TreeItemType)item->type())
+            {
+            case TreeItemType::Dir:
+                //parentPath = item->info.absoluteFilePath();
+                parentPath = item->fileInfo().absoluteFilePath();
+                break;
+            default:
+                parentPath = folderPath;
+            }
+        }
     }
 
     /* ファイルを選択するダイアログ。複数選択可能 */
     QFileDialog fileDialog(this);
     fileDialog.setFileMode(QFileDialog::FileMode::ExistingFiles);
-    fileDialog.setNameFilter(nameFilter);
+    fileDialog.setNameFilters(QStringList() << nameFilter << "All (*)");
     if(!fileDialog.exec()) return;
     const QStringList filePathList = fileDialog.selectedFiles();
 
@@ -980,33 +1004,34 @@ void FileTreeWidget::addFile()
 
 void FileTreeWidget::newFile()
 {
-    if(selectedItems().count() < 1) return;
-
-    TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
-
-    if(!item) return;
-
-    //const QString folderPath = item->info.absoluteFilePath();
-    QString folderPath;
-
-    /* ファイル名を入力する際のデフォルトテキストを拡張子によって変更 */
+    QString folderPath = this->folderPath;
     QString defaultFileName = "";
-    switch((TreeItemType)item->type())
+
+    if(selectedItems().count() > 0)
     {
-    case TreeItemType::ScriptFolder:
-        if(TreeScriptItem::suffix.count() > 0)
-            defaultFileName = "." + TreeScriptItem::suffix.begin().key();
-        folderPath = this->folderPath;
-        break;
-    case TreeItemType::SheetFolder:
-        if(TreeSheetItem::suffix.count() > 0)
-            defaultFileName = "." + TreeSheetItem::suffix.begin().key();
-        folderPath = this->folderPath;
-        break;
-    default:
-        //folderPath = item->info.absoluteFilePath();
-        folderPath = item->fileInfo().absoluteFilePath();
-        break;
+        TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
+
+        if(item)
+        {
+            /* ファイル名を入力する際のデフォルトテキストを拡張子によって変更 */
+            switch((TreeItemType)item->type())
+            {
+            case TreeItemType::ScriptFolder:
+                if(TreeScriptItem::suffix.count() > 0)
+                    defaultFileName = "." + TreeScriptItem::suffix.begin().key();
+                folderPath = this->folderPath;
+                break;
+            case TreeItemType::SheetFolder:
+                if(TreeSheetItem::suffix.count() > 0)
+                    defaultFileName = "." + TreeSheetItem::suffix.begin().key();
+                folderPath = this->folderPath;
+                break;
+            default:
+                //folderPath = item->info.absoluteFilePath();
+                folderPath = item->fileInfo().absoluteFilePath();
+                break;
+            }
+        }
     }
 
     /* 新規ファイルの名前を取得するダイアログ */

@@ -9,19 +9,17 @@
 
 #include "gnuploteditor.h"
 #include <QApplication>
-
-
+#include <QObject>
 
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    //ExcelDocument doc("test");
-    //doc.readXml();
-
     GnuplotEditor w;
     w.show();
+
+    QObject::connect(&a, &QApplication::focusChanged, &w, &GnuplotEditor::setCurrentItem);
 
     return a.exec();
 

@@ -45,11 +45,12 @@ public slots:
     void insertToSelectedHeadBlock(const QString& text) const;
     void removeFromSelectedHeadBlock(const QString& text) const;
     void reverseSelectedCommentState() const;
-    void requestCommandHelp();
+    //void requestCommandHelp();
     void enableUpdateTimer(const bool enable);
 
 public:
     bool isEnableUpdateTimer() const { return updateTimerFlag; }
+    QString textUnderCursor() const;
 
 protected:
     void wheelEvent(QWheelEvent *event) override;
@@ -64,11 +65,14 @@ public:
 
 protected:
     void keyPressEvent(QKeyEvent *e) override;
+    void keyReleaseEvent(QKeyEvent *e) override
+    {
+        QPlainTextEdit::keyReleaseEvent(e);
+    }
     void focusInEvent(QFocusEvent *e) override;
 
 private:
     void insertCompletion(QString completion);           //予測変換で決定された文字をエディタに挿入
-    QString textUnderCursor() const;                            //予測変換を出すために参照するテキスト
     void bracketCompletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar); //括弧の補完 [ ( ' "
     void bracketDeletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar);   //括弧の削除
     void changeCompleterModel();                                //入力コマンドから予測変換候補を変更
@@ -124,7 +128,7 @@ private:
 
 signals:
     void fontSizeChanged(const int ps);
-    void commandHelpRequested(const QString& command);
+    //void commandHelpRequested(const QString& command);
 };
 
 

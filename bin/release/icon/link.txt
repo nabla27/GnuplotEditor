@@ -64,6 +64,25 @@ icon_remove:
 <a target="_blank" href="https://icons8.com/icon/46/%E5%89%8A%E9%99%A4">削除</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 icon_execute:
 <a target="_blank" href="https://icons8.com/icon/59862/%E5%86%8D%E7%94%9F">再生</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_folderopen:
+<a target="_blank" href="https://icons8.com/icon/21094/%E3%83%95%E3%82%A9%E3%83%AB%E3%83%80%E3%83%BC%E3%82%92%E9%96%8B%E3%81%8F">フォルダーを開く</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_folderadd:
+<a target="_blank" href="https://icons8.com/icon/dPHtV3gzXZxM/%E3%83%95%E3%82%A9%E3%83%AB%E3%83%80%E3%83%BC%E3%82%92%E8%BF%BD%E5%8A%A0">フォルダーを追加</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_reload:
+<a target="_blank" href="https://icons8.com/icon/59872/%E6%9B%B4%E6%96%B0">更新</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_fileadd:
+<a target="_blank" href="https://icons8.com/icon/12587/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%82%92%E9%80%81%E4%BF%A1">ファイルを送信</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_filereload:
+<a target="_blank" href="https://icons8.com/icon/105885/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%81%AE%E6%9B%B4%E6%96%B0">ファイルの更新</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_filesave:
+<a target="_blank" href="https://icons8.com/icon/18765/%E3%82%BB%E3%83%BC%E3%83%96">セーブ</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_find:
+<a target="_blank" href="https://icons8.com/icon/59878/%E6%A4%9C%E7%B4%A2">検索</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_filesaveas:
+<a target="_blank" href="https://icons8.com/icon/3701/%E5%90%8D%E5%89%8D%E3%82%92%E4%BB%98%E3%81%91%E3%81%A6%E4%BF%9D%E5%AD%98">名前を付けて保存</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_openinwindow:
+<a target="_blank" href="https://icons8.com/icon/102270/%E3%82%A6%E3%82%A3%E3%83%B3%E3%83%89%E3%82%A6%E3%81%A7%E9%96%8B%E3%81%8D%E3%81%BE%E3%81%99">ウィンドウで開きます</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+
 
 
 

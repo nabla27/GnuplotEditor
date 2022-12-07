@@ -321,7 +321,13 @@ void TextEdit::insertCompletion(QString completion)
 /* 予測玄関の候補を出すために参照するテキスト */
 QString TextEdit::textUnderCursor() const
 {
-    return currentCmd;
+    QTextCursor tc = textCursor();
+
+    tc.movePosition(QTextCursor::MoveOperation::StartOfWord, QTextCursor::MoveAnchor);
+    tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
+    const QString cmd = tc.selectedText();
+
+    return cmd;
 }
 
 void TextEdit::focusInEvent(QFocusEvent *e)
@@ -502,7 +508,7 @@ void TextEdit::setCompletionList(const QStringList& list)
 
     completer()->setModel(model);
 
-    c->setCompletionPrefix(textUnderCursor());
+    c->setCompletionPrefix(currentCmd);
     c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
 
     /* 予測変換ボックスのサイズ設定
@@ -601,24 +607,24 @@ void TextEdit::requestToolTipForCursor()
     }
 }
 
-void TextEdit::requestCommandHelp()
-{
-    QTextCursor tc = textCursor();
-    QString cmd;
-
-    if(tc.hasSelection())
-    {
-        cmd =  tc.selectedText();
-    }
-    else
-    {
-        tc.movePosition(QTextCursor::MoveOperation::StartOfWord, QTextCursor::MoveAnchor);
-        tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
-        cmd = tc.selectedText();
-    }
-
-    if(!cmd.isEmpty()) emit commandHelpRequested(cmd);
-}
+//void TextEdit::requestCommandHelp()
+//{
+//    QTextCursor tc = textCursor();
+//    QString cmd;
+//
+//    if(tc.hasSelection())
+//    {
+//        cmd =  tc.selectedText();
+//    }
+//    else
+//    {
+//        tc.movePosition(QTextCursor::MoveOperation::StartOfWord, QTextCursor::MoveAnchor);
+//        tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
+//        cmd = tc.selectedText();
+//    }
+//
+//    if(!cmd.isEmpty()) emit commandHelpRequested(cmd);
+//}
 
 void TextEdit::enableUpdateTimer(const bool enable)
 {

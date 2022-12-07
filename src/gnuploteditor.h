@@ -51,6 +51,9 @@ public:
     explicit GnuplotEditor(QWidget *parent = nullptr);
     ~GnuplotEditor();
 
+public slots:
+    void setCurrentItem(QWidget *oldWidget, QWidget *newWidget);
+
 protected:
     void closeEvent(QCloseEvent *event) override;
 
@@ -67,25 +70,15 @@ private:
 private slots:
     void receiveTreeItem(QTreeWidgetItem *item, const int column);
 
-    //void executeGnuplot();
+    /* execute gnuplot */
     void executeItem(TreeFileItem *item);
     void executeGnuplot(TreeScriptItem *item);
     void receiveGnuplotStdOut(const QString& text);
     void receiveGnuplotStdErr(const QString& text, const int line);
 
-    void closeCurrentProcess();
-    void moveSheetToNewWindow();
-    void changeSheetAutoUpdating();
-
-    void importTemplate(const QString& script);
-    void saveAsTemplate();
-
-    void saveCurrentFile();
-    void reloadCurrentScript();
-
-    void showGnuplotHelp();
-    void showCommandHelp(const QString& command);
-
+    /* menu bar */
+    void findKeyword();
+    void showGnuplotCmdHelp();
     void reboot();
 
 private:
@@ -95,12 +88,18 @@ private:
     //QProcess *gnuplotProcess;
     //QThread gnuplotThread;
 
-    EditorMenu *editorMenu;
+    //EditorMenu *editorMenu;
 
     EditorSetting *editorSetting;
     GnuplotSettingWidget *gnuplotSetting;
     TemplateCustomWidget *templateCustom;
     FileTreeSettingWidget *fileTreeSetting;
+
+    FileMenu *fileMenu;
+    EditorMenu *editorMenu;
+    GnuplotMenu *gnuplotMenu;
+    ViewMenu *viewMenu;
+    HelpMenu *helpMenu;
 
     TreeModelCombo *treeModelCombo;
     FileTreeWidget *fileTree;

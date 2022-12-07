@@ -9,89 +9,49 @@
 
 #include "menubar.h"
 
+#include <QAction>
+#include <QFileDialog>
+#include "filetreewidget.h"
 
-FileMenu::FileMenu(const QString& title, QWidget *parent)
+FileMenu::FileMenu(const QString &title, QWidget *parent)
     : QMenu(title, parent)
+    , aOpenFolder(new QAction("Open Folder", this))
+    , aAddFolder(new QAction("Add Folder", this))
+    , aSaveFolder(new QAction("Save As New Folder", this))
+    , aUpdateFolder(new QAction("Update File Tree", this))
+    , aReloadFolder(new QAction("Reload File Tree", this))
+    , aOpenFile(new QAction("Open File", this))
+    , aNewFile(new QAction("New File", this))
+    , aOpenTreeSetting(new QAction("File Tree Setting", this))
 {
-    QAction *openFolder = new QAction("Open folder", this);
-    addAction(openFolder);
-    connect(openFolder, &QAction::triggered, this, &FileMenu::openFolder);
+    addAction(aOpenFolder);
+    addAction(aAddFolder);
+    addAction(aSaveFolder);
+    addAction(aUpdateFolder);
+    addAction(aReloadFolder);
+    addSeparator();
+    addAction(aOpenFile);
+    addAction(aNewFile);
+    addSeparator();
+    addAction(aOpenTreeSetting);
 
-    QAction *addFolder = new QAction("Add folder", this);
-    addAction(addFolder);
-    connect(addFolder, &QAction::triggered, this, &FileMenu::addFolderPushed);
+    aOpenFolder->setIcon(QIcon(QPixmap(":/icon/file_folderopen")));
+    aAddFolder->setIcon(QIcon(QPixmap(":/icon/file_folderadd")));
+    aReloadFolder->setIcon(QIcon(QPixmap(":/icon/icon_reload")));
+    aOpenFile->setIcon(QIcon(QPixmap(":/icon/file_fileadd")));
+    aNewFile->setIcon(QIcon(QPixmap(":/icon/file_normal")));
 
-    QAction *saveFolder = new QAction("Save folder", this);
-    addAction(saveFolder);
-    connect(saveFolder, &QAction::triggered, this, &FileMenu::saveFolderPushed);
+    aOpenFile->setShortcut(QKeySequence("Ctrl+O"));
+    aNewFile->setShortcut(QKeySequence("Ctrl+N"));
 
-    QAction *updateFolder = new QAction("Update folder", this);
-    addAction(updateFolder);
-    connect(updateFolder, &QAction::triggered, this, &FileMenu::updateFolderPushed);
-
-    QAction *reloadFolder = new QAction("Reload folder", this);
-    addAction(reloadFolder);
-    connect(reloadFolder, &QAction::triggered, this, &FileMenu::reloadFolderPushed);
-}
-
-void FileMenu::openFolder()
-{
-    /* フォルダーの選択 */
-    const QString folderPath = QFileDialog::getExistingDirectory(this);
-
-    if(folderPath.isEmpty()) return;
-
-    emit openFolderPushed(folderPath);
-}
-
-
-
-
-
-
-
-WidgetMenu::WidgetMenu(const QString& title, QWidget *parent)
-    : QMenu(title, parent)
-{
-    QAction *clearConsoleWindow = new QAction("Clear Console Widget", this);
-    addAction(clearConsoleWindow);
-    connect(clearConsoleWindow, &QAction::triggered, this, &WidgetMenu::clearConsoleWindowRequested);
-
-    QAction *clearOutputWindow = new QAction("Clear Output Widget", this);
-    addAction(clearOutputWindow);
-    connect(clearOutputWindow, &QAction::triggered, this, &WidgetMenu::clearOutputWindowRequested);
-
-    QAction *openFileTreeSetting = new QAction("FileTree Setting", this);
-    addAction(openFileTreeSetting);
-    connect(openFileTreeSetting, &QAction::triggered, this, &WidgetMenu::openFileTreeSettingRequested);
-
-    QAction *openEditorSetting = new QAction("Editor Setting", this);
-    addAction(openEditorSetting);
-    connect(openEditorSetting, &QAction::triggered, this, &WidgetMenu::openEditorSettingRequested);
-
-    QAction *openGnuplotSetting = new QAction("Gnuplot Setting", this);
-    addAction(openGnuplotSetting);
-    connect(openGnuplotSetting, &QAction::triggered, this, &WidgetMenu::openGnuplotSettingRequested);
-
-    QAction *openTemplateCustom = new QAction("Script Template", this);
-    addAction(openTemplateCustom);
-    connect(openTemplateCustom, &QAction::triggered, this, &WidgetMenu::openTemplateCustomRequested);
-}
-
-
-
-
-
-HelpMenu::HelpMenu(const QString& title, QWidget *parent)
-    : QMenu(title, parent)
-{
-    QAction *gnuplotHelpAction = new QAction("Gnuplot", this);
-    addAction(gnuplotHelpAction);
-    connect(gnuplotHelpAction, &QAction::triggered, this, &HelpMenu::gnuplotHelpRequested);
-
-    QAction *rebootAction = new QAction("Reboot", this);
-    addAction(rebootAction);
-    connect(rebootAction, &QAction::triggered, this, &HelpMenu::rebootRequested);
+    connect(aOpenFolder, &QAction::triggered, this, &FileMenu::openFolderRequested);
+    connect(aAddFolder, &QAction::triggered, this, &FileMenu::addFolderRequested);
+    connect(aSaveFolder, &QAction::triggered, this, &FileMenu::saveFolderRequested);
+    connect(aUpdateFolder, &QAction::triggered, this, &FileMenu::updateFolderRequested);
+    connect(aReloadFolder, &QAction::triggered, this, &FileMenu::reloadFolderRequested);
+    connect(aOpenFile, &QAction::triggered, this, &FileMenu::openFileRequested);
+    connect(aNewFile, &QAction::triggered, this, &FileMenu::newFileRequested);
+    connect(aOpenTreeSetting, &QAction::triggered, this, &FileMenu::openTreeSettingRequested);
 }
 
 
@@ -99,293 +59,249 @@ HelpMenu::HelpMenu(const QString& title, QWidget *parent)
 
 
 
-
-
-
-
-
-
-
-//MenuBarWidget::MenuBarWidget(QWidget *parent)
-//    : QWidget(parent)
-//    , scriptButton(new QPushButton(this))
-//    , sheetButton(new QPushButton(this))
-//    , scriptIcon(new mlayout::IconLabel(this))
-//    , sheetIcon(new mlayout::IconLabel(this))
-//    , spacer(new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed))
-//    , runButton(new QPushButton(this))
-//    , emptyMenu(new QMenu(this))
-//    , scriptMenu(new QMenu(scriptButton))
-//    , sheetMenu(new QMenu(sheetButton))
-//{
-//    QHBoxLayout *hLayout = new QHBoxLayout(this);
-//    setLayout(hLayout);
-//
-//    hLayout->addWidget(scriptIcon);
-//    hLayout->addWidget(scriptButton);
-//    hLayout->addWidget(sheetIcon);
-//    hLayout->addWidget(sheetButton);
-//    hLayout->addItem(spacer);
-//    hLayout->addWidget(runButton);
-//
-//    hLayout->setSpacing(0);
-//    hLayout->setContentsMargins(0, 0, 0, 0);
-//
-//    runButton->setText("&Run");
-//    runButton->setToolTip("run the gnuplot [Alt+R]");
-//
-//    scriptButton->setStyleSheet(emptyButtonSheet);
-//    sheetButton->setStyleSheet(emptyButtonSheet);
-//
-//    connect(runButton, &QPushButton::released, this, &MenuBarWidget::runRequested);
-//
-//    initializeMenu();
-//
-//    scriptIcon->setPixmap(QPixmap(":/icon/file_code").scaled(barHeight, barHeight));
-//    sheetIcon->setPixmap(QPixmap(":/icon/file_doc").scaled(barHeight, barHeight));
-//
-//    scriptButton->setFixedHeight(barHeight);
-//    sheetButton->setFixedHeight(barHeight);
-//    runButton->setFixedHeight(barHeight);
-//    parentWidget()->adjustSize();
-//}
-//
-//void MenuBarWidget::setScript(TreeFileItem *item)
-//{
-//    if(!item)
-//    {
-//        removeScript();
-//        return;
-//    }
-//
-//    setName(item);
-//
-//    disconnect(renameScriptConnection);
-//    disconnect(removeScriptConnection);
-//    disconnect(scriptSavedConnection);
-//
-//    renameScriptConnection = connect(item, &TreeFileItem::renamed, this, &MenuBarWidget::setName);
-//    removeScriptConnection = connect(item, &TreeFileItem::destroyed, this, &MenuBarWidget::removeScript);
-//    scriptSavedConnection = connect(item, &TreeFileItem::editStateChanged, this, &MenuBarWidget::changeScriptState);
-//}
-//
-//void MenuBarWidget::setSheet(TreeFileItem *item)
-//{
-//    if(!item)
-//    {
-//        removeSheet();
-//        return;
-//    }
-//
-//    setName(item);
-//
-//    disconnect(renameSheetConnection);
-//    disconnect(removeSheetConnection);
-//    disconnect(sheetSavedConnection);
-//
-//    renameSheetConnection = connect(item, &TreeFileItem::renamed, this, &MenuBarWidget::setName);
-//    removeSheetConnection = connect(item, &TreeFileItem::destroyed, this, &MenuBarWidget::removeSheet);
-//    sheetSavedConnection = connect(item, &TreeFileItem::editStateChanged, this, &MenuBarWidget::changeSheetState);
-//}
-//
-//void MenuBarWidget::initializeMenu()
-//{
-//    QAction *closeProcess = new QAction("Close this process", scriptMenu);
-//    QAction *saveAsTemplate = new QAction("Save as template", scriptMenu);
-//
-//    scriptMenu->addAction(closeProcess);
-//    scriptMenu->addAction(saveAsTemplate);
-//
-//    connect(closeProcess, &QAction::triggered, this, &MenuBarWidget::closeProcessRequested);
-//    connect(saveAsTemplate, &QAction::triggered, this, &MenuBarWidget::saveAsTemplateRequested);
-//
-//
-//    QAction *openInNewWindow = new QAction("Open in new window.", this);
-//    autoUpdateAction = new QAction("Enable auto updating", this);
-//
-//    sheetMenu->addAction(openInNewWindow);
-//    sheetMenu->addAction(autoUpdateAction);
-//
-//    connect(openInNewWindow, &QAction::triggered, this, &MenuBarWidget::openInNewWindowRequested);
-//    connect(autoUpdateAction, &QAction::triggered, this, &MenuBarWidget::autoSheetUpdateRequested);
-//}
-//
-//void MenuBarWidget::setName(TreeFileItem *item)
-//{
-//    switch(FileTreeWidget::TreeItemType(item->type()))
-//    {
-//    case FileTreeWidget::TreeItemType::Script:
-//    {
-//        scriptButton->setMenu(scriptMenu);
-//        scriptButton->setStyleSheet(activeButtonSheet);
-//        scriptButton->setText((item->isSaved()) ? item->info.fileName() : item->info.fileName() + "*");
-//        scriptButton->setToolTip(item->info.absoluteFilePath());
-//        break;
-//    }
-//    case FileTreeWidget::TreeItemType::Sheet:
-//    {
-//        sheetButton->setMenu(sheetMenu);
-//        sheetButton->setStyleSheet(activeButtonSheet);
-//        sheetButton->setText((item->isSaved()) ? item->info.fileName() : item->info.fileName() + "*");
-//        sheetButton->setToolTip(item->info.absoluteFilePath());
-//        break;
-//    }
-//    default:
-//        return;
-//    }
-//
-//    parentWidget()->adjustSize();
-//}
-//
-//void MenuBarWidget::removeScript()
-//{
-//    scriptButton->setMenu(emptyMenu);
-//    scriptButton->setStyleSheet(emptyButtonSheet);
-//    scriptButton->setText("");
-//    scriptButton->setToolTip("");
-//    parentWidget()->adjustSize();
-//}
-//
-//void MenuBarWidget::removeSheet()
-//{
-//    sheetButton->setMenu(emptyMenu);
-//    sheetButton->setStyleSheet(emptyButtonSheet);
-//    sheetButton->setText("");
-//    sheetButton->setToolTip("");
-//    parentWidget()->adjustSize();
-//}
-//
-//void MenuBarWidget::changeAutoUpdateSheetMenuText(const bool isAuto)
-//{
-//    if(!isAuto)
-//        autoUpdateAction->setText("Enable auto updating");
-//    else
-//        autoUpdateAction->setText("Disable auto updating");
-//}
-//
-//void MenuBarWidget::changeScriptState(const bool isSaved)
-//{
-//    const QString previousText = scriptButton->text();
-//    if(isSaved)
-//    {
-//        if(previousText.last(1) == "*")
-//            scriptButton->setText(previousText.left(previousText.size() - 1));
-//    }
-//    else
-//    {
-//        if(previousText.last(1) != "*")
-//            scriptButton->setText(previousText + "*");
-//    }
-//}
-//
-//void MenuBarWidget::changeSheetState(const bool isSaved)
-//{
-//    const QString previousText = sheetButton->text();
-//    if(isSaved)
-//    {
-//        if(previousText.last(1) == "*")
-//            sheetButton->setText(previousText.left(previousText.size() - 1));
-//    }
-//    else
-//    {
-//        if(previousText.last(1) != "*")
-//            sheetButton->setText(previousText + "*");
-//    }
-//}
-
-
-
-
-
-
-
-
-#include <QKeySequence>
-#include "texteditor.h"
 
 EditorMenu::EditorMenu(const QString &title, QWidget *parent)
     : QMenu(title, parent)
-    , editor(nullptr)
-    , standardContextMenuAction(nullptr)
-    , commentOutAction(new QAction(tr("Comment Out"), this))
-    , autoRunAction(new QAction(tr("Enable Autorun"), this))
-    , saveAsTemplateAction(new QAction(tr("Save As Template"), this))
-    , showGnuplotHelpAction(new QAction(tr("Show Gnuplot Help"), this))
-    , settingWidgetAction(new QAction(tr("Editor Setting"), this))
-    , reloadScriptAction(new QAction(tr("Reload Script"), this))
+    , aReloadFile(new QAction("Reload File", this))
+    , aSaveFile(new QAction("Save File", this))
+    , aSaveAllFiles(new QAction("Save All Files", this))
+    , aSaveFileAs(new QAction("Save File as", this))
+    , aAutoRun(new QAction("Auto Run", this))
+    , aFind(new QAction("Find", this))
+    , aOpenInNewWindow(new QAction("Open In New Window", this))
+    , aRun(new QAction("Run", this))
+    , aCloseProcess(new QAction("Close Process", this))
+    , aCommentOutScript(new QAction("Comment Out", this))
+    , aShowCmdHelpScript(new QAction("Help For Command Under Cursor", this))
+    , aSaveAsTemplate(new QAction("Save As Template", this))
 {
-    commentOutAction->setShortcut(QKeySequence("Ctrl+Alt+C"));
-    showGnuplotHelpAction->setShortcut(QKeySequence(Qt::Key::Key_F1));
+    addAction(aReloadFile);
+    addAction(aSaveFile);
+    addAction(aSaveAllFiles);
+    addAction(aSaveFileAs);
+    addAction(aAutoRun);
+    addAction(aFind);
+    addAction(aOpenInNewWindow);
+    addSeparator();
+    addAction(aRun);
+    addAction(aCloseProcess);
+    addAction(aCommentOutScript);
+    addAction(aShowCmdHelpScript);
+    addAction(aSaveAsTemplate);
 
-    connect(commentOutAction, &QAction::triggered, this, &EditorMenu::commentOut);
-    connect(autoRunAction, &QAction::triggered, this, &EditorMenu::enableAutoRun);
-    connect(showGnuplotHelpAction, &QAction::triggered, this, &EditorMenu::showGnuplotHelp);
-    connect(saveAsTemplateAction, &QAction::triggered, this, &EditorMenu::saveAsTemplateRequested);
-    connect(settingWidgetAction, &QAction::triggered, this, &EditorMenu::openEditorSettingRequested);
-    connect(reloadScriptAction, &QAction::triggered, this, &EditorMenu::reloadScriptRequested);
+    aReloadFile->setIcon(QIcon(QPixmap(":/icon/file_filereload")));
+    aSaveFile->setIcon(QIcon(QPixmap(":/icon/file_filesave")));
+    aSaveFileAs->setIcon(QIcon(QPixmap(":/icon/file_filesaveas")));
+    aFind->setIcon(QIcon(QPixmap(":/icon/icon_find")));
+    aOpenInNewWindow->setIcon(QIcon(QPixmap(":/icon/icon_openinwindow")));
+    aRun->setIcon(QIcon(QPixmap(":/icon/icon_execute")));
 
-    addAction(commentOutAction);
-    addAction(showGnuplotHelpAction);
-    addAction(autoRunAction);
-    addAction(saveAsTemplateAction);
-    addAction(settingWidgetAction);
-    addAction(reloadScriptAction);
+    aSaveFile->setShortcut(QKeySequence("Ctrl+S"));
+    aSaveAllFiles->setShortcut(QKeySequence("Ctrl+Shift+S"));
+    aFind->setShortcut(QKeySequence("Ctrl+F"));
+    aOpenInNewWindow->setShortcut(QKeySequence("Ctrl+W"));
+    aRun->setShortcut(QKeySequence("Ctrl+R"));
+    aCommentOutScript->setShortcut(QKeySequence("Ctrl+Shift+D"));
+    aShowCmdHelpScript->setShortcut(QKeySequence("F1"));
+    aSaveAsTemplate->setShortcut(QKeySequence("Ctrl+Shift+T"));
+
+    aOpenInNewWindow->setEnabled(true);
+
+    connect(aReloadFile, &QAction::triggered, this, &EditorMenu::reloadFile);
+    connect(aSaveFile, &QAction::triggered, this, &EditorMenu::saveFile);
+    connect(aSaveAllFiles, &QAction::triggered, this, &EditorMenu::saveAllFileRequested);
+    connect(aSaveFileAs, &QAction::triggered, this, &EditorMenu::saveFileAs);
+    connect(aAutoRun, &QAction::triggered, this, &EditorMenu::setAutoRun);
+    connect(aFind, &QAction::triggered, this, &EditorMenu::findRequested);
+    connect(aOpenInNewWindow, &QAction::triggered, this, &EditorMenu::openInNewWindow);
+    connect(aRun, &QAction::triggered, [this](){ emit runRequested(currentItem); });
+    connect(aCloseProcess, &QAction::triggered, this, &EditorMenu::closeProcess);
+    connect(aCommentOutScript, &QAction::triggered, this, &EditorMenu::commentOutScript);
+    connect(aShowCmdHelpScript, &QAction::triggered, this, &EditorMenu::showCmdHelpRequested);
+    connect(aSaveAsTemplate, &QAction::triggered, this, &EditorMenu::emitSaveAsTemplate);
 }
 
-void EditorMenu::mouseReleaseEvent(QMouseEvent *event)
+void EditorMenu::setCurrentItem(TreeFileItem *item)
 {
-    bool hasSelection = false;
+    currentItem = item;
 
-    if(editor)
+    if(standardContextMenu)
     {
-        if(standardContextMenuAction)
-            removeAction(standardContextMenuAction);
-
-        QMenu *standardContextMenu = editor->createStandardContextMenu();
-        standardContextMenu->setTitle("Edit");
-        standardContextMenuAction = insertMenu(commentOutAction, standardContextMenu);
-
-        hasSelection = editor->textCursor().hasSelection();
-
-        reloadScriptAction->setEnabled(true);
-        autoRunAction->setEnabled(true);
-        saveAsTemplateAction->setEnabled(true);
+        standardContextMenu->deleteLater();
+        standardContextMenu = nullptr;
+        standardContextAction->deleteLater();
+        standardContextAction = nullptr;
     }
-    else
+
+    bool itemExists = false;
+    bool isScript = false;
+    QString fileName = "";
+
+    if(item)
     {
-        reloadScriptAction->setEnabled(false);
-        autoRunAction->setEnabled(false);
-        saveAsTemplateAction->setEnabled(false);
+        itemExists = true;
+        isScript = item->type() == (int)FileTreeWidget::TreeItemType::Script;
+        fileName = item->fileInfo().fileName();
+
+        if(isScript)
+        {
+            standardContextMenu = static_cast<TreeScriptItem*>(item)->editor->createStandardContextMenu();
+            standardContextMenu->setTitle("Edit");
+            standardContextAction = insertMenu(aRun, standardContextMenu);
+        }
     }
 
-    commentOutAction->setEnabled(hasSelection);
-    showGnuplotHelpAction->setEnabled(hasSelection);
+    aReloadFile->setEnabled(itemExists);
+    aSaveFile->setEnabled(itemExists);
+    aSaveFileAs->setEnabled(itemExists);
+    aAutoRun->setEnabled(itemExists);
+    aFind->setEnabled(itemExists);
+    aOpenInNewWindow->setEnabled(itemExists);
 
-    QMenu::mouseReleaseEvent(event);
+    aReloadFile->setText("Reload File \"" + fileName + "\"");
+    aSaveFile->setText("Save File \"" + fileName + "\"");
+    aSaveFileAs->setText("Save File \"" + fileName + "\" As ...");
+
+    aRun->setEnabled(isScript);
+    aCloseProcess->setEnabled(isScript);
+    aCommentOutScript->setEnabled(isScript);
+    aShowCmdHelpScript->setEnabled(isScript);
+    aSaveAsTemplate->setEnabled(isScript);
 }
 
-void EditorMenu::commentOut()
+void EditorMenu::reloadFile()
 {
-    if(editor) editor->reverseSelectedCommentState();
-}
-
-void EditorMenu::enableAutoRun()
-{
-    if(editor)
+    if(currentItem)
     {
-        editor->enableUpdateTimer(!editor->isEnableUpdateTimer());
-
-        if(editor->isEnableUpdateTimer())
-            autoRunAction->setText("Disable Autorun");
-        else
-            autoRunAction->setText("Enable Autorun");
+        currentItem->load();
     }
 }
 
-void EditorMenu::showGnuplotHelp()
+void EditorMenu::saveFile()
 {
-    if(editor) editor->requestCommandHelp();
+    if(currentItem)
+    {
+        currentItem->save();
+    }
 }
+
+void EditorMenu::saveFileAs()
+{
+    if(!currentItem) return;
+
+    const QString pathForSave = QFileDialog::getSaveFileName(this);
+
+    if(pathForSave.isEmpty()) return;
+
+    QFile::copy(currentItem->fileInfo().absoluteFilePath(), pathForSave);
+}
+
+void EditorMenu::setAutoRun()
+{
+    if(currentItem)
+    {
+        //
+    }
+}
+
+void EditorMenu::openInNewWindow()
+{
+    if(!currentItem) return;
+    if(QWidget *w = currentItem->widget())
+    {
+        w->setParent(nullptr);
+        w->show();
+    }
+}
+
+void EditorMenu::closeProcess()
+{
+    if(TreeScriptItem *item = static_cast<TreeScriptItem*>(currentItem))
+    {
+        item->process->close();
+    }
+}
+
+void EditorMenu::commentOutScript()
+{
+    if(TreeScriptItem *item = static_cast<TreeScriptItem*>(currentItem))
+    {
+        if(!item->editor) return;
+        item->editor->reverseSelectedCommentState();
+    }
+}
+
+void EditorMenu::emitSaveAsTemplate()
+{
+    if(TreeScriptItem *item = static_cast<TreeScriptItem*>(currentItem))
+    {
+        if(!item->editor) return;
+        emit saveAsTemplateRequested(item->editor->toPlainText());
+    }
+}
+
+
+
+
+
+
+
+
+GnuplotMenu::GnuplotMenu(const QString &title, QWidget *parent)
+    : QMenu(title, parent)
+    , aScriptTemplate(new QAction("Script Template", this))
+    , aGnuplotSetting(new QAction("Gnuplot Setting", this))
+    , aHelpDocument(new QAction("Help Document", this))
+{
+    addAction(aScriptTemplate);
+    addAction(aGnuplotSetting);
+    addAction(aHelpDocument);
+}
+
+
+
+
+
+
+
+ViewMenu::ViewMenu(const QString &title, QWidget *parent)
+    : QMenu(title, parent)
+    , aSplitVertically(new QAction("Split Vertically", this))
+    , aSplitHorizontally(new QAction("Split Horizontally", this))
+    , aUnsplit(new QAction("Unsplit", this))
+    , aClearOutputWidget(new QAction("Clear Output Window", this))
+    , aClearConsoleWidget(new QAction("Clear Console Window", this))
+    , aEditorLayoutSetting(new QAction("Editor Layout", this))
+{
+    addAction(aSplitVertically);
+    addAction(aSplitHorizontally);
+    addAction(aUnsplit);
+    addSeparator();
+    addAction(aClearOutputWidget);
+    addAction(aClearConsoleWidget);
+    addSeparator();
+    addAction(aEditorLayoutSetting);
+}
+
+
+
+
+
+
+
+HelpMenu::HelpMenu(const QString &title, QWidget *parent)
+    : QMenu(title, parent)
+    , aLogWindow(new QAction("Log", this))
+    , aReboot(new QAction("Reboot", this))
+{
+    addAction(aLogWindow);
+    addAction(aReboot);
+}
+
+
+
+
+
 
 
 
