@@ -38,5 +38,14 @@
         <file alias="icon_separateh">bin/release/icon/icon_separateh.png</file>
         <file alias="icon_separatev">bin/release/icon/icon_separatev.png</file>
         <file alias="icon_execute">bin/release/icon/icon_execute.png</file>
+        <file alias="file_fileadd">bin/release/icon/file_fileadd.png</file>
+        <file alias="file_filereload">bin/release/icon/file_filereload.png</file>
+        <file alias="file_folderadd">bin/release/icon/file_folderadd.png</file>
+        <file alias="file_folderopen">bin/release/icon/file_folderopen.png</file>
+        <file alias="icon_reload">bin/release/icon/icon_reload.png</file>
+        <file alias="file_filesave">bin/release/icon/file_filesave.png</file>
+        <file alias="file_filesaveas">bin/release/icon/file_filesaveas.png</file>
+        <file alias="icon_find">bin/release/icon/icon_find.png</file>
+        <file alias="icon_openinwindow">bin/release/icon/icon_openinwindow.png</file>
     </qresource>
 </RCC>

@@ -172,8 +172,7 @@ void EditorStackedWidget::removeCurrentWidget()
     if(editorListCombo->count() < 1) return;
 
     QWidget *currentWidget = editorStack->currentWidget();
-    editorListCombo->removeItem(editorListCombo->currentIndex());
-    editorStack->removeWidget(currentWidget);
+    editorStack->removeWidget(currentWidget);               //widgetをremoveしたらいくつかのスロットによりcomboも削除されたりなどする
     /* removeしただけでは，親がstackedWidgetのままになる．
      * そのままではEditorStackedWidgetが削除されたときに，
      * 一緒にdeleteされるため，再び選択された場合にcrashする．
@@ -271,8 +270,7 @@ void EditorArea::setWidget(QWidget *widget, TreeFileItem *item)
 {
     if(!rootSplitter) setupRootSplitter();
 
-    if(EditorStackedWidget *focusedStack
-            = static_cast<EditorStackedWidget*>(currentFocusedWidget<EditorStackedWidget>()))
+    if(EditorStackedWidget *focusedStack = currentFocusedWidget<EditorStackedWidget>())
     {
         focusedStack->addWidget(widget, item);
         return;
@@ -303,7 +301,7 @@ void EditorArea::setupRootSplitter()
 
 TreeFileItem* EditorArea::currentTreeFileItem() const
 {
-    if(EditorStackedWidget *stack = static_cast<EditorStackedWidget*>(currentFocusedWidget<EditorStackedWidget>()))
+    if(EditorStackedWidget *stack = currentFocusedWidget<EditorStackedWidget>())
     {
         return stack->currentTreeFileItem();
     }

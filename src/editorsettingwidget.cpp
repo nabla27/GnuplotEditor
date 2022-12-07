@@ -66,8 +66,8 @@ void EditorSetting::initializeLayout()
     connect(backgroundColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setBackgroundColor);
     connect(textColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setTextColor);
     connect(textFontDialog, &QFontDialog::currentFontChanged, this, &EditorSetting::setTextFont);
-    connect(tabSpaceSpin, &QDoubleSpinBox::valueChanged, this, &EditorSetting::setTabSpace);
-    connect(wrapCheckBox, &QCheckBox::toggled, this, &EditorSetting::setWrap);
+    //connect(tabSpaceSpin, &QDoubleSpinBox::valueChanged, this, &EditorSetting::setTabSpace);
+    //connect(wrapCheckBox, &QCheckBox::toggled, this, &EditorSetting::setWrap);
     connect(mainCmdColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setMainCmdColor);
     connect(commentCmdColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setCommentCmdColor);
     connect(doubleQuoteColorDialog, &QColorDialog::currentColorChanged, this, &EditorSetting::setDoubleQuoteColor);
@@ -87,66 +87,66 @@ void EditorSetting::setDefaultSetting()
 void EditorSetting::setBackgroundColor(const QColor& color)
 {
     backgroundColorButton->setStyleSheet(QString("QPushButton { background: %1 }").arg(color.name()));
-    if(editor)
-        editor->setBackgroundColor(color);
+    //if(editor)
+    //    editor->setBackgroundColor(color);
 }
 
 void EditorSetting::setTextColor(const QColor& color)
 {
     textColorButton->setStyleSheet(QString("QPushButton { background: %1 }").arg(color.name()));
-    if(editor)
-        editor->setTextColor(color);
+    //if(editor)
+    //    editor->setTextColor(color);
 }
 
 void EditorSetting::setTextFont(const QFont& font)
 {
     textFontButton->setFont(font);
-    if(editor)
-        editor->setFont(font);
+    //if(editor)
+    //    editor->setFont(font);
 }
 
-void EditorSetting::setTabSpace(const double& tabSpace)
-{
-    if(editor)
-        editor->setTabSpace(tabSpace);
-}
-
-void EditorSetting::setWrap(const bool wrap)
-{
-    if(editor)
-        editor->setWrap(wrap);
-}
+//void EditorSetting::setTabSpace(const double& tabSpace)
+//{
+//    //if(editor)
+//    //    editor->setTabSpace(tabSpace);
+//}
+//
+//void EditorSetting::setWrap(const bool wrap)
+//{
+//    //if(editor)
+//    //    editor->setWrap(wrap);
+//}
 
 void EditorSetting::setMainCmdColor(const QColor& color)
 {
     mainCmdColorButton->setStyleSheet(QString("QPushButton { background: %1 }").arg(color.name()));
 
-    if(editor)
-        editor->setMainCmdColor(color);
+    //if(editor)
+    //    editor->setMainCmdColor(color);
 }
 
 void EditorSetting::setCommentCmdColor(const QColor& color)
 {
     commentCmdColorButton->setStyleSheet(QString("QPushButton { background: %1 }").arg(color.name()));
 
-    if(editor)
-        editor->setCommentColor(color);
+    //if(editor)
+    //    editor->setCommentColor(color);
 }
 
 void EditorSetting::setDoubleQuoteColor(const QColor& color)
 {
     doubleQuoteColorButton->setStyleSheet(QString("QPushButton { background: %1 }").arg(color.name()));
 
-    if(editor)
-        editor->setStringColor(color);
+    //if(editor)
+    //    editor->setStringColor(color);
 }
 
 void EditorSetting::setCursorLineColor(const QColor& color)
 {
     cursorLineColorButton->setStyleSheet(QString("QPushButton { background: %1 }").arg(color.name()));
 
-    if(editor)
-        editor->setCursorLineColor(color);
+    //if(editor)
+    //    editor->setCursorLineColor(color);
 }
 
 void EditorSetting::setTextSize(const int ps)
@@ -156,11 +156,13 @@ void EditorSetting::setTextSize(const int ps)
     textFontDialog->setCurrentFont(font);
 }
 
-void EditorSetting::setEditor(TextEdit *editor)
+void EditorSetting::addEditor(TextEdit *editor)
 {
     if(!editor) return;
 
-    this->editor = editor;
+    if(editorList.contains(editor)) return;
+
+    editor->blockSignals(true); //テキストフォーマットの変更でTextEdit::textChanged()を発行しないようにする
 
     editor->setBackgroundColor(backgroundColorDialog->currentColor());
     editor->setTextColor(textColorDialog->currentColor());
@@ -171,6 +173,21 @@ void EditorSetting::setEditor(TextEdit *editor)
     editor->setCommentColor(commentCmdColorDialog->currentColor());
     editor->setStringColor(doubleQuoteColorDialog->currentColor());
     editor->setCursorLineColor(cursorLineColorDialog->currentColor());
+
+    editor->blockSignals(false);
+
+    editorList.insert(editor);
+
+    connect(backgroundColorDialog, &QColorDialog::currentColorChanged, editor, &TextEdit::setBackgroundColor);
+    connect(textColorDialog, &QColorDialog::currentColorChanged, editor, &TextEdit::setTextColor);
+    connect(textFontDialog, &QFontDialog::currentFontChanged, editor, &TextEdit::setFont);
+    connect(tabSpaceSpin, &QDoubleSpinBox::valueChanged, editor, &TextEdit::setTabSpace);
+    connect(wrapCheckBox, &QCheckBox::toggled, editor, &TextEdit::setWrap);
+    connect(mainCmdColorDialog, &QColorDialog::currentColorChanged, editor, &TextEdit::setMainCmdColor);
+    connect(commentCmdColorDialog, &QColorDialog::currentColorChanged, editor, &TextEdit::setCommentColor);
+    connect(doubleQuoteColorDialog, &QColorDialog::currentColorChanged, editor, &TextEdit::setStringColor);
+    connect(cursorLineColorDialog, &QColorDialog::currentColorChanged, editor, &TextEdit::setCursorLineColor);
+    connect(editor, &TextEdit::fontSizeChanged, this, &EditorSetting::setTextSize);
 }
 
 

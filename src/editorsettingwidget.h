@@ -30,15 +30,15 @@ public:
 
     void loadXmlSetting();
     void saveXmlSetting();
-    void setTextSize(const int ps);
-    void setEditor(TextEdit *const editor);
+    void addEditor(TextEdit *const editor);
 
 private slots:
+    void setTextSize(const int ps);
     void setBackgroundColor(const QColor& color);
     void setTextColor(const QColor& color);
     void setTextFont(const QFont& font);
-    void setTabSpace(const double& tabSpace);
-    void setWrap(const bool wrap);
+    //void setTabSpace(const double& tabSpace);
+    //void setWrap(const bool wrap);
     void setMainCmdColor(const QColor& color);
     void setCommentCmdColor(const QColor& color);
     void setDoubleQuoteColor(const QColor& color);
@@ -74,7 +74,7 @@ private:
 
     QPushButton *setDefaultButton;
 
-    TextEdit *editor = nullptr;
+    QSet<TextEdit*> editorList;
 
 signals:
     void errorCaused(const QString& text, const BrowserWidget::MessageType& type);

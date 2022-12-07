@@ -30,6 +30,7 @@ public:
 public:
     virtual void save() {}
     virtual void load() {}
+    virtual QWidget* widget() { return nullptr; }
     //void setText(int column, const QString& text);
     //void setFileName(const QString& name);
     void setFilePath(const QString& path);
@@ -80,6 +81,7 @@ public:
 public:
     void save() override;
     void load() override;
+    QWidget* widget() override;
 
 public:
     void requestCloseProcess();
@@ -115,8 +117,8 @@ public:
     Q_ENUM(ReadType)
 
     void save() override;
-
     void load() override;
+    QWidget *widget() override;
 
 private slots:
     void receiveSavedResult(const bool& ok);
@@ -140,8 +142,10 @@ class TreeImageItem : public TreeFileItem
     Q_OBJECT
 public:
     explicit TreeImageItem(QTreeWidgetItem *parent, int type, const QFileInfo& info);
-
     ~TreeImageItem();
+
+public:
+    //QWidget* widget() override { return imageDisplay; }
 
 public:
     ImageDisplay *imageDisplay;
@@ -176,17 +180,18 @@ public slots:
     void saveAndLoad();
     void addFolder();
     void saveFolder();
+    void openFolder();
+    void addFile(); //Dir & Root
+    void newFile(); //Dir & Root
 
 private slots:
     void onCustomContextMenu(const QPoint& pos);
 
-    void loadFileTree();
+    void loadFileTree();//saveする必要がある．publicでは代わりにsaveAndLoad()を使う
 
     void renameFile(); //File & Dir
     void removeFile(); //File & Dir
     void exportFile(); //File
-    void addFile(); //Dir & Root
-    void newFile(); //Dir & Root
 
 private:
     void initializeContextMenu();
