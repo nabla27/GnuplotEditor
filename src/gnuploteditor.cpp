@@ -163,6 +163,8 @@ void GnuplotEditor::initializeMenuBar()
     connect(viewMenu, &ViewMenu::clearOutputWidgetRequested, browserWidget, &BrowserWidget::clear);
     connect(viewMenu, &ViewMenu::clearConsoleWidgetRequested, consoleWidget, &ConsoleWidget::clear);
     connect(viewMenu, &ViewMenu::showEditorSettingRequested, editorSetting, &EditorSetting::show);
+
+    connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
 }
 
 void GnuplotEditor::initializeLayout()
