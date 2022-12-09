@@ -110,6 +110,11 @@ private:
     QAction *aScriptTemplate;
     QAction *aGnuplotSetting;
     QAction *aHelpDocument;
+
+signals:
+    void showScriptTemplateRequested();
+    void showGnuplotSettingRequested();
+    void showGnuplotHelpRequested();
 };
 
 

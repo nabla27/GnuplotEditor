@@ -256,6 +256,10 @@ GnuplotMenu::GnuplotMenu(const QString &title, QWidget *parent)
     addAction(aScriptTemplate);
     addAction(aGnuplotSetting);
     addAction(aHelpDocument);
+
+    connect(aScriptTemplate, &QAction::triggered, this, &GnuplotMenu::showScriptTemplateRequested);
+    connect(aGnuplotSetting, &QAction::triggered, this, &GnuplotMenu::showGnuplotSettingRequested);
+    connect(aHelpDocument, &QAction::triggered, this, &GnuplotMenu::showGnuplotHelpRequested);
 }
 
 
