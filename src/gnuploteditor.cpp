@@ -24,11 +24,11 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     , templateCustom(new TemplateCustomWidget(this))
     , fileTreeSetting(new FileTreeSettingWidget(nullptr))
 
-    , fileMenu(new FileMenu("File", this))
-    , editorMenu(new EditorMenu("Editor", this))
-    , gnuplotMenu(new GnuplotMenu("Gnuplot", this))
-    , viewMenu(new ViewMenu("View", this))
-    , helpMenu(new HelpMenu("Help", this))
+    , fileMenu(new FileMenu("&File", this))
+    , editorMenu(new EditorMenu("&Editor", this))
+    , gnuplotMenu(new GnuplotMenu("&Gnuplot", this))
+    , viewMenu(new ViewMenu("&View", this))
+    , helpMenu(new HelpMenu("&Help", this))
 {
     /* ウィンドウをスクリーン画面に対して(0.4,0.5)の比率サイズに設定 */
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
