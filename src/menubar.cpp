@@ -320,6 +320,8 @@ HelpMenu::HelpMenu(const QString &title, QWidget *parent)
 {
     addAction(aLogWindow);
     addAction(aReboot);
+
+    connect(aReboot, &QAction::triggered, this, &HelpMenu::rebootRequested);
 }
 
 
