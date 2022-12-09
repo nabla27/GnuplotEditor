@@ -277,6 +277,7 @@ ViewMenu::ViewMenu(const QString &title, QWidget *parent)
     , aSplitVertically(new QAction("Split Vertically", this))
     , aSplitHorizontally(new QAction("Split Horizontally", this))
     , aUnsplit(new QAction("Unsplit", this))
+    , aRemoveAllStackedEditor(new QAction("Remove All Stacked Editor", this))
     , aClearOutputWidget(new QAction("Clear Output Window", this))
     , aClearConsoleWidget(new QAction("Clear Console Window", this))
     , aEditorLayoutSetting(new QAction("Editor Layout", this))
@@ -284,11 +285,26 @@ ViewMenu::ViewMenu(const QString &title, QWidget *parent)
     addAction(aSplitVertically);
     addAction(aSplitHorizontally);
     addAction(aUnsplit);
+    addAction(aRemoveAllStackedEditor);
     addSeparator();
     addAction(aClearOutputWidget);
     addAction(aClearConsoleWidget);
     addSeparator();
     addAction(aEditorLayoutSetting);
+
+    aSplitVertically->setIcon(QIcon(QPixmap(":/icon/icon_separatev")));
+    aSplitHorizontally->setIcon(QIcon(QPixmap(":/icon/icon_separateh")));
+    aUnsplit->setIcon(QIcon(QPixmap(":/icon/icon_closewidget")));
+
+    aEditorLayoutSetting->setShortcut(QKeySequence("Ctrl+E"));
+
+    connect(aSplitVertically, &QAction::triggered, this, &ViewMenu::splitVerticallyRequested);
+    connect(aSplitHorizontally, &QAction::triggered, this, &ViewMenu::splitHorizontallyRequested);
+    connect(aUnsplit, &QAction::triggered, this, &ViewMenu::unsplitRequested);
+    connect(aRemoveAllStackedEditor, &QAction::triggered, this, &ViewMenu::removeAllStackedEditorRequested);
+    connect(aClearOutputWidget, &QAction::triggered, this, &ViewMenu::clearOutputWidgetRequested);
+    connect(aClearConsoleWidget, &QAction::triggered, this, &ViewMenu::clearConsoleWidgetRequested);
+    connect(aEditorLayoutSetting, &QAction::triggered, this, &ViewMenu::showEditorSettingRequested);
 }
 
 

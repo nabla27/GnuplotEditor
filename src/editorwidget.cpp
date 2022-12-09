@@ -181,6 +181,18 @@ void EditorStackedWidget::removeCurrentWidget()
     currentWidget->hide();
 }
 
+void EditorStackedWidget::removeAllStackedWidget()
+{
+    while(editorStack->count() > 0)
+    {
+        QWidget *w = editorStack->currentWidget();
+        editorStack->removeWidget(w);
+
+        w->setParent(nullptr);
+        w->hide();
+    }
+}
+
 void EditorStackedWidget::closeThisArea()
 {
     setParent(nullptr);
@@ -307,6 +319,32 @@ TreeFileItem* EditorArea::currentTreeFileItem() const
     }
     else
         return nullptr;
+}
+
+void EditorArea::splitFocusedWidgetVertically()
+{
+    if(EditorStackedWidget *w = currentFocusedWidget<EditorStackedWidget>())
+        w->separateAreaV();
+}
+
+void EditorArea::splitFocusedWidgetHorizontally()
+{
+    if(EditorStackedWidget *w = currentFocusedWidget<EditorStackedWidget>())
+        w->separateAreaH();
+}
+
+void EditorArea::closeFocusedWidget()
+{
+    if(EditorStackedWidget *w = currentFocusedWidget<EditorStackedWidget>())
+        w->closeThisArea();
+}
+
+void EditorArea::removeAllStackedWidget()
+{
+    for(EditorStackedWidget *w : findChildren<EditorStackedWidget*>())
+    {
+        if(w) w->removeAllStackedWidget();
+    }
 }
 
 

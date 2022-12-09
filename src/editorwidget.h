@@ -29,14 +29,16 @@ public:
     void addWidget(QWidget *widget, TreeFileItem *item);
     TreeFileItem* currentTreeFileItem() const;
 
+    void separateAreaH();
+    void separateAreaV();
+    void closeThisArea();
+    void removeAllStackedWidget();
+
 private:
     void setupLayout();
 
 private slots:
     void separateArea(const Qt::Orientation& orient);
-    void separateAreaH();
-    void separateAreaV();
-    void closeThisArea();
     void removeCurrentWidget();
     void removeItem(const int index);
     void setCurrentItem(const int index);
@@ -65,6 +67,12 @@ public:
     void setWidget(QWidget *widget, TreeFileItem *item);
 
     TreeFileItem *currentTreeFileItem() const;
+
+public slots:
+    void splitFocusedWidgetVertically();
+    void splitFocusedWidgetHorizontally();
+    void closeFocusedWidget();
+    void removeAllStackedWidget();
 
 private:
     template <typename T>
