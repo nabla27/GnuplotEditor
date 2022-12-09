@@ -257,6 +257,10 @@ GnuplotMenu::GnuplotMenu(const QString &title, QWidget *parent)
     addAction(aGnuplotSetting);
     addAction(aHelpDocument);
 
+    aScriptTemplate->setShortcut(QKeySequence("Ctrl+T"));
+    aGnuplotSetting->setShortcut(QKeySequence("Ctrl+G"));
+    aHelpDocument->setShortcut(QKeySequence("F2"));
+
     connect(aScriptTemplate, &QAction::triggered, this, &GnuplotMenu::showScriptTemplateRequested);
     connect(aGnuplotSetting, &QAction::triggered, this, &GnuplotMenu::showGnuplotSettingRequested);
     connect(aHelpDocument, &QAction::triggered, this, &GnuplotMenu::showGnuplotHelpRequested);
