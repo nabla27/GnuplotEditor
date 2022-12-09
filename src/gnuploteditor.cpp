@@ -151,6 +151,10 @@ void GnuplotEditor::initializeMenuBar()
     connect(editorMenu, &EditorMenu::runRequested, this, &GnuplotEditor::executeItem);
     connect(editorMenu, &EditorMenu::showCmdHelpRequested, this, &GnuplotEditor::showGnuplotCmdHelp);
     connect(editorMenu, &EditorMenu::saveAsTemplateRequested, templateCustom, &TemplateCustomWidget::addTemplate);
+
+    connect(gnuplotMenu, &GnuplotMenu::showScriptTemplateRequested, templateCustom, &TemplateCustomWidget::show);
+    connect(gnuplotMenu, &GnuplotMenu::showGnuplotSettingRequested, gnuplotSetting, &GnuplotSettingWidget::show);
+    connect(gnuplotMenu, &GnuplotMenu::showGnuplotHelpRequested, this, &GnuplotEditor::showGnuplotHelpWindow);
 }
 
 void GnuplotEditor::initializeLayout()
@@ -488,6 +492,16 @@ void GnuplotEditor::showGnuplotCmdHelp()
                                                                         : item->editor->textUnderCursor();
 
         emit exeGnuplotRequested(item->process, QStringList() << "help " + cmd, false);
+    }
+}
+
+void GnuplotEditor::showGnuplotHelpWindow()
+{
+    if(TreeScriptItem *item = qobject_cast<TreeScriptItem*>(editorArea->currentTreeFileItem()))
+    {
+        if(!item->editor) return;
+
+        emit exeGnuplotRequested(item->process, QStringList() << "help", false);
     }
 }
 

@@ -79,6 +79,7 @@ private slots:
     /* menu bar */
     void findKeyword();
     void showGnuplotCmdHelp();
+    void showGnuplotHelpWindow();
     void reboot();
 
 private:
