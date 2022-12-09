@@ -155,6 +155,14 @@ void GnuplotEditor::initializeMenuBar()
     connect(gnuplotMenu, &GnuplotMenu::showScriptTemplateRequested, templateCustom, &TemplateCustomWidget::show);
     connect(gnuplotMenu, &GnuplotMenu::showGnuplotSettingRequested, gnuplotSetting, &GnuplotSettingWidget::show);
     connect(gnuplotMenu, &GnuplotMenu::showGnuplotHelpRequested, this, &GnuplotEditor::showGnuplotHelpWindow);
+
+    connect(viewMenu, &ViewMenu::splitVerticallyRequested, editorArea, &EditorArea::splitFocusedWidgetVertically);
+    connect(viewMenu, &ViewMenu::splitHorizontallyRequested, editorArea, &EditorArea::splitFocusedWidgetHorizontally);
+    connect(viewMenu, &ViewMenu::unsplitRequested, editorArea, &EditorArea::closeFocusedWidget);
+    connect(viewMenu, &ViewMenu::removeAllStackedEditorRequested, editorArea, &EditorArea::removeAllStackedWidget);
+    connect(viewMenu, &ViewMenu::clearOutputWidgetRequested, browserWidget, &BrowserWidget::clear);
+    connect(viewMenu, &ViewMenu::clearConsoleWidgetRequested, consoleWidget, &ConsoleWidget::clear);
+    connect(viewMenu, &ViewMenu::showEditorSettingRequested, editorSetting, &EditorSetting::show);
 }
 
 void GnuplotEditor::initializeLayout()

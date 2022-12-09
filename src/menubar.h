@@ -135,9 +135,19 @@ private:
     QAction *aSplitVertically;
     QAction *aSplitHorizontally;
     QAction *aUnsplit;
+    QAction *aRemoveAllStackedEditor;
     QAction *aClearOutputWidget;
     QAction *aClearConsoleWidget;
     QAction *aEditorLayoutSetting;
+
+signals:
+    void splitVerticallyRequested();
+    void splitHorizontallyRequested();
+    void unsplitRequested();
+    void removeAllStackedEditorRequested();
+    void clearOutputWidgetRequested();
+    void clearConsoleWidgetRequested();
+    void showEditorSettingRequested();
 };
 
 
