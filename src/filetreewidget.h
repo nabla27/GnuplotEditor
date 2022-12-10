@@ -11,14 +11,19 @@
 #define FILETREEWIDGET_H
 
 #include <QTreeWidget>
-#include <QFileInfo>
+//#include <QFileInfo>
 #include <QTreeWidgetItem>
-#include <QFileSystemWatcher>
+//#include <QFileSystemWatcher>
 #include <QComboBox>
 #include "texteditor.h"
-#include "gnuplottable.h"
 #include "browserwidget.h"
 #include "iofile.h"
+
+class TableArea;
+class QProcess;
+class QFileSystemWatcher;
+
+
 
 class TreeFileItem : public QObject, public QTreeWidgetItem
 {
@@ -126,7 +131,7 @@ private slots:
 
 public:
     static QHash<QString, ReadType> suffix;
-    GnuplotTable *table;
+    TableArea *table;
 
 signals:
     void saveRequested(const QString& path, const QList<QList<QString> >& data);

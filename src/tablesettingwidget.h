@@ -11,7 +11,6 @@
 #define TABLESETTINGWIDGET_H
 
 #include <QWidget>
-#include <QIcon>
 #include "gnuplottable.h"
 
 class QMenu;
@@ -35,6 +34,7 @@ public:
     explicit TableArea(QWidget *parent);
 
     QSize minimumSizeHint() const override { return QSize(0, 0); }
+    GnuplotTable *tableWidget() const { return table; }
 
     static constexpr int iconSize = 20;
 

@@ -83,14 +83,6 @@ private slots:
     void reboot();
 
 private:
-    //MenuBarWidget *menuBarWidget;
-
-    //Gnuplot *gnuplot;
-    //QProcess *gnuplotProcess;
-    //QThread gnuplotThread;
-
-    //EditorMenu *editorMenu;
-
     EditorSetting *editorSetting;
     GnuplotSettingWidget *gnuplotSetting;
     TemplateCustomWidget *templateCustom;
@@ -104,22 +96,11 @@ private:
 
     TreeModelCombo *treeModelCombo;
     FileTreeWidget *fileTree;
-    //TabWidget *editorTab;
     TabWidget *displayTab;
-    //QStackedWidget *gnuplotWidget;
-    //TableArea *tableArea;
-    EditorArea *editorArea; //DEBUG
-    //QStackedWidget *sheetWidget;
+    EditorArea *editorArea;
+
     ConsoleWidget *consoleWidget;
     BrowserWidget *browserWidget;
-
-    //TreeScriptItem *currentScript = nullptr;
-    //TreeSheetItem *currentSheet = nullptr;
-
-
-
-signals:
-    void scriptPathChanged(const QString& path);
 };
 
 
