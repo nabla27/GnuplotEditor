@@ -82,6 +82,10 @@ file_filesaveas:
 <a target="_blank" href="https://icons8.com/icon/3701/%E5%90%8D%E5%89%8D%E3%82%92%E4%BB%98%E3%81%91%E3%81%A6%E4%BF%9D%E5%AD%98">名前を付けて保存</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 icon_openinwindow:
 <a target="_blank" href="https://icons8.com/icon/102270/%E3%82%A6%E3%82%A3%E3%83%B3%E3%83%89%E3%82%A6%E3%81%A7%E9%96%8B%E3%81%8D%E3%81%BE%E3%81%99">ウィンドウで開きます</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_page:
+<a target="_blank" href="https://icons8.com/icon/1767/%E6%96%87%E5%AD%A6">文学</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+
+
 
 
 

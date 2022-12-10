@@ -21,343 +21,182 @@
 #include "gnuplottable.h"
 
 
-TableArea::TableArea(QWidget *parent, QStackedWidget *sheetStack)
+
+
+TableArea::TableArea(QWidget *parent)
     : QWidget(parent)
     , settingScrollArea(new QScrollArea(this))
     , scrollContentsVLayout(new QVBoxLayout)
-    , expandIcon(QPixmap(":/icon/icon_triangle").scaled(iconSize, iconSize))
-    , contractIcon(QPixmap(":/icon/icon_triangle").transformed(QTransform().rotate(180)).scaled(iconSize, iconSize))
+    , expandPixmap(QPixmap(":/icon/icon_triangle").scaled(iconSize, iconSize))
+    , contractPixmap(QPixmap(":/icon/icon_triangle").transformed(QTransform().rotate(180)).scaled(iconSize, iconSize))
+
     , expandButton(new mlayout::IconLabel(this))
-    , tableEditSettingWidget(new TableEditSettingWidget(this))
-    , tableCellSettingWidget(new TableCellSettingWidget(this))
-    , tablePlotSettingWidget(new TablePlotSettingWidget(this))
-    , sheetStack(sheetStack)
+    , selectPageButton(new mlayout::IconLabel(this))
+
+    , tableEditSettingWidget(new TableEditSettingWidget(nullptr))
+    , tableCellSettingWidget(new TableCellSettingWidget(nullptr))
+    , tablePlotSettingWidget(new TablePlotSettingWidget(nullptr))
+
+    , selectPageMenu(new QMenu(this))
+
+    , table(new GnuplotTable(nullptr, nullptr))
+{
+    setupLayout();
+
+    connect(selectPageButton, &mlayout::IconLabel::released, [this](){ selectPageMenu->exec(cursor().pos()); });
+    connect(selectPageMenu, &QMenu::triggered, this, &TableArea::setSettingPage);
+    connect(expandButton, &mlayout::IconLabel::released, this, &TableArea::expandSettingPage);
+
+    setupConnection();
+
+    settingScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOn);
+    settingScrollArea->horizontalScrollBar()->setFixedHeight(17);
+    resizeSettingPanel();
+}
+
+void TableArea::setupLayout()
 {
     QVBoxLayout *vLayout = new QVBoxLayout(this);
     QWidget *scrollContents = new QWidget(settingScrollArea);
     QHBoxLayout *settingHLayout = new QHBoxLayout;
-    QVBoxLayout *panelButtonVLayout = new QVBoxLayout;
     QHBoxLayout *panelButtonHLayout = new QHBoxLayout;
 
-    expandButton->setPixmap(expandIcon);
+    expandButton->setPixmap(expandPixmap);
+    selectPageButton->setPixmap(QPixmap(":/icon/icon_page").scaled(iconSize, iconSize));
     expandButton->setHoveredPalette(QPalette(expandButton->backgroundRole(), Qt::lightGray));
+    selectPageButton->setHoveredPalette(QPalette(selectPageButton->backgroundRole(), Qt::lightGray));
     expandButton->setAutoFillBackground(true);
+    selectPageButton->setAutoFillBackground(true);
 
     setLayout(vLayout);
     vLayout->addLayout(settingHLayout);
-    vLayout->addWidget(sheetStack);
+    vLayout->addWidget(table);
     settingHLayout->addWidget(settingScrollArea);
-    settingHLayout->addLayout(panelButtonVLayout);
-    panelButtonVLayout->addLayout(panelButtonHLayout);
-    panelButtonHLayout->addWidget(expandButton);
+    settingHLayout->addLayout(panelButtonHLayout);
     settingScrollArea->setWidget(scrollContents);
     scrollContents->setLayout(scrollContentsVLayout);
-
-    scrollContentsVLayout->addWidget(tableEditSettingWidget);
-    scrollContentsVLayout->addWidget(tableCellSettingWidget);
-    scrollContentsVLayout->addWidget(tablePlotSettingWidget);
+    panelButtonHLayout->addWidget(new mlayout::SeparatorLineWidget(this, Qt::Orientation::Vertical));
+    panelButtonHLayout->addWidget(selectPageButton);
+    panelButtonHLayout->addWidget(expandButton);
 
     vLayout->setSpacing(0);
     scrollContentsVLayout->setSpacing(2);
     settingHLayout->setSpacing(0);
-    panelButtonVLayout->setSpacing(0);
     panelButtonHLayout->setSpacing(0);
+
     vLayout->setContentsMargins(0, 0, 0, 0);
     settingScrollArea->setContentsMargins(0, 0, 0, 0);
     scrollContents->setContentsMargins(0, 0, 0, 0);
     scrollContentsVLayout->setContentsMargins(0, 0, 0, 0);
     settingHLayout->setContentsMargins(0, 0, 0, 0);
-    panelButtonVLayout->setContentsMargins(0, 0, 0, 0);
     panelButtonHLayout->setContentsMargins(0, 0, 0, 0);
 
+    scrollContentsVLayout->addWidget(tableEditSettingWidget);
+
     settingScrollArea->setWidgetResizable(true);
+    settingScrollArea->setFrameShape(QFrame::Shape::NoFrame);
     scrollContentsVLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
-    settingScrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    settingScrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
     scrollContents->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
     tableEditSettingWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
-    sheetStack->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    table->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    connect(settingScrollArea->horizontalScrollBar(), &QScrollBar::rangeChanged, this, &TableArea::resizeSettingPanel);
-    connect(expandButton, &mlayout::IconLabel::released, this, &TableArea::setPanelExpand);
-    connect(sheetStack, &QStackedWidget::currentChanged, this, &TableArea::setCurrentSheet);
+    selectPageMenu->addAction(new QAction("Edit", tableEditSettingWidget));
+    selectPageMenu->addAction(new QAction("Cell", tableCellSettingWidget));
+    selectPageMenu->addAction(new QAction("Plot", tablePlotSettingWidget));
 }
 
-void TableArea::setupSheetWidget(GnuplotTable *table)
+void TableArea::setupConnection()
 {
-    /* table -> tableEditSettingWidget */
-    connect(table->verticalHeader(), &QHeaderView::sectionCountChanged,
-            tableEditSettingWidget, &TableEditSettingWidget::setRowCountSpinBox);
-    connect(table->horizontalHeader(), &QHeaderView::sectionCountChanged,
-            tableEditSettingWidget, &TableEditSettingWidget::setColCountSpinBox);
-
-    /* tableEditSettingWidget -> table */
-    connect(tableEditSettingWidget, &TableEditSettingWidget::rowSpinBoxChanged,
-            this, &TableArea::setRowCount);
-    connect(tableEditSettingWidget, &TableEditSettingWidget::colSpinBoxChanged,
-            this, &TableArea::setColCount);
-    connect(tableEditSettingWidget, &TableEditSettingWidget::pasteRequested,
-            this, &TableArea::pasteCell);
-    connect(tableEditSettingWidget, &TableEditSettingWidget::copyRequested,
-            this, &TableArea::copyCell);
-    connect(tableEditSettingWidget, &TableEditSettingWidget::cutRequested,
-            this, &TableArea::cutCell);
-    connect(tableEditSettingWidget, &TableEditSettingWidget::cellFontSet,
-            this, &TableArea::setCellFont);
-    connect(tableEditSettingWidget, &TableEditSettingWidget::cellTextSizeSet,
-            this, &TableArea::setCellTextSize);
-    connect(tableEditSettingWidget, &TableEditSettingWidget::boldSet,
-            this, &TableArea::setCellBold);
-    connect(tableEditSettingWidget, &TableEditSettingWidget::italicSet,
-            this, &TableArea::setCellItalic);
-    connect(tableEditSettingWidget, &TableEditSettingWidget::underlineSet,
-            this, &TableArea::setCellUnderline);
-    connect(tableEditSettingWidget, &TableEditSettingWidget::cellColorSet,
-            this, &TableArea::setCellColor);
-    connect(tableEditSettingWidget, &TableEditSettingWidget::cellTextColorSet,
-            this, &TableArea::setCellTextColor);
-
-    /* tableCellSetting -> table */
-    connect(tableCellSettingWidget, &TableCellSettingWidget::textAlignmentSet,
-            this, &TableArea::setTextAlignment);
-    connect(tableCellSettingWidget, &TableCellSettingWidget::reverseRowRequested,
-            this, &TableArea::reverseRow);
-    connect(tableCellSettingWidget, &TableCellSettingWidget::reverseColRequested,
-            this, &TableArea::reverseCol);
-    connect(tableCellSettingWidget, &TableCellSettingWidget::transposeCellRequested,
-            this, &TableArea::transposeCell);
-    connect(tableCellSettingWidget, &TableCellSettingWidget::clearCellTextRequested,
-            this, &TableArea::clearCellText);
-    connect(tableCellSettingWidget, &TableCellSettingWidget::mergeCellsRequested,
-            this, &TableArea::mergeSelectedCells);
-    connect(tableCellSettingWidget, &TableCellSettingWidget::splitCellsRequested,
-            this, &TableArea::splitSelectedCells);
-    connect(tableCellSettingWidget, &TableCellSettingWidget::insertRowAboveRequested,
-            this, &TableArea::insertRowAbove);
-    connect(tableCellSettingWidget, &TableCellSettingWidget::insertRowBelowRequested,
-            this, &TableArea::insertRowBelow);
-    connect(tableCellSettingWidget, &TableCellSettingWidget::insertColLeftRequested,
-            this, &TableArea::insertColLeft);
-    connect(tableCellSettingWidget, &TableCellSettingWidget::insertColRightRequested,
-            this, &TableArea::insertColRight);
-
-    /* tablePlotSetting -> table */
-    connect(tablePlotSettingWidget, &TablePlotSettingWidget::plotRequested,
-            this, &TableArea::plotSelectedData);
-    connect(tablePlotSettingWidget, &TablePlotSettingWidget::plotOptionSet,
-            this, &TableArea::setPlotOption);
-}
-
-void TableArea::setCurrentSheet(int currentIndex)
-{
-    if(GnuplotTable *table = static_cast<GnuplotTable*>(sheetStack->widget(currentIndex)))
-    {
-        tableEditSettingWidget->setRowCountSpinBox(0, table->rowCount());
-        tableEditSettingWidget->setColCountSpinBox(0, table->columnCount());
-
-        currentTable = table;
-    }
+    /* TableEditSettingWidget */
+    connect(table->verticalHeader(), &QHeaderView::sectionCountChanged, tableEditSettingWidget, &TableEditSettingWidget::setRowCountSpinBox);
+    connect(table->horizontalHeader(), &QHeaderView::sectionCountChanged, tableEditSettingWidget, &TableEditSettingWidget::setColCountSpinBox);
+    connect(tableEditSettingWidget, &TableEditSettingWidget::pasteRequested, table, &GnuplotTable::pasteCell);
+    connect(tableEditSettingWidget, &TableEditSettingWidget::copyRequested, table, &GnuplotTable::copyCell);
+    connect(tableEditSettingWidget, &TableEditSettingWidget::cutRequested, table, &GnuplotTable::cutCell);
+    connect(tableEditSettingWidget, &TableEditSettingWidget::rowSpinBoxChanged, table, &GnuplotTable::setRowCount);
+    connect(tableEditSettingWidget, &TableEditSettingWidget::colSpinBoxChanged, table, &GnuplotTable::setColumnCount);
+    connect(tableEditSettingWidget, &TableEditSettingWidget::cellFontSet, table, &GnuplotTable::setFont);
+    connect(tableEditSettingWidget, &TableEditSettingWidget::cellTextSizeSet, table, &GnuplotTable::setSelectedTextSize);
+    connect(tableEditSettingWidget, &TableEditSettingWidget::boldSet, table, &GnuplotTable::setSelectedTextBold);
+    connect(tableEditSettingWidget, &TableEditSettingWidget::italicSet, table, &GnuplotTable::setSelectedTextItalic);
+    connect(tableEditSettingWidget, &TableEditSettingWidget::underlineSet, table, &GnuplotTable::setSelectedTextUnderline);
+    connect(tableEditSettingWidget, &TableEditSettingWidget::cellColorSet, table, &GnuplotTable::setSelectedCellColor);
+    connect(tableEditSettingWidget, &TableEditSettingWidget::cellTextColorSet, table, &GnuplotTable::setSelectedTextColor);
+    /* tableCellSettingWidget */
+    connect(tableCellSettingWidget, &TableCellSettingWidget::textAlignmentSet, table, &GnuplotTable::setSelectedTextAlignment);
+    connect(tableCellSettingWidget, &TableCellSettingWidget::reverseRowRequested, table, &GnuplotTable::reverseRow);
+    connect(tableCellSettingWidget, &TableCellSettingWidget::reverseColRequested, table, &GnuplotTable::reverseCol);
+    connect(tableCellSettingWidget, &TableCellSettingWidget::transposeCellRequested, table, &GnuplotTable::transposeCell);
+    connect(tableCellSettingWidget, &TableCellSettingWidget::clearCellTextRequested, table, &GnuplotTable::clearCell);
+    connect(tableCellSettingWidget, &TableCellSettingWidget::mergeCellsRequested, table, &GnuplotTable::mergeSelectedCells);
+    connect(tableCellSettingWidget, &TableCellSettingWidget::splitCellsRequested, table, &GnuplotTable::splitSelectedCells);
+    connect(tableCellSettingWidget, &TableCellSettingWidget::insertRowAboveRequested, table, &GnuplotTable::insertRowUp);
+    connect(tableCellSettingWidget, &TableCellSettingWidget::insertRowBelowRequested, table, &GnuplotTable::insertRowDown);
+    connect(tableCellSettingWidget, &TableCellSettingWidget::insertColLeftRequested, table, &GnuplotTable::insertColLeft);
+    connect(tableCellSettingWidget, &TableCellSettingWidget::insertColRightRequested, table, &GnuplotTable::insertColRight);
+    /* tablePlotSettingWidget */
+    connect(tablePlotSettingWidget, &TablePlotSettingWidget::plotRequested, table, &GnuplotTable::plotSelectedData);
+    connect(tablePlotSettingWidget, &TablePlotSettingWidget::plotOptionSet, table, &GnuplotTable::setOptionCmd);
 }
 
 void TableArea::resizeSettingPanel()
 {
-    int height = (isPanelExpanding) ? scrollContentsVLayout->sizeHint().height()
-                                    : tableEditSettingWidget->sizeHint().height();
+    int height = 0;
 
-    height += 2;
+    for(int i = 0; i < scrollContentsVLayout->count(); ++i)
+    {
+        QWidget *w = scrollContentsVLayout->itemAt(i)->widget();
+        if(w) height += w->sizeHint().height() + 2;
+    }
 
-    if(settingScrollArea->horizontalScrollBar()->maximum() > 0)
+    //if(settingScrollArea->horizontalScrollBar()->maximum() > 0) //水平スクロールバーが表示された場合
+    //if(!settingScrollArea->horizontalScrollBar()->isVisible())
         height += settingScrollArea->horizontalScrollBar()->height();
 
     settingScrollArea->setFixedHeight(height);
 }
 
-/* setting panel を広げたり閉じたり */
-void TableArea::setPanelExpand()
+void TableArea::expandSettingPage()
 {
-    isPanelExpanding = !isPanelExpanding;
+    static bool isExpanding = false;
 
-    if(isPanelExpanding)
+    if(isExpanding)
     {
-        expandButton->setPixmap(contractIcon);
-        //scrollContentsVLayout->setSpacing(1);
+        scrollContentsVLayout->removeWidget(tableCellSettingWidget);
+        scrollContentsVLayout->removeWidget(tablePlotSettingWidget);
+        expandButton->setPixmap(expandPixmap);
     }
     else
     {
-        expandButton->setPixmap(expandIcon);
-        //scrollContentsVLayout->setSpacing(0);
+        scrollContentsVLayout->addWidget(tableEditSettingWidget);
+        scrollContentsVLayout->addWidget(tableCellSettingWidget);
+        scrollContentsVLayout->addWidget(tablePlotSettingWidget);
+        expandButton->setPixmap(contractPixmap);
     }
+
+    isExpanding = !isExpanding;
 
     resizeSettingPanel();
 }
 
-void TableArea::setRowCount(const int row)
+void TableArea::setSettingPage(QAction *action)
 {
-    if(currentTable) currentTable->setRowCount(row);
-}
+    const int layoutCount = scrollContentsVLayout->count();
 
-void TableArea::setColCount(const int col)
-{
-    if(currentTable) currentTable->setColumnCount(col);
-}
+    if(layoutCount > 1) return; //expand状態
 
-void TableArea::pasteCell()
-{
-    if(currentTable) currentTable->pasteCell();
-}
-
-void TableArea::copyCell()
-{
-    if(currentTable) currentTable->copyCell();
-}
-
-void TableArea::cutCell()
-{
-    if(currentTable) currentTable->cutCell();
-}
-
-void TableArea::setCellFont(const QFont& font)
-{
-    if(currentTable)
+    if(layoutCount > 0)
     {
-        currentTable->setSelectedTextFamily(font.family());
+        QWidget *w = scrollContentsVLayout->takeAt(0)->widget();
+        if(w) w->setParent(nullptr);
     }
-}
 
-void TableArea::setCellTextSize(const int ps)
-{
-    if(currentTable)
-    {
-        currentTable->setSelectedTextSize(ps);
-    }
-}
+    scrollContentsVLayout->addWidget(qobject_cast<QWidget*>(action->parent()));
 
-void TableArea::setCellBold()
-{
-    if(currentTable)
-    {
-        currentTable->setSelectedTextBold();
-    }
+    resizeSettingPanel();
 }
-
-void TableArea::setCellItalic()
-{
-    if(currentTable)
-    {
-        currentTable->setSelectedTextItalic();
-    }
-}
-
-void TableArea::setCellUnderline()
-{
-    if(currentTable)
-    {
-        currentTable->setSelectedTextUnderline();
-    }
-}
-
-void TableArea::setCellColor(const QColor& color)
-{
-    if(currentTable)
-    {
-        currentTable->setSelectedCellColor(color);
-    }
-}
-
-void TableArea::setCellTextColor(const QColor& color)
-{
-    if(currentTable)
-    {
-        currentTable->setSelectedTextColor(color);
-    }
-}
-
-void TableArea::setTextAlignment(const Qt::AlignmentFlag &flag)
-{
-    if(currentTable)
-    {
-        currentTable->setSelectedTextAlignment(flag);
-    }
-}
-
-void TableArea::reverseRow()
-{
-    if(currentTable)
-    {
-        currentTable->reverseRow();
-    }
-}
-
-void TableArea::reverseCol()
-{
-    if(currentTable)
-    {
-        currentTable->reverseCol();
-    }
-}
-
-void TableArea::transposeCell()
-{
-    if(currentTable)
-    {
-        currentTable->transposeCell();
-    }
-}
-
-void TableArea::clearCellText()
-{
-    if(currentTable)
-    {
-        currentTable->clearCell();
-    }
-}
-
-void TableArea::mergeSelectedCells()
-{
-    if(currentTable)
-    {
-        currentTable->mergeSelectedCells();
-    }
-}
-
-void TableArea::splitSelectedCells()
-{
-    if(currentTable)
-    {
-        currentTable->splitSelectedCells();
-    }
-}
-
-void TableArea::insertRowAbove()
-{
-    if(currentTable) currentTable->insertRowUp();
-}
-
-void TableArea::insertRowBelow()
-{
-    if(currentTable) currentTable->insertRowDown();
-}
-
-void TableArea::insertColLeft()
-{
-    if(currentTable) currentTable->insertColLeft();
-}
-
-void TableArea::insertColRight()
-{
-    if(currentTable) currentTable->insertColRight();
-}
-
-void TableArea::plotSelectedData(const GnuplotTable::PlotType &plotType)
-{
-    if(currentTable) currentTable->plotSelectedData(plotType);
-}
-
-void TableArea::setPlotOption(const QString &optionCmd)
-{
-    if(currentTable) currentTable->setOptionCmd(optionCmd);
-}
-
 
 
 

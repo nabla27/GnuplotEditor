@@ -14,18 +14,15 @@
 #include <QIcon>
 #include "gnuplottable.h"
 
-
-
-
-
+class QMenu;
 class QScrollArea;
 class QVBoxLayout;
 class QStackedWidget;
 class TableEditSettingWidget;
 class TableCellSettingWidget;
 class TablePlotSettingWidget;
+class QLineEdit;
 namespace mlayout { class IconLabel; }
-
 
 
 
@@ -35,61 +32,41 @@ class TableArea : public QWidget
 {
     Q_OBJECT
 public:
-    TableArea(QWidget *parent, QStackedWidget *sheetStack);
+    explicit TableArea(QWidget *parent);
 
-    void setupSheetWidget(GnuplotTable *table);
+    QSize minimumSizeHint() const override { return QSize(0, 0); }
 
     static constexpr int iconSize = 20;
 
-public slots:
-    void setCurrentSheet(int currentIndex);
+protected slots:
+    void setSettingPage(QAction *action);
+    void expandSettingPage();
 
-private slots:
-    void setPanelExpand();
+protected:
     void resizeSettingPanel();
-
-    void setRowCount(const int row);
-    void setColCount(const int col);
-    void pasteCell();
-    void copyCell();
-    void cutCell();
-    void setCellFont(const QFont& font);
-    void setCellTextSize(const int ps);
-    void setCellBold();
-    void setCellItalic();
-    void setCellUnderline();
-    void setCellColor(const QColor& color);
-    void setCellTextColor(const QColor& color);
-
-    void setTextAlignment(const Qt::AlignmentFlag& flag);
-    void reverseRow();
-    void reverseCol();
-    void transposeCell();
-    void clearCellText();
-    void mergeSelectedCells();
-    void splitSelectedCells();
-    void insertRowAbove();
-    void insertRowBelow();
-    void insertColLeft();
-    void insertColRight();
-
-    void plotSelectedData(const GnuplotTable::PlotType& plotType);
-    void setPlotOption(const QString& optionCmd);
-
+    //void resizeEvent(QResizeEvent *event) override;
 
 private:
-    bool isPanelExpanding = false;
-    QScrollArea *const settingScrollArea;
-    QVBoxLayout *const scrollContentsVLayout;
-    mlayout::IconLabel *const expandButton;
-    const QPixmap expandIcon;
-    const QPixmap contractIcon;
+    void setupLayout();
+    void setupConnection();
 
-    TableEditSettingWidget *const tableEditSettingWidget;
-    TableCellSettingWidget *const tableCellSettingWidget;
-    TablePlotSettingWidget *const tablePlotSettingWidget;
-    QStackedWidget *const sheetStack;
-    GnuplotTable *currentTable;
+private:
+    QScrollArea *settingScrollArea;
+    QVBoxLayout *scrollContentsVLayout;
+
+    QPixmap expandPixmap;
+    QPixmap contractPixmap;
+
+    mlayout::IconLabel *expandButton;
+    mlayout::IconLabel *selectPageButton;
+
+    QMenu *selectPageMenu;
+
+    TableEditSettingWidget *tableEditSettingWidget;
+    TableCellSettingWidget *tableCellSettingWidget;
+    TablePlotSettingWidget *tablePlotSettingWidget;
+
+    GnuplotTable *table;
 };
 
 
@@ -166,7 +143,6 @@ signals:
     void insertColLeftRequested();
     void insertColRightRequested();
 };
-
 
 
 

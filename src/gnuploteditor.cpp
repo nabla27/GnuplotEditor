@@ -39,6 +39,10 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     /* メニュバーの生成 */
     initializeMenuBar();
 
+    //DEBUG
+    TableArea *t = new TableArea(nullptr);
+    t->show();
+
     /* workingDirectoryの設定 */
     QString workingDirectory = fileTreeSetting->previousFolderPath();
     QDir dir(workingDirectory);
