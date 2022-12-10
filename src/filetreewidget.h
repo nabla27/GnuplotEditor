@@ -59,12 +59,6 @@ private:
     void setFileIcon();
 
 private:
-    const QPixmap scriptIcon = QPixmap(":/icon/file_code");
-    const QPixmap sheetIcon = QPixmap(":/icon/file_doc");
-    const QPixmap imageIcon = QPixmap(":/icon/file_image");
-    const QPixmap otherIcon = QPixmap(":/icon/file_normal");
-    const QIcon folderIcon = QApplication::style()->standardIcon(QStyle::SP_DirIcon);
-
     bool isSavedFlag = true;
     QTimer *updateTimer;
     bool enableUpdateTimer = false;
