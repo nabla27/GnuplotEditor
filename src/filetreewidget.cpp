@@ -8,12 +8,16 @@
  */
 
 #include "filetreewidget.h"
+
 #include <QApplication>
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <QProcess>
+#include <QFileSystemWatcher>
 #include "imagedisplay.h"
 #include "gnuplot.h"
+#include "tablesettingwidget.h"
 
 
 
@@ -275,9 +279,9 @@ void TreeScriptItem::receiveLoadedResult(const QString& text, const bool& ok)
 
 TreeSheetItem::TreeSheetItem(QTreeWidgetItem *parent, int type, const QFileInfo &info)
     : TreeFileItem(parent, type, info)
-    , table(nullptr)
+    , table(new TableArea(nullptr))
 {
-
+    load();
 }
 
 TreeSheetItem::~TreeSheetItem()
@@ -315,7 +319,7 @@ void TreeSheetItem::save()
         return;
     }
 
-    emit saveRequested(info.absoluteFilePath(), table->getData<QString>());
+    emit saveRequested(info.absoluteFilePath(), table->tableWidget()->getData<QString>());
 }
 
 void TreeSheetItem::load()
@@ -368,7 +372,7 @@ void TreeSheetItem::receiveLoadResult(const QList<QList<QString> >& data, const 
 {
     if(ok)
     {
-        table->setData(data);
+        table->tableWidget()->setData(data);
         setSavedState(true);  //データをセットしてから
     }
     else

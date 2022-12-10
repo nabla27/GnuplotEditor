@@ -11,6 +11,7 @@
 
 #include <QAction>
 #include <QFileDialog>
+#include <QProcess>
 #include "filetreewidget.h"
 
 FileMenu::FileMenu(const QString &title, QWidget *parent)
