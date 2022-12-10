@@ -14,6 +14,7 @@
 
 #include "layoutparts.h"
 #include "standardpixmap.h"
+#include "logger.h"
 
 //DEBUG
 #include "texteditor.h"
@@ -142,6 +143,9 @@ void EditorStackedWidget::separateArea(const Qt::Orientation& orient)
     splitter->setSizes(QList<int>() << splitter->width() / 2 << splitter->width() / 2);
 
     parentSplitter = splitter; //順番に気をつける
+
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "editor area separated.", Logger::LogLevel::Info);
 }
 
 
@@ -185,11 +189,19 @@ void EditorStackedWidget::addWidget(QWidget *widget, TreeFileItem *item)
     connect(item, &TreeFileItem::editStateChanged, this, &EditorStackedWidget::changeEditState);
     //updateTimer()が発せられる間に，stackのeditorが変更された場合，異なるitemがrequestExecuteされる問題がある
     connect(item, &TreeFileItem::updated, this, &EditorStackedWidget::requestExecute);
+
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "a new widget is added.", Logger::LogLevel::Info);
 }
 
 void EditorStackedWidget::removeCurrentWidget()
 {
-    if(editorListCombo->count() < 1) return;
+    if(editorListCombo->count() < 1)
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "tried to remove current widget, but the editor list combobox was already empty.", Logger::LogLevel::Warn);
+        return;
+    }
 
     QWidget *currentWidget = editorStack->currentWidget();
 
@@ -212,6 +224,9 @@ void EditorStackedWidget::removeAllStackedWidget()
 
         w->setParent(nullptr);
         w->hide();
+
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "all stacked widget are removed.", Logger::LogLevel::Info);
     }
 }
 
@@ -240,6 +255,9 @@ void EditorStackedWidget::closeThisArea()
     }
 
     deleteLater();
+
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "this stacked widget is deleted.", Logger::LogLevel::Info);
 }
 
 void EditorStackedWidget::removeItem(const int index)
@@ -275,6 +293,9 @@ void EditorStackedWidget::setCurrentItem(const int index)
 
 void EditorStackedWidget::requestExecute()
 {
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "execute requested from " + QString(EditorStackedWidget::staticMetaObject.className()), Logger::LogLevel::Info);
+
     emit editorArea->executeRequested(currentTreeFileItem());
 }
 
@@ -293,6 +314,9 @@ void EditorStackedWidget::changeEditState(bool edited)
             editorListCombo->setItemText(index, item->text(0) + "*");
         }
     }
+
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "the edit state of current widget is changed.", Logger::LogLevel::Info);
 }
 
 

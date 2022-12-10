@@ -35,7 +35,7 @@ class HelpMenu;
 class TreeModelCombo;
 class FileTreeWidget;
 class ConsoleWidget;
-class BrowserWidget;
+//class BrowserWidget;
 
 
 
@@ -110,7 +110,7 @@ private:
     EditorArea *editorArea;
 
     ConsoleWidget *consoleWidget;
-    BrowserWidget *browserWidget;
+    //BrowserWidget *browserWidget;
 };
 
 

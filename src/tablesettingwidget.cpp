@@ -25,7 +25,6 @@
 
 
 
-
 TableArea::TableArea(QWidget *parent)
     : QWidget(parent)
     , settingScrollArea(new QScrollArea(this))

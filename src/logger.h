@@ -88,12 +88,13 @@ public:
     explicit LogViwer(QWidget *parent);
 
 public:
-    void load(const QString& path);
+    void load();
     void setLogFilePath(const QString& path);
 
 private:
     QTextBrowser *browser;
     QFileSystemWatcher *fileWatcher;
+    QTimer *writeTimer;
 
 signals:
     void logPushed(const QString& file, const int line, const QString& func, const QString& message, const Logger::LogLevel& level);

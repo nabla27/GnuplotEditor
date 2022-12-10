@@ -120,6 +120,7 @@
 #include <QThread>
 #include <QProcess>
 #include <QDebug>
+#include "logger.h"
 
 
 
@@ -197,7 +198,8 @@ void GnuplotExecutor::Gnuplot::execute(QProcess *process, const QList<QString>& 
 {
     if(!process)
     {
-        /* メッセージ */
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "the process was nullptr.", Logger::LogLevel::Error);
         return;
     }
 
@@ -205,19 +207,30 @@ void GnuplotExecutor::Gnuplot::execute(QProcess *process, const QList<QString>& 
     {
         process->start(exePath, QStringList() << "-persist");
 
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "the process id[" + QString::number(process->processId()) + "] started.", Logger::LogLevel::Info);
+
         if(process->error() == QProcess::ProcessError::FailedToStart)
         {
             process->close();
-            /* エラーメッセージを送る */
+
+            logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           "failed to start the process id[" + QString::number(process->processId()) + "].", Logger::LogLevel::Error);
+
             return;
         }
+    }
+
+    {
+        logger->output("execute gnuplot process id[" + QString::number(process->processId()) + "]", Logger::LogLevel::GnuplotInfo);
     }
 
     /* workingFolderPath に移動 */
     {
         const QString moveDirCmd = "cd '" + workingPath + "'";
         process->write((moveDirCmd + "\n").toUtf8().constData());
-        /* メッセージ */
+
+        logger->output(moveDirCmd, Logger::LogLevel::GnuplotInfo);
     }
 
     if(enablePreCmd)
@@ -225,20 +238,23 @@ void GnuplotExecutor::Gnuplot::execute(QProcess *process, const QList<QString>& 
         for(const QString& initCmd : this->initCmd)
         {
             process->write((initCmd + "\n").toUtf8().constData());
-            /* メッセージ */
+
+            logger->output(initCmd, Logger::LogLevel::GnuplotInfo);
         }
 
         for(const QString& preCmd : this->preCmd)
         {
             process->write((preCmd + "\n").toUtf8().constData());
-            /* メッセージ */
+
+            logger->output(preCmd, Logger::LogLevel::GnuplotInfo);
         }
     }
 
     for(const QString& cmd : cmdlist)
     {
         process->write((cmd + "\n").toUtf8().constData());
-        /* メッセージ */
+
+        logger->output(cmd, Logger::LogLevel::GnuplotInfo);
     }
 }
 

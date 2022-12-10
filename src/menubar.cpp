@@ -128,6 +128,10 @@ EditorMenu::EditorMenu(const QString &title, QWidget *parent)
 
 void EditorMenu::setCurrentItem(TreeFileItem *item)
 {
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "item is set to " +
+                   QString(EditorMenu::staticMetaObject.className()), Logger::LogLevel::Info);
+
     currentItem = item;
 
     if(standardContextMenu)
@@ -159,6 +163,12 @@ void EditorMenu::setCurrentItem(TreeFileItem *item)
             standardContextMenu->setTitle("Edit");
             standardContextAction = insertMenu(aRun, standardContextMenu);
         }
+    }
+    else
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "nullptr item is set to " +
+                       QString(EditorMenu::staticMetaObject.className()), Logger::LogLevel::Info);
     }
 
     aReloadFile->setEnabled(itemExists);

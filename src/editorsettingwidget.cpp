@@ -11,7 +11,7 @@
 #include <QFormLayout>
 #include <QPushButton>
 #include <QMessageBox>
-
+#include "logger.h"
 
 
 EditorSetting::EditorSetting(QWidget *parent)
@@ -223,6 +223,9 @@ void EditorSetting::loadXmlSetting()
         ptree pt;
         read_xml(settingFile.toUtf8().constData(), pt); //存在しないファイルやフォルダーを指定するとエラー(落ちる)
 
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "read saved editor setting file.", Logger::LogLevel::Info);
+
         {
             int r = 0, g = 0, b = 0;
             if(boost::optional<int> red = pt.get_optional<int>("root.backgroundColor.r"))
@@ -324,6 +327,9 @@ void EditorSetting::loadXmlSetting()
     }
     else
     {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "editor setting file is not found. set to default.", Logger::LogLevel::Info);
+
         loadDefaultSetting();
     }
 }
@@ -411,7 +417,8 @@ void EditorSetting::saveXmlSetting()
         QDir dir;
         const bool success = dir.mkdir(settingFolderPath);
         if(!success) {
-            emit errorCaused("failed to create the folder \"" + settingFolderPath + "\", so it could not save settings.", BrowserWidget::MessageType::FileSystemErr);
+            logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           "failed to create the folder \"" + settingFolderPath + "\", so it colud not save settings.", Logger::LogLevel::Error);
             return;
         }
     }
@@ -420,6 +427,8 @@ void EditorSetting::saveXmlSetting()
     //存在しないファイルは指定しても大丈夫
     write_xml((settingFolderPath + "/" + settingFileName).toUtf8().constData()
               , pt, std::locale(), xml_writer_make_settings<std::string>(' ', indent, "utf-8"));
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "save editor setting to " + settingFolderPath + "/" + settingFileName, Logger::LogLevel::Info);
 }
 
 
