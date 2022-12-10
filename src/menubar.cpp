@@ -14,6 +14,7 @@
 #include <QProcess>
 #include "filetreewidget.h"
 #include "texteditor.h"
+#include "standardpixmap.h"
 
 FileMenu::FileMenu(const QString &title, QWidget *parent)
     : QMenu(title, parent)
@@ -37,11 +38,11 @@ FileMenu::FileMenu(const QString &title, QWidget *parent)
     addSeparator();
     addAction(aOpenTreeSetting);
 
-    aOpenFolder->setIcon(QIcon(QPixmap(":/icon/file_folderopen")));
-    aAddFolder->setIcon(QIcon(QPixmap(":/icon/file_folderadd")));
-    aReloadFolder->setIcon(QIcon(QPixmap(":/icon/icon_reload")));
-    aOpenFile->setIcon(QIcon(QPixmap(":/icon/file_fileadd")));
-    aNewFile->setIcon(QIcon(QPixmap(":/icon/file_normal")));
+    aOpenFolder->setIcon(QIcon(StandardPixmap::File::folderOpen()));
+    aAddFolder->setIcon(QIcon(StandardPixmap::File::folderAdd()));
+    aReloadFolder->setIcon(QIcon(StandardPixmap::Icon::reload()));
+    aOpenFile->setIcon(QIcon(StandardPixmap::File::fileAdd()));
+    aNewFile->setIcon(QIcon(StandardPixmap::File::normal()));
 
     aOpenFile->setShortcut(QKeySequence("Ctrl+O"));
     aNewFile->setShortcut(QKeySequence("Ctrl+N"));
@@ -91,12 +92,12 @@ EditorMenu::EditorMenu(const QString &title, QWidget *parent)
     addAction(aShowCmdHelpScript);
     addAction(aSaveAsTemplate);
 
-    aReloadFile->setIcon(QIcon(QPixmap(":/icon/file_filereload")));
-    aSaveFile->setIcon(QIcon(QPixmap(":/icon/file_filesave")));
-    aSaveFileAs->setIcon(QIcon(QPixmap(":/icon/file_filesaveas")));
-    aFind->setIcon(QIcon(QPixmap(":/icon/icon_find")));
-    aOpenInNewWindow->setIcon(QIcon(QPixmap(":/icon/icon_openinwindow")));
-    aRun->setIcon(QIcon(QPixmap(":/icon/icon_execute")));
+    aReloadFile->setIcon(QIcon(StandardPixmap::File::fileReload()));
+    aSaveFile->setIcon(QIcon(StandardPixmap::File::fileSave()));
+    aSaveFileAs->setIcon(QIcon(StandardPixmap::File::fileSaves()));
+    aFind->setIcon(QIcon(StandardPixmap::Icon::find()));
+    aOpenInNewWindow->setIcon(QIcon(StandardPixmap::Icon::openInWindow()));
+    aRun->setIcon(QIcon(StandardPixmap::Icon::execute()));
 
     aSaveFile->setShortcut(QKeySequence("Ctrl+S"));
     aSaveAllFiles->setShortcut(QKeySequence("Ctrl+Shift+S"));
@@ -281,16 +282,16 @@ GnuplotMenu::GnuplotMenu(const QString &title, QWidget *parent)
 
 ViewMenu::ViewMenu(const QString &title, QWidget *parent)
     : QMenu(title, parent)
-    , aSplitVertically(new QAction("Split Vertically", this))
     , aSplitHorizontally(new QAction("Split Horizontally", this))
+    , aSplitVertically(new QAction("Split Vertically", this))
     , aUnsplit(new QAction("Unsplit", this))
     , aRemoveAllStackedEditor(new QAction("Remove All Stacked Editor", this))
     , aClearOutputWidget(new QAction("Clear Output Window", this))
     , aClearConsoleWidget(new QAction("Clear Console Window", this))
     , aEditorLayoutSetting(new QAction("Editor Layout", this))
 {
-    addAction(aSplitVertically);
     addAction(aSplitHorizontally);
+    addAction(aSplitVertically);
     addAction(aUnsplit);
     addAction(aRemoveAllStackedEditor);
     addSeparator();
@@ -299,14 +300,14 @@ ViewMenu::ViewMenu(const QString &title, QWidget *parent)
     addSeparator();
     addAction(aEditorLayoutSetting);
 
-    aSplitVertically->setIcon(QIcon(QPixmap(":/icon/icon_separatev")));
-    aSplitHorizontally->setIcon(QIcon(QPixmap(":/icon/icon_separateh")));
-    aUnsplit->setIcon(QIcon(QPixmap(":/icon/icon_closewidget")));
+    aSplitHorizontally->setIcon(QIcon(StandardPixmap::Icon::separateH()));
+    aSplitVertically->setIcon(QIcon(StandardPixmap::Icon::separateV()));
+    aUnsplit->setIcon(QIcon(StandardPixmap::Icon::closeWidget()));
 
     aEditorLayoutSetting->setShortcut(QKeySequence("Ctrl+E"));
 
-    connect(aSplitVertically, &QAction::triggered, this, &ViewMenu::splitVerticallyRequested);
     connect(aSplitHorizontally, &QAction::triggered, this, &ViewMenu::splitHorizontallyRequested);
+    connect(aSplitVertically, &QAction::triggered, this, &ViewMenu::splitVerticallyRequested);
     connect(aUnsplit, &QAction::triggered, this, &ViewMenu::unsplitRequested);
     connect(aRemoveAllStackedEditor, &QAction::triggered, this, &ViewMenu::removeAllStackedEditorRequested);
     connect(aClearOutputWidget, &QAction::triggered, this, &ViewMenu::clearOutputWidgetRequested);

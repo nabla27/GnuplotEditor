@@ -4,6 +4,7 @@
 #include <QSplitter>
 
 #include "layoutparts.h"
+#include "standardpixmap.h"
 
 //DEBUG
 #include "texteditor.h"
@@ -54,7 +55,7 @@ void EditorStackedWidget::setupLayout()
     hLayout->addWidget(removeEditor);
     hLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Preferred));
     hLayout->addWidget(executeScript);
-    hLayout->addWidget(new mlayout::SeparatorLineWidget(this, Qt::Orientation::Vertical));
+    //hLayout->addWidget(new mlayout::SeparatorLineWidget(this, Qt::Orientation::Vertical));
     hLayout->addWidget(separateAreaHorizontal);
     hLayout->addWidget(separateAreaVertical);
     hLayout->addWidget(closeArea);
@@ -67,11 +68,11 @@ void EditorStackedWidget::setupLayout()
     hLayout->setContentsMargins(0, 0, 0, 0);
 
     static int iconSize = 20;
-    removeEditor->setPixmap(QPixmap(":/icon/icon_remove").scaled(iconSize, iconSize));
-    executeScript->setPixmap(QPixmap(":/icon/icon_execute").scaled(iconSize, iconSize));
-    separateAreaHorizontal->setPixmap(QPixmap(":/icon/icon_separateh").scaled(iconSize, iconSize));
-    separateAreaVertical->setPixmap(QPixmap(":/icon/icon_separatev").scaled(iconSize, iconSize));
-    closeArea->setPixmap(QPixmap(":/icon/icon_closewidget").scaled(iconSize, iconSize));
+    removeEditor->setPixmap(StandardPixmap::Icon::remove().scaled(iconSize, iconSize));
+    executeScript->setPixmap(StandardPixmap::Icon::execute().scaled(iconSize, iconSize));
+    separateAreaHorizontal->setPixmap(StandardPixmap::Icon::separateH().scaled(iconSize, iconSize));
+    separateAreaVertical->setPixmap(StandardPixmap::Icon::separateV().scaled(iconSize, iconSize));
+    closeArea->setPixmap(StandardPixmap::Icon::closeWidget().scaled(iconSize, iconSize));
 
     QPalette buttonPalette(removeEditor->backgroundRole(), Qt::lightGray);
     removeEditor->setHoveredPalette(buttonPalette);

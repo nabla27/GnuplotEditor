@@ -21,6 +21,7 @@
 #include <QMenu>
 #include "layoutparts.h"
 #include "gnuplottable.h"
+#include "standardpixmap.h"
 
 
 
@@ -29,8 +30,8 @@ TableArea::TableArea(QWidget *parent)
     : QWidget(parent)
     , settingScrollArea(new QScrollArea(this))
     , scrollContentsVLayout(new QVBoxLayout)
-    , expandPixmap(QPixmap(":/icon/icon_triangle").scaled(iconSize, iconSize))
-    , contractPixmap(QPixmap(":/icon/icon_triangle").transformed(QTransform().rotate(180)).scaled(iconSize, iconSize))
+    , expandPixmap(StandardPixmap::Icon::triangle().scaled(iconSize, iconSize))
+    , contractPixmap(StandardPixmap::Icon::triangle().transformed(QTransform().rotate(180)).scaled(iconSize, iconSize))
 
     , expandButton(new mlayout::IconLabel(this))
     , selectPageButton(new mlayout::IconLabel(this))
@@ -69,7 +70,7 @@ void TableArea::setupLayout()
     QHBoxLayout *panelButtonHLayout = new QHBoxLayout;
 
     expandButton->setPixmap(expandPixmap);
-    selectPageButton->setPixmap(QPixmap(":/icon/icon_page").scaled(iconSize, iconSize));
+    selectPageButton->setPixmap(StandardPixmap::Icon::page().scaled(iconSize, iconSize));
     expandButton->setHoveredPalette(QPalette(expandButton->backgroundRole(), Qt::lightGray));
     selectPageButton->setHoveredPalette(QPalette(selectPageButton->backgroundRole(), Qt::lightGray));
     expandButton->setAutoFillBackground(true);
@@ -252,16 +253,16 @@ TableEditSettingWidget::TableEditSettingWidget(QWidget *parent)
 
     static constexpr int iconSize = 20;
 
-    pasteButton->setPixmap(QPixmap(":/icon/edit_paste").scaled(iconSize, iconSize));
-    copyButton->setPixmap(QPixmap(":/icon/edit_copy").scaled(iconSize, iconSize));
-    cutButton->setPixmap(QPixmap(":/icon/edit_cut").scaled(iconSize, iconSize));
-    boldButton->setPixmap(QPixmap(":/icon/edit_bold").scaled(iconSize, iconSize));
-    italicButton->setPixmap(QPixmap(":/icon/edit_italic").scaled(iconSize, iconSize));
-    underlineButton->setPixmap(QPixmap(":/icon/edit_underline").scaled(iconSize, iconSize));
-    cellColorButton->setPixmap(QPixmap(":/icon/edit_backgroundcolor").scaled(iconSize, iconSize));
-    cellColorExpand->setPixmap(QPixmap(":/icon/icon_triangle").scaled(iconSize / 3, iconSize / 3));
-    textColorButton->setPixmap(QPixmap(":/icon/edit_textcolor").scaled(iconSize, iconSize));
-    textColorExpand->setPixmap(QPixmap(":/icon/icon_triangle").scaled(iconSize / 3, iconSize / 3));
+    pasteButton->setPixmap(StandardPixmap::Edit::paste().scaled(iconSize, iconSize));
+    copyButton->setPixmap(StandardPixmap::Edit::copy().scaled(iconSize, iconSize));
+    cutButton->setPixmap(StandardPixmap::Edit::cut().scaled(iconSize, iconSize));
+    boldButton->setPixmap(StandardPixmap::Edit::bold().scaled(iconSize, iconSize));
+    italicButton->setPixmap(StandardPixmap::Edit::italic().scaled(iconSize, iconSize));
+    underlineButton->setPixmap(StandardPixmap::Edit::underline().scaled(iconSize, iconSize));
+    cellColorButton->setPixmap(StandardPixmap::Edit::backgroundColor().scaled(iconSize, iconSize));
+    cellColorExpand->setPixmap(StandardPixmap::Icon::triangle().scaled(iconSize / 3, iconSize / 3));
+    textColorButton->setPixmap(StandardPixmap::Edit::textColor().scaled(iconSize, iconSize));
+    textColorExpand->setPixmap(StandardPixmap::Icon::triangle().scaled(iconSize / 3, iconSize / 3));
     pasteButton->setHoveredPalette(QPalette(pasteButton->backgroundRole(), Qt::lightGray));
     copyButton->setHoveredPalette(QPalette(copyButton->backgroundRole(), Qt::lightGray));
     cutButton->setHoveredPalette(QPalette(cutButton->backgroundRole(), Qt::lightGray));
@@ -426,24 +427,24 @@ TableCellSettingWidget::TableCellSettingWidget(QWidget *parent)
 
     static constexpr int iconSize = 20;
 
-    alignLeftButton->setPixmap(QPixmap(":/icon/edit_alignleft").scaled(iconSize, iconSize));
-    alignHCenterButton->setPixmap(QPixmap(":/icon/edit_alignhcenter").scaled(iconSize, iconSize));
-    alignRightButton->setPixmap(QPixmap(":/icon/edit_alignright").scaled(iconSize, iconSize));
-    alignJustButton->setPixmap(QPixmap(":/icon/edit_alignjust").scaled(iconSize, iconSize));
-    alignTopButton->setPixmap(QPixmap(":/icon/edit_aligntop").scaled(iconSize, iconSize));
-    alignVCenterButton->setPixmap(QPixmap(":/icon/edit_alignvcenter").scaled(iconSize, iconSize));
-    alignBottomButton->setPixmap(QPixmap(":/icon/edit_alignbottom").scaled(iconSize, iconSize));
-    alignBaselineButton->setPixmap(QPixmap(":/icon/edit_alignbaseline").scaled(iconSize, iconSize));
-    reverseRowButton->setPixmap(QPixmap(":/icon/edit_reverserow").scaled(iconSize, iconSize));
-    reverseColButton->setPixmap(QPixmap(":/icon/edit_reversecol").scaled(iconSize, iconSize));
-    transposeButton->setPixmap(QPixmap(":/icon/edit_reverserow").transformed(QTransform().rotate(45)).scaled(iconSize, iconSize));
-    clearTextButton->setPixmap(QPixmap(":/icon/edit_clear").scaled(iconSize, iconSize));
-    mergeCellsButton->setPixmap(QPixmap(":/icon/edit_mergecells").scaled(iconSize, iconSize));
-    splitCellsButton->setPixmap(QPixmap(":/icon/edit_splitcells").scaled(iconSize, iconSize));
-    insertRowAboveButton->setPixmap(QPixmap(":/icon/edit_insertrowabove").scaled(iconSize, iconSize));
-    insertRowBelowButton->setPixmap(QPixmap(":/icon/edit_insertrowbelow").scaled(iconSize, iconSize));
-    insertColLeftButton->setPixmap(QPixmap(":/icon/edit_insertcolleft").scaled(iconSize, iconSize));
-    insertColRightButton->setPixmap(QPixmap(":/icon/edit_insertcolright").scaled(iconSize, iconSize));
+    alignLeftButton->setPixmap(StandardPixmap::Edit::alignLeft().scaled(iconSize, iconSize));
+    alignHCenterButton->setPixmap(StandardPixmap::Edit::alignHCenter().scaled(iconSize, iconSize));
+    alignRightButton->setPixmap(StandardPixmap::Edit::alignRight().scaled(iconSize, iconSize));
+    alignJustButton->setPixmap(StandardPixmap::Edit::alignJust().scaled(iconSize, iconSize));
+    alignTopButton->setPixmap(StandardPixmap::Edit::alignTop().scaled(iconSize, iconSize));
+    alignVCenterButton->setPixmap(StandardPixmap::Edit::alignVCenter().scaled(iconSize, iconSize));
+    alignBottomButton->setPixmap(StandardPixmap::Edit::alignBottom().scaled(iconSize, iconSize));
+    alignBaselineButton->setPixmap(StandardPixmap::Edit::alignBaseline().scaled(iconSize, iconSize));
+    reverseRowButton->setPixmap(StandardPixmap::Edit::reverseRow().scaled(iconSize, iconSize));
+    reverseColButton->setPixmap(StandardPixmap::Edit::reverseCol().scaled(iconSize, iconSize));
+    transposeButton->setPixmap(StandardPixmap::Edit::reverseRow().transformed(QTransform().rotate(45)).scaled(iconSize, iconSize));
+    clearTextButton->setPixmap(StandardPixmap::Edit::clear().scaled(iconSize, iconSize));
+    mergeCellsButton->setPixmap(StandardPixmap::Edit::mergeCells().scaled(iconSize, iconSize));
+    splitCellsButton->setPixmap(StandardPixmap::Edit::splitCells().scaled(iconSize, iconSize));
+    insertRowAboveButton->setPixmap(StandardPixmap::Edit::insertRowAbove().scaled(iconSize, iconSize));
+    insertRowBelowButton->setPixmap(StandardPixmap::Edit::insertRowBelow().scaled(iconSize, iconSize));
+    insertColLeftButton->setPixmap(StandardPixmap::Edit::insertColLeft().scaled(iconSize, iconSize));
+    insertColRightButton->setPixmap(StandardPixmap::Edit::insertColRight().scaled(iconSize, iconSize));
 
     QPalette buttonHoveredPalette(alignLeftButton->foregroundRole(), Qt::lightGray);
     alignLeftButton->setHoveredPalette(buttonHoveredPalette);
@@ -555,12 +556,12 @@ TablePlotSettingWidget::TablePlotSettingWidget(QWidget *parent)
     hLayout->addWidget(plotCustomExpand);
     hLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Preferred));
 
-    plotScatterButton->setPixmap(QPixmap(":/icon/graph_scatter").scaled(TableArea::iconSize, TableArea::iconSize));
-    plotScatterExpand->setPixmap(QPixmap(":/icon/icon_triangle").scaled(TableArea::iconSize / 3, TableArea::iconSize / 3));
-    plotBarButton->setPixmap(QPixmap(":/icon/graph_bar").scaled(TableArea::iconSize, TableArea::iconSize));
-    plotBarExpand->setPixmap(QPixmap(":/icon/icon_triangle").scaled(TableArea::iconSize / 3, TableArea::iconSize / 3));
-    plotCustomButton->setPixmap(QPixmap(":/icon/graph_script").scaled(TableArea::iconSize, TableArea::iconSize));
-    plotCustomExpand->setPixmap(QPixmap(":/icon/icon_triangle").scaled(TableArea::iconSize / 3, TableArea::iconSize / 3));
+    plotScatterButton->setPixmap(StandardPixmap::Graph::scatter().scaled(TableArea::iconSize, TableArea::iconSize));
+    plotScatterExpand->setPixmap(StandardPixmap::Icon::triangle().scaled(TableArea::iconSize / 3, TableArea::iconSize / 3));
+    plotBarButton->setPixmap(StandardPixmap::Graph::bar().scaled(TableArea::iconSize, TableArea::iconSize));
+    plotBarExpand->setPixmap(StandardPixmap::Icon::triangle().scaled(TableArea::iconSize / 3, TableArea::iconSize / 3));
+    plotCustomButton->setPixmap(StandardPixmap::Graph::script().scaled(TableArea::iconSize, TableArea::iconSize));
+    plotCustomExpand->setPixmap(StandardPixmap::Icon::triangle().scaled(TableArea::iconSize / 3, TableArea::iconSize / 3));
 
     QPalette hoveredPalette(plotScatterButton->backgroundRole(), Qt::lightGray);
     plotScatterButton->setHoveredPalette(hoveredPalette);

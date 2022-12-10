@@ -132,8 +132,8 @@ public:
     explicit ViewMenu(const QString& title, QWidget *parent);
 
 private:
-    QAction *aSplitVertically;
     QAction *aSplitHorizontally;
+    QAction *aSplitVertically;
     QAction *aUnsplit;
     QAction *aRemoveAllStackedEditor;
     QAction *aClearOutputWidget;
@@ -141,8 +141,8 @@ private:
     QAction *aEditorLayoutSetting;
 
 signals:
-    void splitVerticallyRequested();
     void splitHorizontallyRequested();
+    void splitVerticallyRequested();
     void unsplitRequested();
     void removeAllStackedEditorRequested();
     void clearOutputWidgetRequested();

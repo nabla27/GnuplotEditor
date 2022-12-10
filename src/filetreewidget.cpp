@@ -24,6 +24,7 @@
 #include "tablesettingwidget.h"
 #include "texteditor.h"
 #include "iofile.h"
+#include "standardpixmap.h"
 
 
 
@@ -42,19 +43,19 @@ void TreeFileItem::setFileIcon()
     switch (FileTreeWidget::TreeItemType(type()))
     {
     case FileTreeWidget::TreeItemType::Script:
-        setIcon(0, scriptIcon); break;
+        setIcon(0, StandardPixmap::File::code()); break;
     case FileTreeWidget::TreeItemType::Sheet:
-        setIcon(0, sheetIcon); break;
+        setIcon(0, StandardPixmap::File::document()); break;
     case FileTreeWidget::TreeItemType::Image:
-        setIcon(0, imageIcon); break;
+        setIcon(0, StandardPixmap::File::image()); break;
     case FileTreeWidget::TreeItemType::Other:
-        setIcon(0, otherIcon); break;
+        setIcon(0, StandardPixmap::File::normal()); break;
     case FileTreeWidget::TreeItemType::Dir:
     case FileTreeWidget::TreeItemType::Root:
     case FileTreeWidget::TreeItemType::ScriptFolder:
     case FileTreeWidget::TreeItemType::SheetFolder:
     case FileTreeWidget::TreeItemType::OtherFolder:
-        setIcon(0, folderIcon);
+        setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
         break;
     default:
         break;
