@@ -18,6 +18,7 @@
 #include <QFontComboBox>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QMenu>
 #include "layoutparts.h"
 #include "gnuplottable.h"
 
@@ -40,7 +41,7 @@ TableArea::TableArea(QWidget *parent)
 
     , selectPageMenu(new QMenu(this))
 
-    , table(new GnuplotTable(nullptr, nullptr))
+    , table(new GnuplotTable(nullptr))
 {
     setupLayout();
 
@@ -53,6 +54,11 @@ TableArea::TableArea(QWidget *parent)
     settingScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOn);
     settingScrollArea->horizontalScrollBar()->setFixedHeight(17);
     resizeSettingPanel();
+}
+
+TableArea::~TableArea()
+{
+    delete table; table = nullptr;
 }
 
 void TableArea::setupLayout()

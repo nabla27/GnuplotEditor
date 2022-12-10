@@ -15,9 +15,15 @@
 #include <QFileDialog>
 #include <QProcess>
 #include <QFileSystemWatcher>
+#include <QThread>
+#include <QMenu>
+#include <QAction>
+#include <QTimer>
 #include "imagedisplay.h"
 #include "gnuplot.h"
 #include "tablesettingwidget.h"
+#include "texteditor.h"
+#include "iofile.h"
 
 
 
@@ -55,19 +61,17 @@ void TreeFileItem::setFileIcon()
     }
 }
 
-//void TreeFileItem::setText(int column, const QString &text)
-//{
-//    QTreeWidgetItem::setText(column, text);
-//    if(column == 0)
-//        emit renamed(this);
-//}
 
 TreeFileItem::TreeFileItem(QTreeWidgetItem *parent, int type, const QFileInfo &info)
     : QTreeWidgetItem(parent, type)
     , info(info)
+    , updateTimer(new QTimer(this))
 {
     setFileIcon();
     setFilePath(info.absoluteFilePath());
+
+    updateTimer->setSingleShot(true);
+    connect(updateTimer, &QTimer::timeout, this, &TreeFileItem::updated);
 }
 
 TreeFileItem::TreeFileItem(QTreeWidget *parent, int type, const QFileInfo &info)
@@ -77,11 +81,6 @@ TreeFileItem::TreeFileItem(QTreeWidget *parent, int type, const QFileInfo &info)
     setFileIcon();
     setFilePath(info.absoluteFilePath());
 }
-
-//void TreeFileItem::setFileName(const QString &name)
-//{
-//    setFilePath(info.absolutePath() + '/' + name);
-//}
 
 void TreeFileItem::setFilePath(const QString &path)
 {
@@ -129,6 +128,11 @@ void TreeFileItem::setSavedState(const bool isSaved)
 {
     isSavedFlag = isSaved;
     emit editStateChanged(isSaved);
+
+    if(enableUpdateTimer && !isSaved)
+    {
+        updateTimer->start(updateTime);
+    }
 }
 
 
@@ -281,7 +285,9 @@ TreeSheetItem::TreeSheetItem(QTreeWidgetItem *parent, int type, const QFileInfo 
     : TreeFileItem(parent, type, info)
     , table(new TableArea(nullptr))
 {
-    load();
+    TreeSheetItem::load();
+
+    connect(table->tableWidget(), &GnuplotTable::cellChanged, this, &TreeSheetItem::setEdited);
 }
 
 TreeSheetItem::~TreeSheetItem()

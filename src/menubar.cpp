@@ -13,6 +13,7 @@
 #include <QFileDialog>
 #include <QProcess>
 #include "filetreewidget.h"
+#include "texteditor.h"
 
 FileMenu::FileMenu(const QString &title, QWidget *parent)
     : QMenu(title, parent)
@@ -67,7 +68,7 @@ EditorMenu::EditorMenu(const QString &title, QWidget *parent)
     , aSaveFile(new QAction("Save File", this))
     , aSaveAllFiles(new QAction("Save All Files", this))
     , aSaveFileAs(new QAction("Save File as", this))
-    , aAutoRun(new QAction("Auto Run", this))
+    , aAutoRun(new QAction("Autorun", this))
     , aFind(new QAction("Find", this))
     , aOpenInNewWindow(new QAction("Open In New Window", this))
     , aRun(new QAction("Run", this))
@@ -144,6 +145,11 @@ void EditorMenu::setCurrentItem(TreeFileItem *item)
         isScript = item->type() == (int)FileTreeWidget::TreeItemType::Script;
         fileName = item->fileInfo().fileName();
 
+        if(item->isEnableUpdateTimer())
+            aAutoRun->setText("Disable Autorun");
+        else
+            aAutoRun->setText("Enable Autorun");
+
         if(isScript)
         {
             standardContextMenu = static_cast<TreeScriptItem*>(item)->editor->createStandardContextMenu();
@@ -201,7 +207,7 @@ void EditorMenu::setAutoRun()
 {
     if(currentItem)
     {
-        //
+        currentItem->setUpdateTimer(!currentItem->isEnableUpdateTimer());
     }
 }
 

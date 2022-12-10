@@ -11,52 +11,25 @@
 #include "gnuplottable.h"
 
 #include <QMouseEvent>
+#include <QMenu>
+#include <QAction>
+#include "gnuplot.h"
 
 
-GnuplotTable::GnuplotTable(Gnuplot *gnuplot, QWidget *parent)
+
+GnuplotTable::GnuplotTable(QWidget *parent)
     : TableWidget(parent)
-    //, gnuplot(gnuplot)
-    , updateTimer(new QTimer(this))
 {
     /* contextMenu初期化 */
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &GnuplotTable::customContextMenuRequested, this, &GnuplotTable::onCustomContextMenu);
     initializeContextMenu();
-
-    updateTimer->setSingleShot(true);
-
-    disconnect(startTimerConnection);
-
-    //if(gnuplot) gnuplotThread = gnuplot->thread();
-    //connect(this, &GnuplotTable::plotRequested, gnuplot, &Gnuplot::exc);
 }
 
 GnuplotTable::~GnuplotTable()
 {
 
 }
-
-void GnuplotTable::startItemChangedTimer()
-{
-    updateTimer->start(updateMsec);
-}
-
-void GnuplotTable::changeUpdateNotification()
-{
-    notifyUpdatingEnable = !notifyUpdatingEnable;
-
-    if(notifyUpdatingEnable)
-    {
-        startTimerConnection = connect(this, &GnuplotTable::itemChanged, this, &GnuplotTable::startItemChangedTimer);
-        requestUpdateConnection = connect(updateTimer, &QTimer::timeout, this, &GnuplotTable::tableUpdated);
-    }
-    else
-    {
-        disconnect(startTimerConnection);
-        disconnect(requestUpdateConnection);
-    }
-}
-
 
 
 
@@ -225,8 +198,6 @@ void GnuplotTable::initializeContextMenu()
 
 void GnuplotTable::plotSelectedData(const GnuplotTable::PlotType &plotType)
 {
-    //if(!gnuplot) return;
-
     QList<std::array<int, 3>> ranges;
 
     for(const QTableWidgetSelectionRange& range : selectedRanges())
@@ -305,15 +276,8 @@ void GnuplotTable::plotCellPoints(const QList<std::array<int, 3> > &ranges, cons
 
     cmd += "e\n";
 
-    //QProcess *process = new QProcess(nullptr);
-    //process->moveToThread(gnuplotThread);
 
-    /* processが閉じられない */
-    //connect(this, &GnuplotTable::destroyed, process, &QProcess::close);
-    //connect(this, &GnuplotTable::destroyed, process, &QProcess::kill);
-    //connect(this, &GnuplotTable::destroyed, process, &QProcess::deleteLater);
-
-    //emit plotRequested(process, QStringList() << cmd, false);
+    gnuplotExecutor->execGnuplot(QStringList() << cmd, false);
 }
 
 void GnuplotTable::gnuplotClip()

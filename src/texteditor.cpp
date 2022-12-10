@@ -11,8 +11,14 @@
 #include <QScrollBar>
 #include <QToolTip>
 #include <QShortcut>
+#include <QTimer>
+#include <QCompleter>
+#include <QAbstractItemView>
+#include <QPainter>
+#include <QStringListModel>
 #include "templatecustomwidget.h"
 #include "iofile.h"
+#include "gnuplotcompletion.h"
 
 
 /* <firstCmd, previousCmd, currentCmd>
@@ -28,15 +34,12 @@ const QChar TextEdit::tmlChar = '@';  //テンプレートを呼び出す接頭�
 TextEdit::TextEdit(QWidget *parent)
     : QPlainTextEdit(parent)
     , toolTipTimer(new QTimer(this))
-    , updateTimer(new QTimer(this))
+    //, updateTimer(new QTimer(this))
 {
     {
-        connect(this, &TextEdit::blockCountChanged,
-                this, &TextEdit::updateLineNumberAreaWidth);
-        connect(this, &TextEdit::updateRequest,
-                this, &TextEdit::updateLineNumberArea);
-        connect(this, &TextEdit::cursorPositionChanged,
-                this, &TextEdit::highlightLine);
+        connect(this, &TextEdit::blockCountChanged, this, &TextEdit::updateLineNumberAreaWidth);
+        connect(this, &TextEdit::updateRequest, this, &TextEdit::updateLineNumberArea);
+        connect(this, &TextEdit::cursorPositionChanged, this, &TextEdit::highlightLine);
     }
     {
         lineNumberArea = new ReLineNumberArea(this);
@@ -66,11 +69,6 @@ TextEdit::TextEdit(QWidget *parent)
     }
     {//ハイライトの初期設定
         textHighlight = new EditorSyntaxHighlighter(document());
-    }
-    {
-        updateTimer->setSingleShot(true);
-        connect(this, &TextEdit::textChanged, this, &TextEdit::setUpdateTimer);
-        connect(updateTimer, &QTimer::timeout, this, &TextEdit::executeRequested);
     }
 }
 
@@ -606,50 +604,6 @@ void TextEdit::requestToolTipForCursor()
         }
     }
 }
-
-//void TextEdit::requestCommandHelp()
-//{
-//    QTextCursor tc = textCursor();
-//    QString cmd;
-//
-//    if(tc.hasSelection())
-//    {
-//        cmd =  tc.selectedText();
-//    }
-//    else
-//    {
-//        tc.movePosition(QTextCursor::MoveOperation::StartOfWord, QTextCursor::MoveAnchor);
-//        tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
-//        cmd = tc.selectedText();
-//    }
-//
-//    if(!cmd.isEmpty()) emit commandHelpRequested(cmd);
-//}
-
-void TextEdit::enableUpdateTimer(const bool enable)
-{
-    updateTimerFlag = enable;
-
-    if(!enable)
-    {
-        updateTimer->stop();
-    }
-}
-
-void TextEdit::setUpdateTimer()
-{
-    if(updateTimerFlag)
-    {
-        updateTimer->start(1000);
-    }
-}
-
-
-
-
-
-
-
 
 
 

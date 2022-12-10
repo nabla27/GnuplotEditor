@@ -9,29 +9,38 @@
 
 #ifndef GNUPLOTEDITOR_H
 #define GNUPLOTEDITOR_H
+
 #include <QMainWindow>
-#include <QMenuBar>
-#include <QScreen>
-#include <QVBoxLayout>
-#include <QPalette>
-#include <QStackedWidget>
 
-#include "menubar.h"
-#include "utility.h"
-#include "filetreewidget.h"
-#include "texteditor.h"
-#include "gnuplottable.h"
-#include "browserwidget.h"
-#include "windowmenubar.h"
-#include "layoutparts.h"
-#include "editorsettingwidget.h"
-#include "consolewidget.h"
-#include "gnuplotsettingwidget.h"
-#include "templatecustomwidget.h"
-#include "filetreesettingwidget.h"
 
-class TableArea;
-class EditorArea; //DEBUG
+class EditorArea;
+
+class QTreeWidgetItem;
+class TreeFileItem;
+class TreeScriptItem;
+class TreeSheetItem;
+class TreeImageItem;
+
+class EditorSetting;
+class GnuplotSettingWidget;
+class TemplateCustomWidget;
+class FileTreeSettingWidget;
+
+class FileMenu;
+class EditorMenu;
+class GnuplotMenu;
+class ViewMenu;
+class HelpMenu;
+
+class TreeModelCombo;
+class FileTreeWidget;
+class ConsoleWidget;
+class BrowserWidget;
+
+
+
+
+
 
 class TabWidget : public QTabWidget
 {
@@ -52,7 +61,8 @@ public:
     ~GnuplotEditor();
 
 public slots:
-    void setCurrentItem(QWidget *oldWidget, QWidget *newWidget);
+    //QApplication::focusChanged(QWidget*,QWidget*)で呼ばれる
+    void setCurrentItem();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
