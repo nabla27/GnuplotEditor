@@ -8,11 +8,25 @@
  */
 
 #include "gnuploteditor.h"
-#include "imagedisplay.h"
+
 #include <QMessageBox>
 #include <QSplitter>
-#include "tablesettingwidget.h"
+#include <QMenuBar>
+#include <QProcess>
+
+#include "imagedisplay.h"
 #include "editorwidget.h"
+
+#include "editorsettingwidget.h"
+#include "gnuplotsettingwidget.h"
+#include "templatecustomwidget.h"
+#include "tablesettingwidget.h"
+#include "filetreesettingwidget.h"
+
+#include "menubar.h"
+#include "consolewidget.h"
+
+
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
@@ -36,10 +50,6 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 
     /* メニュバーの生成 */
     initializeMenuBar();
-
-    //DEBUG
-    TableArea *t = new TableArea(nullptr);
-    t->show();
 
     /* workingDirectoryの設定 */
     QString workingDirectory = fileTreeSetting->previousFolderPath();
@@ -117,7 +127,8 @@ void GnuplotEditor::initializeMenuBar()
 {
     if(menuBar()) delete menuBar();
 
-    WindowMenuBar *menuBar = new WindowMenuBar(this);
+    //WindowMenuBar *menuBar = new WindowMenuBar(this);
+    QMenuBar *menuBar = new QMenuBar(this);
     setMenuBar(menuBar);
 
     menuBar->addMenu(fileMenu);
@@ -135,6 +146,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(fileMenu, &FileMenu::newFileRequested, fileTree, &FileTreeWidget::newFile);
     connect(fileMenu, &FileMenu::openTreeSettingRequested, fileTreeSetting, &FileTreeSettingWidget::show);
 
+    connect(editorMenu, &EditorMenu::aboutToShow, this, &GnuplotEditor::setCurrentItem);
     connect(editorMenu, &EditorMenu::saveAllFileRequested, fileTree, &FileTreeWidget::saveAllFile);
     connect(editorMenu, &EditorMenu::findRequested, this, &GnuplotEditor::findKeyword);
     connect(editorMenu, &EditorMenu::runRequested, this, &GnuplotEditor::executeItem);
@@ -224,7 +236,7 @@ void GnuplotEditor::initializeLayout()
     connect(editorArea, &EditorArea::executeRequested, this, &GnuplotEditor::executeItem);
 }
 
-void GnuplotEditor::setCurrentItem(QWidget *, QWidget *)
+void GnuplotEditor::setCurrentItem()
 {
     editorMenu->setCurrentItem(editorArea->currentTreeFileItem());
 }
@@ -263,7 +275,6 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
 void GnuplotEditor::setupSheetItem(TreeSheetItem *item)
 {
     //connect(item, &TreeSheetItem::errorCaused, browserWidget, &BrowserWidget::outputText);
-    //connect(item->table, &GnuplotTable::itemChanged, item, &TreeFileItem::setEdited);
 }
 
 void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
@@ -292,7 +303,6 @@ void GnuplotEditor::setImageWidget(TreeImageItem *item)
     else
     {
         item->imageDisplay = new ImageDisplay(nullptr);
-        //item->imageDisplay->setImagePath(item->info.absoluteFilePath());
         item->imageDisplay->setImagePath(item->fileInfo().absoluteFilePath());
         item->imageDisplay->show();
     }
@@ -364,11 +374,7 @@ void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
 
     fileTree->saveAllFile();
 
-    //emit scriptPathChanged(item->fileInfo().absolutePath());
     gnuplotExecutor->setWorkingFolderPath(item->fileInfo().absolutePath());
-
-    //emit exeGnuplotRequested(item->process, QList<QString>() << "load '" + item->info.absoluteFilePath() + "'", true);
-    //emit exeGnuplotRequested(item->process, QList<QString>() << "load '" + item->fileInfo().absoluteFilePath() + "'", true);
     gnuplotExecutor->execGnuplot(item->process, QList<QString>() << "load '" + item->fileInfo().absoluteFilePath() + "'", true);
 }
 
@@ -411,19 +417,12 @@ void GnuplotEditor::showGnuplotCmdHelp()
         const QString cmd = (item->editor->textCursor().hasSelection()) ? item->editor->textCursor().selectedText()
                                                                         : item->editor->textUnderCursor();
 
-        //emit exeGnuplotRequested(item->process, QStringList() << "help " + cmd, false);
         gnuplotExecutor->execGnuplot(item->process, QStringList() << "help " + cmd, false);
     }
 }
 
 void GnuplotEditor::showGnuplotHelpWindow()
 {
-    //if(TreeScriptItem *item = qobject_cast<TreeScriptItem*>(editorArea->currentTreeFileItem()))
-    //{
-    //    if(!item->editor) return;
-
-    //    //emit exeGnuplotRequested(item->process, QStringList() << "help", false);
-    //}
     gnuplotExecutor->execGnuplot(QStringList() << "help", false);
 }
 

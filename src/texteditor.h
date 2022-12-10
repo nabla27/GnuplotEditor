@@ -11,19 +11,15 @@
 #define TextEditOR_H
 
 #include <QPlainTextEdit>
-#include <QCompleter>
-#include <QAbstractItemView>
-#include <QTextBlock>
-#include <QPainter>
-#include <QPalette>
-#include <QDir>
 #include "editorsyntaxhighlighter.h"
-#include "gnuplotcpl.h"
-#include "utility.h"
-
-#include "gnuplotcompletion.h"
 #include <QThread>
-#include <QTimer>
+
+
+
+class QCompleter;
+namespace gnuplot_cpl { class GnuplotCompletionModel; }
+
+
 
 
 class TextEdit : public QPlainTextEdit
@@ -45,11 +41,8 @@ public slots:
     void insertToSelectedHeadBlock(const QString& text) const;
     void removeFromSelectedHeadBlock(const QString& text) const;
     void reverseSelectedCommentState() const;
-    //void requestCommandHelp();
-    void enableUpdateTimer(const bool enable);
 
 public:
-    bool isEnableUpdateTimer() const { return updateTimerFlag; }
     QString textUnderCursor() const;
 
 protected:
@@ -65,10 +58,6 @@ public:
 
 protected:
     void keyPressEvent(QKeyEvent *e) override;
-    void keyReleaseEvent(QKeyEvent *e) override
-    {
-        QPlainTextEdit::keyReleaseEvent(e);
-    }
     void focusInEvent(QFocusEvent *e) override;
 
 private:
@@ -85,8 +74,6 @@ private:
     QString currentCmd = "";
 
     QTimer *toolTipTimer;
-    QTimer *updateTimer;
-    bool updateTimerFlag = false;
 
     gnuplot_cpl::GnuplotCompletionModel *gnuplotcpl;
     QThread completionThread;
@@ -97,12 +84,10 @@ signals:
     void completionRequested(const QString& firstCmd, const QString& preCmd, const int index);
     void toolTipRequested(const QString& text, const QString& firstCmd, const QString& previousCmd);
     void currentFolderChanged(const QString& path);
-    void executeRequested();
 
 private slots:
     void setCompletionList(const QStringList& list);
     void setCompletionToolTip(const QString& text);
-    void setUpdateTimer();
 
     /* lineNumer */
 public:
@@ -128,7 +113,6 @@ private:
 
 signals:
     void fontSizeChanged(const int ps);
-    //void commandHelpRequested(const QString& command);
 };
 
 

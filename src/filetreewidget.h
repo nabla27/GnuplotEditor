@@ -11,17 +11,17 @@
 #define FILETREEWIDGET_H
 
 #include <QTreeWidget>
-//#include <QFileInfo>
 #include <QTreeWidgetItem>
-//#include <QFileSystemWatcher>
 #include <QComboBox>
-#include "texteditor.h"
 #include "browserwidget.h"
-#include "iofile.h"
+#include <QFileInfo>
+#include <QApplication>
+#include <QStyle>
 
 class TableArea;
 class QProcess;
 class QFileSystemWatcher;
+class TextEdit;
 
 
 
@@ -36,11 +36,13 @@ public:
     virtual void save() {}
     virtual void load() {}
     virtual QWidget* widget() { return nullptr; }
-    //void setText(int column, const QString& text);
-    //void setFileName(const QString& name);
+
     void setFilePath(const QString& path);
     void setData(int column, int role, const QVariant& variant) override;
+    void setUpdateTimer(bool enable) { enableUpdateTimer = enable; }
+
     bool isSaved() const { return isSavedFlag; }
+    bool isEnableUpdateTimer() const { return enableUpdateTimer; }
     const QFileInfo& fileInfo() const { return info; }
 
     static QHash<QString, TreeFileItem*> list;
@@ -54,18 +56,25 @@ protected:
     QFileInfo info;
 
 private:
+    void setFileIcon();
+
+private:
     const QPixmap scriptIcon = QPixmap(":/icon/file_code");
     const QPixmap sheetIcon = QPixmap(":/icon/file_doc");
     const QPixmap imageIcon = QPixmap(":/icon/file_image");
     const QPixmap otherIcon = QPixmap(":/icon/file_normal");
     const QIcon folderIcon = QApplication::style()->standardIcon(QStyle::SP_DirIcon);
-    void setFileIcon();
+
     bool isSavedFlag = true;
+    QTimer *updateTimer;
+    bool enableUpdateTimer = false;
+    inline static int updateTime = 1000;
 
 signals:
     void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
     void pathChanged(const QString& path);
     void editStateChanged(const bool isSaved);
+    void updated();
 };
 
 

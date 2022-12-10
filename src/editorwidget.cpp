@@ -151,10 +151,16 @@ void EditorStackedWidget::addWidget(QWidget *widget, TreeFileItem *item)
 
     const int index = editorStack->indexOf(widget);
 
+    //stackに無い
     if(index == -1)
     {
         editorStack->addWidget(widget);
-        editorListCombo->addItem(item->text(0));
+
+        if(item->isSaved())
+            editorListCombo->addItem(item->text(0));
+        else
+            editorListCombo->addItem(item->text(0) + "*");
+
         editorListCombo->setItemIcon(editorListCombo->count() - 1, item->icon(0));
         items.append(item);
 
@@ -165,6 +171,8 @@ void EditorStackedWidget::addWidget(QWidget *widget, TreeFileItem *item)
     }
 
     editorStack->setCurrentWidget(widget);
+
+    connect(item, &TreeFileItem::editStateChanged, this, &EditorStackedWidget::changeEditState);
 }
 
 void EditorStackedWidget::removeCurrentWidget()
@@ -172,11 +180,13 @@ void EditorStackedWidget::removeCurrentWidget()
     if(editorListCombo->count() < 1) return;
 
     QWidget *currentWidget = editorStack->currentWidget();
+
     editorStack->removeWidget(currentWidget);               //widgetをremoveしたらいくつかのスロットによりcomboも削除されたりなどする
+
     /* removeしただけでは，親がstackedWidgetのままになる．
      * そのままではEditorStackedWidgetが削除されたときに，
      * 一緒にdeleteされるため，再び選択された場合にcrashする．
-     * parentを変更してStackedWidgetが削除されたときにdeleteされないようにする．*/
+     * parentを変更してStackedWidgetが削除されたときに親子関係によりdeleteされないようにする．*/
     currentWidget->setParent(nullptr);
     currentWidget->hide();
 }
@@ -224,6 +234,8 @@ void EditorStackedWidget::removeItem(const int index)
 {
     if(index < 0 || items.count() <= index) return;
 
+    TreeFileItem *item = items.at(index);
+    item->disconnect(item, &TreeFileItem::editStateChanged, this, &EditorStackedWidget::changeEditState);
     items.removeAt(index);
 }
 
@@ -251,6 +263,23 @@ void EditorStackedWidget::setCurrentItem(const int index)
 void EditorStackedWidget::requestExecute()
 {
     emit editorArea->executeRequested(currentTreeFileItem());
+}
+
+void EditorStackedWidget::changeEditState(bool edited)
+{
+    const int index = editorStack->currentIndex();
+    TreeFileItem *item = items.at(index);
+
+    if(edited)
+        editorListCombo->setItemText(index, item->text(0));
+    else
+    {
+        const QString text = editorListCombo->itemText(index);
+        if(!text.isEmpty() && text.back() != '*')
+        {
+            editorListCombo->setItemText(index, item->text(0) + "*");
+        }
+    }
 }
 
 

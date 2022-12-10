@@ -32,6 +32,7 @@ class TableArea : public QWidget
     Q_OBJECT
 public:
     explicit TableArea(QWidget *parent);
+    ~TableArea();
 
     QSize minimumSizeHint() const override { return QSize(0, 0); }
     GnuplotTable *tableWidget() const { return table; }

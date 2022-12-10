@@ -43,6 +43,7 @@ private slots:
     void removeItem(const int index);
     void setCurrentItem(const int index);
     void requestExecute();
+    void changeEditState(bool edited);
 
 private:
     EditorArea *editorArea;
