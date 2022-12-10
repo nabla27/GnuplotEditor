@@ -85,7 +85,7 @@ private slots:
 private:
     //MenuBarWidget *menuBarWidget;
 
-    Gnuplot *gnuplot;
+    //Gnuplot *gnuplot;
     //QProcess *gnuplotProcess;
     //QThread gnuplotThread;
 
@@ -120,7 +120,6 @@ private:
 
 signals:
     void scriptPathChanged(const QString& path);
-    void exeGnuplotRequested(QProcess *process, const QList<QString>& cmdlist, const bool preHandling = true);
 };
 
 

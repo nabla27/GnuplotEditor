@@ -17,6 +17,7 @@
 #include <QColorDialog>
 #include <QFontComboBox>
 #include <QScrollArea>
+#include <QScrollBar>
 #include "layoutparts.h"
 #include "gnuplottable.h"
 

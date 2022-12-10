@@ -1,8 +1,6 @@
 #ifndef Gnuplot_H
 #define Gnuplot_H
 
-#include <QProcess>
-#include <QList>
 /*!
  * GnuplotEditor
  *
@@ -12,48 +10,120 @@
  * see https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 
-#include <QString>
-#include <QScrollBar>
+//#include <QString>
+//#include <QScrollBar>
+//#include <QObject>
+//#include <QRegularExpressionMatchIterator>
+//#include <QDir>
+//#include "browserwidget.h"
+//#include "utility.h"
+
+
+//class Gnuplot : public QObject
+//{
+//    Q_OBJECT
+//
+//public:
+//    Gnuplot(QObject *parent);
+//
+//public slots:
+//    void exc(QProcess *process, const QList<QString>& cmdlist, const bool preHandling = true);
+//    void setExePath(const QString& path) { this->path = path; }
+//    void setInitCmd(const QString& initCmd) { this->initCmdList = initCmd.split('\n'); }
+//    void setPreCmd(const QString& preCmd) { this->preCmdList = preCmd.split('\n'); }
+//    void setWorkingDirectory(const QString& path) { this->workingDirectory = path; }
+//
+//private:
+//    int getErrorLineNumber(const QString& err);
+//
+//private slots:
+//    void readStandardOutput();
+//    void readStandardError();
+//    void receiveProcessError(const QProcess::ProcessError& error);
+//
+//private:
+//    QString path;
+//    QString workingDirectory;
+//    QList<QString> initCmdList;
+//    QList<QString> preCmdList;
+//    QProcess *currentProcess;
+//
+//signals:
+//    void standardOutputPassed(const QString& out);
+//    void standardErrorPassed(const QString& out, const int line);
+//    void errorCaused(const QString& err, const BrowserWidget::MessageType type);
+//    void cmdPushed(const QString& cmd);
+//};
+
 #include <QObject>
-#include <QRegularExpressionMatchIterator>
-#include <QDir>
-#include "browserwidget.h"
-#include "utility.h"
 
 
-class Gnuplot : public QObject
+class Gnuplot;
+class QThread;
+class QProcess;
+
+class GnuplotExecutor : public QObject
 {
     Q_OBJECT
+public:
+    explicit GnuplotExecutor(QObject *parent);
+    ~GnuplotExecutor();
 
 public:
-    Gnuplot(QObject *parent);
+    void execGnuplot(QProcess *process, const QList<QString>& cmd, bool enablePreCmd);
+    void execGnuplot(const QList<QString>& cmd, bool enablePreCmd);
+    void setExePath(const QString& path);
+    void setInitializeCmd(const QString& cmd);
+    void setPreProcessingCmd(const QString& cmd);
+    void setWorkingFolderPath(const QString& path);
 
-public slots:
-    void exc(QProcess *process, const QList<QString>& cmdlist, const bool preHandling = true);
-    void setExePath(const QString& path) { this->path = path; }
-    void setInitCmd(const QString& initCmd) { this->initCmdList = initCmd.split('\n'); }
-    void setPreCmd(const QString& preCmd) { this->preCmdList = preCmd.split('\n'); }
-    void setWorkingDirectory(const QString& path) { this->workingDirectory = path; }
-
-private:
-    int getErrorLineNumber(const QString& err);
-
-private slots:
-    void readStandardOutput();
-    void readStandardError();
-    void receiveProcessError(const QProcess::ProcessError& error);
+    QThread* gnuplotThread() const { return _gnuplotThread; }
 
 private:
-    QString path;
-    QString workingDirectory;
-    QList<QString> initCmdList;
-    QList<QString> preCmdList;
-    QProcess *currentProcess;
+    QThread *_gnuplotThread;
+    QProcess *defaultProcess;
+
+    class Gnuplot;
+    Gnuplot *gnuplot;
 
 signals:
-    void standardOutputPassed(const QString& out);
-    void standardErrorPassed(const QString& out, const int line);
-    void errorCaused(const QString& err, const BrowserWidget::MessageType type);
-    void cmdPushed(const QString& cmd);
+    void executeRequested(QProcess *process, const QList<QString>& cmd, bool enablePreCmd);
+    void setExePathRequested(const QString& path);
+    void setInitializeCmdRequested(const QString& cmd);
+    void setPreProcessingCmdRequested(const QString& cmd);
+    void setWorkingFolderPathRequested(const QString& path);
 };
+
+extern GnuplotExecutor *gnuplotExecutor;
+
+
+
+
+class GnuplotExecutor::Gnuplot : public QObject
+{
+    Q_OBJECT
+public:
+    explicit Gnuplot(QObject *parent);
+
+public slots:
+    void execute(QProcess *process, const QList<QString>& cmd, bool enablePreCmd);
+    void setExePath(const QString& path) { this->exePath = path; }
+    void setInitializeCmd(const QString& cmd) { this->initCmd = cmd.split("\n"); }
+    void setPreProcessingCmd(const QString& cmd) { this->preCmd = cmd.split("\n"); }
+    void setWorkingFoderPath(const QString& path) { this->workingPath = path; }
+
+private:
+    QString exePath;
+    QList<QString> initCmd;
+    QList<QString> preCmd;
+    QString workingPath;
+};
+
+
+
+
+
+
+
+
 #endif // Gnuplot_H
