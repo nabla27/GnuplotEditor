@@ -225,7 +225,7 @@ void EditorMenu::closeProcess()
 {
     if(TreeScriptItem *item = static_cast<TreeScriptItem*>(currentItem))
     {
-        item->process->close();
+        item->requestCloseProcess();
     }
 }
 
