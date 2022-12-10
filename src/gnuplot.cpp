@@ -234,7 +234,7 @@ void GnuplotExecutor::Gnuplot::execute(QProcess *process, const QList<QString>& 
             /* メッセージ */
         }
     }
-    qDebug() << __LINE__;
+
     for(const QString& cmd : cmdlist)
     {
         process->write((cmd + "\n").toUtf8().constData());

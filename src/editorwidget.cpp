@@ -173,6 +173,8 @@ void EditorStackedWidget::addWidget(QWidget *widget, TreeFileItem *item)
     editorStack->setCurrentWidget(widget);
 
     connect(item, &TreeFileItem::editStateChanged, this, &EditorStackedWidget::changeEditState);
+    //updateTimer()が発せられる間に，stackのeditorが変更された場合，異なるitemがrequestExecuteされる問題がある
+    connect(item, &TreeFileItem::updated, this, &EditorStackedWidget::requestExecute);
 }
 
 void EditorStackedWidget::removeCurrentWidget()
@@ -236,6 +238,7 @@ void EditorStackedWidget::removeItem(const int index)
 
     TreeFileItem *item = items.at(index);
     item->disconnect(item, &TreeFileItem::editStateChanged, this, &EditorStackedWidget::changeEditState);
+    item->disconnect(item, &TreeFileItem::updated, this, &EditorStackedWidget::requestExecute);
     items.removeAt(index);
 }
 
