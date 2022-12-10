@@ -7,12 +7,15 @@
  * see https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 
+
 #include "gnuplottable.h"
+
+#include <QMouseEvent>
 
 
 GnuplotTable::GnuplotTable(Gnuplot *gnuplot, QWidget *parent)
     : TableWidget(parent)
-    , gnuplot(gnuplot)
+    //, gnuplot(gnuplot)
     , updateTimer(new QTimer(this))
 {
     /* contextMenu初期化 */
@@ -24,8 +27,8 @@ GnuplotTable::GnuplotTable(Gnuplot *gnuplot, QWidget *parent)
 
     disconnect(startTimerConnection);
 
-    if(gnuplot) gnuplotThread = gnuplot->thread();
-    connect(this, &GnuplotTable::plotRequested, gnuplot, &Gnuplot::exc);
+    //if(gnuplot) gnuplotThread = gnuplot->thread();
+    //connect(this, &GnuplotTable::plotRequested, gnuplot, &Gnuplot::exc);
 }
 
 GnuplotTable::~GnuplotTable()
@@ -222,7 +225,7 @@ void GnuplotTable::initializeContextMenu()
 
 void GnuplotTable::plotSelectedData(const GnuplotTable::PlotType &plotType)
 {
-    if(!gnuplot) return;
+    //if(!gnuplot) return;
 
     QList<std::array<int, 3>> ranges;
 
@@ -302,15 +305,15 @@ void GnuplotTable::plotCellPoints(const QList<std::array<int, 3> > &ranges, cons
 
     cmd += "e\n";
 
-    QProcess *process = new QProcess(nullptr);
-    process->moveToThread(gnuplotThread);
+    //QProcess *process = new QProcess(nullptr);
+    //process->moveToThread(gnuplotThread);
 
     /* processが閉じられない */
-    connect(this, &GnuplotTable::destroyed, process, &QProcess::close);
-    connect(this, &GnuplotTable::destroyed, process, &QProcess::kill);
-    connect(this, &GnuplotTable::destroyed, process, &QProcess::deleteLater);
+    //connect(this, &GnuplotTable::destroyed, process, &QProcess::close);
+    //connect(this, &GnuplotTable::destroyed, process, &QProcess::kill);
+    //connect(this, &GnuplotTable::destroyed, process, &QProcess::deleteLater);
 
-    emit plotRequested(process, QStringList() << cmd, false);
+    //emit plotRequested(process, QStringList() << cmd, false);
 }
 
 void GnuplotTable::gnuplotClip()

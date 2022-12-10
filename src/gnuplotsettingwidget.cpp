@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QFileDialog>
+#include <QScrollBar>
 #include "utility.h"
 
 GnuplotSettingWidget::GnuplotSettingWidget(QWidget *parent)

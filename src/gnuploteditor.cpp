@@ -16,7 +16,7 @@
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
-    , gnuplot(new Gnuplot(nullptr))
+    //, gnuplot(new Gnuplot(nullptr))
     //, gnuplotProcess(nullptr)
 
     , editorSetting(new EditorSetting(nullptr))
@@ -57,22 +57,25 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     connect(fileTree, &FileTreeWidget::itemDoubleClicked, this, &GnuplotEditor::receiveTreeItem);
     connect(fileTree, &FileTreeWidget::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(fileTree, &FileTreeWidget::folderPathChanged, fileTreeSetting, &FileTreeSettingWidget::setPreviousFolderPath);
-    connect(gnuplot, &Gnuplot::standardOutputPassed, this, &GnuplotEditor::receiveGnuplotStdOut);
-    connect(gnuplot, &Gnuplot::standardErrorPassed, this, &GnuplotEditor::receiveGnuplotStdErr);
-    connect(gnuplot, &Gnuplot::errorCaused, browserWidget, &BrowserWidget::outputText);
+    //connect(gnuplot, &Gnuplot::standardOutputPassed, this, &GnuplotEditor::receiveGnuplotStdOut);
+    //connect(gnuplot, &Gnuplot::standardErrorPassed, this, &GnuplotEditor::receiveGnuplotStdErr);
+    //connect(gnuplot, &Gnuplot::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(browserWidget, &BrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
     connect(fileTreeSetting, &FileTreeSettingWidget::reloadRequested, fileTree, &FileTreeWidget::saveAndLoad);
 
     /* gnuplotとそのプロセスは別スレッドで非同期処理 */
     //gnuplotの設定GnuplotSettingWidget
-    connect(gnuplot, &Gnuplot::cmdPushed, gnuplotSetting, &GnuplotSettingWidget::addLogToBrowser);
-    connect(gnuplotSetting, &GnuplotSettingWidget::exePathSet, gnuplot, &Gnuplot::setExePath);
-    connect(gnuplotSetting, &GnuplotSettingWidget::initCmdSet, gnuplot, &Gnuplot::setInitCmd);
-    connect(gnuplotSetting, &GnuplotSettingWidget::preCmdSet, gnuplot, &Gnuplot::setPreCmd);
+    //connect(gnuplot, &Gnuplot::cmdPushed, gnuplotSetting, &GnuplotSettingWidget::addLogToBrowser);
+    //connect(gnuplotSetting, &GnuplotSettingWidget::exePathSet, gnuplot, &Gnuplot::setExePath);
+    //connect(gnuplotSetting, &GnuplotSettingWidget::initCmdSet, gnuplot, &Gnuplot::setInitCmd);
+    //connect(gnuplotSetting, &GnuplotSettingWidget::preCmdSet, gnuplot, &Gnuplot::setPreCmd);
+    connect(gnuplotSetting, &GnuplotSettingWidget::exePathSet, gnuplotExecutor, &GnuplotExecutor::setExePath);
+    connect(gnuplotSetting, &GnuplotSettingWidget::initCmdSet, gnuplotExecutor, &GnuplotExecutor::setInitializeCmd);
+    connect(gnuplotSetting, &GnuplotSettingWidget::preCmdSet, gnuplotExecutor, &GnuplotExecutor::setPreProcessingCmd);
     gnuplotSetting->loadXmlSetting();
     //gnuplot
-    connect(this, &GnuplotEditor::scriptPathChanged, gnuplot, &Gnuplot::setWorkingDirectory);
-    connect(this, &GnuplotEditor::exeGnuplotRequested, gnuplot, &Gnuplot::exc);
+    //connect(this, &GnuplotEditor::scriptPathChanged, gnuplot, &Gnuplot::setWorkingDirectory);
+    //connect(this, &GnuplotEditor::exeGnuplotRequested, gnuplot, &Gnuplot::exc);
     //gnuplotThread.start();
     //gnuplot->moveToThread(&gnuplotThread);
 }
@@ -125,7 +128,7 @@ void GnuplotEditor::closeEvent(QCloseEvent *event)
 
     //gnuplotThread.quit();
     //gnuplotThread.wait();
-    delete gnuplot;
+    //delete gnuplot;
 }
 
 void GnuplotEditor::initializeMenuBar()
@@ -335,7 +338,7 @@ void GnuplotEditor::setupSheetItem(TreeSheetItem *item)
 {
     //connect(currentSheet, &TreeFileItem::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(item, &TreeSheetItem::errorCaused, browserWidget, &BrowserWidget::outputText);
-    item->table = new GnuplotTable(gnuplot, nullptr);
+    //item->table = new GnuplotTable(gnuplot, nullptr);
     connect(item->table, &GnuplotTable::itemChanged, item, &TreeFileItem::setEdited);
     item->load();
     //tableArea->setupSheetWidget(item->table);
@@ -460,10 +463,12 @@ void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
 
     fileTree->saveAllFile();
 
-    emit scriptPathChanged(item->fileInfo().absolutePath());
+    //emit scriptPathChanged(item->fileInfo().absolutePath());
+    gnuplotExecutor->setWorkingFolderPath(item->fileInfo().absolutePath());
 
     //emit exeGnuplotRequested(item->process, QList<QString>() << "load '" + item->info.absoluteFilePath() + "'", true);
-    emit exeGnuplotRequested(item->process, QList<QString>() << "load '" + item->fileInfo().absoluteFilePath() + "'", true);
+    //emit exeGnuplotRequested(item->process, QList<QString>() << "load '" + item->fileInfo().absoluteFilePath() + "'", true);
+    gnuplotExecutor->execGnuplot(item->process, QList<QString>() << "load '" + item->fileInfo().absoluteFilePath() + "'", true);
 }
 
 void GnuplotEditor::receiveGnuplotStdOut(const QString& text)
@@ -505,18 +510,20 @@ void GnuplotEditor::showGnuplotCmdHelp()
         const QString cmd = (item->editor->textCursor().hasSelection()) ? item->editor->textCursor().selectedText()
                                                                         : item->editor->textUnderCursor();
 
-        emit exeGnuplotRequested(item->process, QStringList() << "help " + cmd, false);
+        //emit exeGnuplotRequested(item->process, QStringList() << "help " + cmd, false);
+        gnuplotExecutor->execGnuplot(item->process, QStringList() << "help " + cmd, false);
     }
 }
 
 void GnuplotEditor::showGnuplotHelpWindow()
 {
-    if(TreeScriptItem *item = qobject_cast<TreeScriptItem*>(editorArea->currentTreeFileItem()))
-    {
-        if(!item->editor) return;
+    //if(TreeScriptItem *item = qobject_cast<TreeScriptItem*>(editorArea->currentTreeFileItem()))
+    //{
+    //    if(!item->editor) return;
 
-        emit exeGnuplotRequested(item->process, QStringList() << "help", false);
-    }
+    //    //emit exeGnuplotRequested(item->process, QStringList() << "help", false);
+    //}
+    gnuplotExecutor->execGnuplot(QStringList() << "help", false);
 }
 
 void GnuplotEditor::reboot()

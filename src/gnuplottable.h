@@ -73,8 +73,8 @@ private:
 private:
     QMenu *normalMenu = nullptr;
 
-    Gnuplot *gnuplot;
-    QThread *gnuplotThread;
+    //Gnuplot *gnuplot;
+    //QThread *gnuplotThread;
     QString optionCmd;
 
     bool notifyUpdatingEnable = false;

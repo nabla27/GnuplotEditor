@@ -13,7 +13,7 @@
 #include <QInputDialog>
 #include <QFileDialog>
 #include "imagedisplay.h"
-
+#include "gnuplot.h"
 
 
 
@@ -154,6 +154,7 @@ TreeScriptItem::TreeScriptItem(QTreeWidgetItem *parent, int type, const QFileInf
     connect(this, &TreeScriptItem::pathChanged, [this](){ if(editor) editor->setParentFolderPath(this->info.absolutePath()); });
 
     editor->setParentFolderPath(info.absolutePath());
+    process->moveToThread(gnuplotExecutor->gnuplotThread());
 }
 
 TreeScriptItem::~TreeScriptItem()
