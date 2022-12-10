@@ -167,6 +167,9 @@ private:
     QAction *aLogWindow;
     QAction *aReboot;
 
+private slots:
+    void showLogWindow();
+
 signals:
     void rebootRequested();
 };
