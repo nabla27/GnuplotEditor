@@ -15,6 +15,8 @@
 #include "filetreewidget.h"
 #include "texteditor.h"
 #include "standardpixmap.h"
+#include "logger.h"
+
 
 FileMenu::FileMenu(const QString &title, QWidget *parent)
     : QMenu(title, parent)
@@ -329,7 +331,13 @@ HelpMenu::HelpMenu(const QString &title, QWidget *parent)
     addAction(aLogWindow);
     addAction(aReboot);
 
+    connect(aLogWindow, &QAction::triggered, logger, &Logger::showLogViwer);
     connect(aReboot, &QAction::triggered, this, &HelpMenu::rebootRequested);
+}
+
+void HelpMenu::showLogWindow()
+{
+    logger->showLogViwer();
 }
 
 

@@ -25,6 +25,7 @@
 
 #include "menubar.h"
 #include "consolewidget.h"
+#include "logger.h"
 
 
 
@@ -373,6 +374,8 @@ void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
     }
 
     fileTree->saveAllFile();
+
+    logger->output(__FILE__, __LINE__, __FUNCTION__, "test", Logger::LogLevel::Debug);
 
     gnuplotExecutor->setWorkingFolderPath(item->fileInfo().absolutePath());
     gnuplotExecutor->execGnuplot(item->process, QList<QString>() << "load '" + item->fileInfo().absoluteFilePath() + "'", true);

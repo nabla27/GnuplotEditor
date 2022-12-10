@@ -15,6 +15,7 @@ HEADERS += \
     $$PWD/gnuplottable.h \
     $$PWD/imagedisplay.h \
     $$PWD/iofile.h \
+    $$PWD/logger.h \
     $$PWD/menubar.h \
     $$PWD/standardpixmap.h \
     $$PWD/tablesettingwidget.h \
@@ -44,6 +45,7 @@ SOURCES += \
     $$PWD/gnuplottable.cpp \
     $$PWD/imagedisplay.cpp \
     $$PWD/iofile.cpp \
+    $$PWD/logger.cpp \
     $$PWD/main.cpp \
     $$PWD/menubar.cpp \
     $$PWD/standardpixmap.cpp \

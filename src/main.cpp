@@ -10,11 +10,14 @@
 #include "gnuploteditor.h"
 #include <QApplication>
 #include <QObject>
+#include "logger.h"
 
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    logger->setLogFilePath(QApplication::applicationDirPath() + "/setting/gnuplot-editor.log");
 
     GnuplotEditor w;
     w.show();
