@@ -19,6 +19,7 @@
 #include <QFormLayout>
 #include <QDialogButtonBox>
 
+#include "logger.h"
 
 
 FileTreeSettingWidget::FileTreeSettingWidget(QWidget *parent)
@@ -241,6 +242,9 @@ void FileTreeSettingWidget::editItem()
 
 void FileTreeSettingWidget::requestReload()
 {
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "filetree reload requested from " + QString(FileTreeSettingWidget::staticMetaObject.className()), Logger::LogLevel::Info);
+
     hide();
     emit reloadRequested();
 }
@@ -271,6 +275,9 @@ void FileTreeSettingWidget::loadXmlSetting()
 
     if(QFile::exists(settingFile))
     {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "file tree setting xml file is loaded.", Logger::LogLevel::Info);
+
         ptree pt;
         read_xml(settingFile.toUtf8().constData(), pt); //存在しないファイルやフォルダーを指定するとエラー(落ちる)
 
@@ -296,6 +303,11 @@ void FileTreeSettingWidget::loadXmlSetting()
                 if(const boost::optional<int>& readType = child.second.get_optional<int>("readType"))
                     addSheetExt(QString::fromStdString(ext.value()), readType.value());
 
+    }
+    else
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "file tree setting xml file was not found.", Logger::LogLevel::Warn);
     }
 }
 
@@ -353,10 +365,15 @@ void FileTreeSettingWidget::saveXmlSetting()
         const bool success = dir.mkdir(settingFolderPath);
         if(!success)
         {
-            /* エラー処理を追加する */ qDebug() << __FILE__ << __LINE__;
+            logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           "failed to make dir " + settingFolderPath + "."
+                           "could not save the filetree setting.", Logger::LogLevel::Error);
             return;
         }
     }
+
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "save filetree setting as xml file.", Logger::LogLevel::Info);
 
     //存在しないフォルダーを含むパスを指定した場合はクラッシュする
     //存在しないファイルは指定しても大丈夫

@@ -25,6 +25,7 @@
 #include "texteditor.h"
 #include "iofile.h"
 #include "standardpixmap.h"
+#include "logger.h"
 
 
 
@@ -193,8 +194,8 @@ void TreeScriptItem::save()
     case ReadType::Html:
         /* htmlを読み込んで表示した後はただのtextになるため，htmlとしてセーブできない */
     default:
-        emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
-                         BrowserWidget::MessageType::FileSystemErr);
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "Faield to save this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
         return;
     }
 
@@ -216,8 +217,8 @@ void TreeScriptItem::load()
         break;
     }
     default:
-        emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
-                         BrowserWidget::MessageType::FileSystemErr);
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "Failed to load this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
         return;
     }
 
@@ -239,8 +240,8 @@ void TreeScriptItem::receiveSavedResult(const bool& ok)
     setSavedState(ok);
     if(!ok)
     {
-        emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
-                         BrowserWidget::MessageType::FileSystemErr);
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "Failed to save this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
     }
 }
 
@@ -270,8 +271,8 @@ void TreeScriptItem::receiveLoadedResult(const QString& text, const bool& ok)
         return;
     }
 
-    emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
-                     BrowserWidget::MessageType::FileSystemErr);
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "Failed to load this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
 }
 
 
@@ -321,8 +322,8 @@ void TreeSheetItem::save()
         break;
     }
     default:
-        emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
-                         BrowserWidget::MessageType::FileSystemErr);
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "Failed to save this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
         return;
     }
 
@@ -352,8 +353,8 @@ void TreeSheetItem::load()
         break;
     }
     default:
-        emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
-                         BrowserWidget::MessageType::FileSystemErr);
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "Fialed to load this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
         return;
     }
 
@@ -370,8 +371,8 @@ void TreeSheetItem::receiveSavedResult(const bool& ok)
     setSavedState(ok);
     if(!ok)
     {
-        emit errorCaused("Failed to save this file " + info.absoluteFilePath(),
-                         BrowserWidget::MessageType::FileSystemErr);
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "Fialed to save this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
     }
 }
 
@@ -384,8 +385,8 @@ void TreeSheetItem::receiveLoadResult(const QList<QList<QString> >& data, const 
     }
     else
     {
-        emit errorCaused("Failed to load this file " + info.absoluteFilePath(),
-                         BrowserWidget::MessageType::FileSystemErr);
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "Failed to load this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
     }
 }
 
@@ -800,7 +801,8 @@ void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QSt
         const QString makePath = toPath + '/' + info.fileName(); //コピー先のパス
 
         const bool ok = QFile::copy(absPath, makePath);
-        if(!ok) emit errorCaused("Could not copy a file \"" + absPath + "\".", BrowserWidget::MessageType::FileSystemErr);
+        if(!ok) logger->output(__FILE__, __LINE__, __FUNCTION__,
+                               "Could not copy a file \"" + absPath + "\".", Logger::LogLevel::Error);
     }
 
 
@@ -815,7 +817,8 @@ void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QSt
 
         QDir dir(toPath);
         const bool ok = dir.mkdir(makePath);
-        if(!ok) emit errorCaused("Could not copy a directory \"" + absPath + "\".", BrowserWidget::MessageType::FileSystemErr);
+        if(!ok) logger->output(__FILE__, __LINE__, __FUNCTION__,
+                               "Could not copy a directory \"" + absPath + "\".", Logger::LogLevel::Error);
 
         copyDirectoryRecursively(absPath, makePath);
     }
@@ -865,7 +868,8 @@ void FileTreeWidget::renameFile()
     //if(!dir.rename(item->info.absoluteFilePath(), newAbsoluteFilePath))
     if(!dir.rename(item->fileInfo().absoluteFilePath(), newAbsoluteFilePath))
     {
-        emit errorCaused("failed to rename the file.", BrowserWidget::MessageType::FileSystemErr);
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "Failed to rename the file " + oldFileName + " to " + newAbsoluteFilePath, Logger::LogLevel::Error);
         return;
     }
 
@@ -912,8 +916,8 @@ void FileTreeWidget::removeFile()
 
     if(!ok)
     {
-        //emit errorCaused("Failed to remove the file : " + item->info.fileName(), BrowserWidget::MessageType::FileSystemErr);
-        emit errorCaused("Failed to remove the file : " + item->fileInfo().fileName(), BrowserWidget::MessageType::FileSystemErr);
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "Failed to remove the file " + item->fileInfo().absoluteFilePath(), Logger::LogLevel::Error);
         return;
     }
 
@@ -938,11 +942,10 @@ void FileTreeWidget::exportFile()
 
     item->save();
 
-    //const bool ok = QFile::copy(item->info.absoluteFilePath(), pathForSave + '/' + item->info.fileName());
     const bool ok = QFile::copy(item->fileInfo().absoluteFilePath(), pathForSave + '/' + item->fileInfo().fileName());
 
-    //if(!ok) emit errorCaused("Could not copy a file \"" + item->info.fileName() + "\"", BrowserWidget::MessageType::FileSystemErr);
-    if(!ok) emit errorCaused("Could not copy a file \"" + item->fileInfo().fileName() + "\"", BrowserWidget::MessageType::FileSystemErr);
+    if(!ok) logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           "Could not copy a file \"" + item->fileInfo().absoluteFilePath() + "\"", Logger::LogLevel::Error);
 
     /* 削除するか確認する */
     removeFile();

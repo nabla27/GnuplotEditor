@@ -17,30 +17,30 @@
 
 class BrowserSyntaxHighlighter;
 
-class BrowserWidget : public QTextBrowser
-{
-    Q_OBJECT
-
-public:
-    explicit BrowserWidget(QWidget *parent = nullptr);
-    ~BrowserWidget();
-
-    enum class MessageType { GnuplotStdOut,
-                             GnuplotStdErr,
-                             FileSystemErr,
-                             ProcessErr,
-                             SystemErr,
-                             Unknown };
-    Q_ENUM(MessageType)
-
-public:
-    void outputText(const QString& text, const MessageType messageType);
-    void grayOutAll();
-    QSize minimumSizeHint() const override { return QSize(0, 0); }
-
-private:
-    BrowserSyntaxHighlighter *highlighter;
-};
+//class BrowserWidget : public QTextBrowser
+//{
+//    Q_OBJECT
+//
+//public:
+//    explicit BrowserWidget(QWidget *parent = nullptr);
+//    ~BrowserWidget();
+//
+//    enum class MessageType { GnuplotStdOut,
+//                             GnuplotStdErr,
+//                             FileSystemErr,
+//                             ProcessErr,
+//                             SystemErr,
+//                             Unknown };
+//    Q_ENUM(MessageType)
+//
+//public:
+//    void outputText(const QString& text, const MessageType messageType);
+//    void grayOutAll();
+//    QSize minimumSizeHint() const override { return QSize(0, 0); }
+//
+//private:
+//    BrowserSyntaxHighlighter *highlighter;
+//};
 
 
 

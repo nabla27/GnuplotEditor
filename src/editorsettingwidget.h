@@ -75,9 +75,6 @@ private:
     QPushButton *setDefaultButton;
 
     QSet<TextEdit*> editorList;
-
-signals:
-    void errorCaused(const QString& text, const BrowserWidget::MessageType& type);
 };
 
 #endif // EDITORSETTINGWIDGET_H

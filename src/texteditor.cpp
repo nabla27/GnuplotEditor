@@ -19,6 +19,8 @@
 #include "templatecustomwidget.h"
 #include "iofile.h"
 #include "gnuplotcompletion.h"
+#include "logger.h"
+
 
 
 /* <firstCmd, previousCmd, currentCmd>
@@ -95,11 +97,14 @@ void TextEdit::insertToSelectedHeadBlock(const QString &text) const
         if(!tc.movePosition(QTextCursor::MoveOperation::NextBlock))
         {
             /* すでに最終行で移動できなかったなど */
-            break;
+            return;
         }
 
-        if(tc.position() > end) break;
+        if(tc.position() > end) return;
     }
+
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "An infinite loop occurred or the upper limit of the selection range was exceeded.", Logger::LogLevel::Warn);
 }
 
 void TextEdit::removeFromSelectedHeadBlock(const QString &text) const
@@ -128,8 +133,11 @@ void TextEdit::removeFromSelectedHeadBlock(const QString &text) const
             break;
         }
 
-        if(tc.position() > end) break;
+        if(tc.position() > end) return;
     }
+
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "An infinite loop occurred or the upper limit of the selection range was exceeded.", Logger::LogLevel::Warn);
 }
 
 void TextEdit::reverseSelectedCommentState() const
@@ -158,8 +166,11 @@ void TextEdit::reverseSelectedCommentState() const
 
         if(!tc.movePosition(QTextCursor::MoveOperation::NextBlock, QTextCursor::MoveMode::MoveAnchor)) break;
 
-        if(tc.position() > end) break;
+        if(tc.position() > end) return;
     }
+
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "An infinite loop occurred or the upper limit of the selection range was exceeded.", Logger::LogLevel::Warn);
 }
 
 /* 右クリックしながらホイールで文字サイズ変更 */

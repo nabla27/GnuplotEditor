@@ -14,6 +14,9 @@
 #include <QFileSystemWatcher>
 #include <QTextBrowser>
 #include <QVBoxLayout>
+#include <QScrollBar>
+#include <QTimer>
+
 
 
 Logger::Logger(QObject *parent)
@@ -37,7 +40,7 @@ void Logger::output(const QString &message, const LogLevel &level)
 
 void Logger::output(const QString &file, const int line, const QString& func, const QString &message, const LogLevel &level)
 {
-    emit writeRequested("File(" + file + ") LINE(" + QString::number(line) + ") FUNC(" + func + ")\n" + message, level);
+    emit writeRequested("FILE(" + file + ") LINE(" + QString::number(line) + ") FUNC(" + func + ")\n" + message, level);
 }
 
 void Logger::setLogFilePath(const QString &path)
@@ -45,7 +48,8 @@ void Logger::setLogFilePath(const QString &path)
     if(!viwer)
     {
         setupViwer();
-        viwer->load(path);
+        viwer->setLogFilePath(path);
+        viwer->load();
     }
 
 
@@ -117,9 +121,8 @@ Logger::LogViwer::LogViwer(QWidget *parent)
     : QWidget(parent)
     , browser(new QTextBrowser(this))
     , fileWatcher(new QFileSystemWatcher(this))
+    , writeTimer(new QTimer(this))
 {
-    connect(fileWatcher, &QFileSystemWatcher::fileChanged, this, &Logger::LogViwer::load);
-
     QVBoxLayout *vLayout = new QVBoxLayout(this);
     setLayout(vLayout);
     vLayout->setSpacing(0);
@@ -129,10 +132,23 @@ Logger::LogViwer::LogViwer(QWidget *parent)
     vLayout->addWidget(browser);
 
     setWindowFlag(Qt::WindowType::Window);
+
+    writeTimer->setSingleShot(true);
+    writeTimer->setInterval(1000);
+    connect(fileWatcher, &QFileSystemWatcher::fileChanged, writeTimer, QOverload<void>::of(&QTimer::start));
+    connect(writeTimer, &QTimer::timeout, this, &Logger::LogViwer::load);
 }
 
-void Logger::LogViwer::load(const QString &path)
+void Logger::LogViwer::load()
 {
+    if(fileWatcher->files().isEmpty())
+    {
+        emit logPushed(__FILE__, __LINE__, __FUNCTION__, "fileWacher is emply.", Logger::LogLevel::Warn);
+        return;
+    }
+
+    const QString path = fileWatcher->files().first();
+
     QFile file(path);
     if(file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -144,6 +160,8 @@ void Logger::LogViwer::load(const QString &path)
     {
         emit logPushed(__FILE__, __LINE__, __FUNCTION__, "failed to read log file.", LogLevel::Error);
     }
+
+    browser->verticalScrollBar()->setValue(browser->verticalScrollBar()->maximum());
 }
 
 void Logger::LogViwer::setLogFilePath(const QString &path)

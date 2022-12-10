@@ -14,6 +14,7 @@
 #include <QFileDialog>
 #include <QScrollBar>
 #include "utility.h"
+#include "logger.h"
 
 GnuplotSettingWidget::GnuplotSettingWidget(QWidget *parent)
     : QWidget(parent)
@@ -136,6 +137,9 @@ void GnuplotSettingWidget::loadXmlSetting()
 
     if(QFile::exists(settingFolderPath + "/" + settingFileName))
     {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "load gnuplot setting xml file.", Logger::LogLevel::Info);
+
         ptree pt;
         read_xml((settingFolderPath + "/" + settingFileName).toUtf8().constData(), pt);
 
@@ -150,6 +154,9 @@ void GnuplotSettingWidget::loadXmlSetting()
     }
     else
     {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "gnuplot setting xml file was not found.", Logger::LogLevel::Warn);
+
         pathEdit->setText("gnuplot.exe");
         initializeCmd->insertPlainText("set datafile separator ','");
     }
@@ -172,10 +179,15 @@ void GnuplotSettingWidget::saveXmlSetting()
         const bool success = dir.mkdir(settingFolderPath);
         if(!success)
         {
-            //エラー処理
+            logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           "failed to make dir " + settingFolderPath + ". "
+                           "could not save the gnuplot setting.", Logger::LogLevel::Error);
             return;
         }
     }
+
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "save gnuplot setting as xml file.", Logger::LogLevel::Info);
 
     //存在しないフォルダーを含むパスを指定した場合はクラッシュする
     //存在しないファイルは指定しても大丈夫

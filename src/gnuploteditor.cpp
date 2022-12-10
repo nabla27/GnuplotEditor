@@ -64,9 +64,9 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     fileTreeSetting->setPreviousFolderPath(workingDirectory);
 
     connect(fileTree, &FileTreeWidget::itemDoubleClicked, this, &GnuplotEditor::receiveTreeItem);
-    connect(fileTree, &FileTreeWidget::errorCaused, browserWidget, &BrowserWidget::outputText);
+    //connect(fileTree, &FileTreeWidget::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(fileTree, &FileTreeWidget::folderPathChanged, fileTreeSetting, &FileTreeSettingWidget::setPreviousFolderPath);
-    connect(browserWidget, &BrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
+    //connect(browserWidget, &BrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
     connect(fileTreeSetting, &FileTreeSettingWidget::reloadRequested, fileTree, &FileTreeWidget::saveAndLoad);
 
     /* gnuplotとそのプロセスは別スレッドで非同期処理 */
@@ -162,7 +162,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(viewMenu, &ViewMenu::splitHorizontallyRequested, editorArea, &EditorArea::splitFocusedWidgetHorizontally);
     connect(viewMenu, &ViewMenu::unsplitRequested, editorArea, &EditorArea::closeFocusedWidget);
     connect(viewMenu, &ViewMenu::removeAllStackedEditorRequested, editorArea, &EditorArea::removeAllStackedWidget);
-    connect(viewMenu, &ViewMenu::clearOutputWidgetRequested, browserWidget, &BrowserWidget::clear);
+    //connect(viewMenu, &ViewMenu::clearOutputWidgetRequested, browserWidget, &BrowserWidget::clear);
     connect(viewMenu, &ViewMenu::clearConsoleWidgetRequested, consoleWidget, &ConsoleWidget::clear);
     connect(viewMenu, &ViewMenu::showEditorSettingRequested, editorSetting, &EditorSetting::show);
 
@@ -226,10 +226,10 @@ void GnuplotEditor::initializeLayout()
 
     /* 各ウィジェット内のアイテムの初期化 */
     consoleWidget = new ConsoleWidget(displayTab);
-    browserWidget = new BrowserWidget(displayTab);
+    //browserWidget = new BrowserWidget(displayTab);
 
     displayTab->addTab(consoleWidget, "&Console");
-    displayTab->addTab(browserWidget, "&Output");
+    //displayTab->addTab(browserWidget, "&Output");
 
     displayTab->setTabPosition(QTabWidget::TabPosition::South);
 
@@ -244,12 +244,27 @@ void GnuplotEditor::setCurrentItem()
 
 void GnuplotEditor::setupScriptItem(TreeScriptItem *item)
 {
-    connect(item, &TreeFileItem::errorCaused, browserWidget, &BrowserWidget::outputText);
+    //connect(item, &TreeFileItem::errorCaused, browserWidget, &BrowserWidget::outputText);
 }
 
 void GnuplotEditor::receiveTreeItem(QTreeWidgetItem *item, const int column)
 {
-    if(column != 0) return;
+    if(column != 0)
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "received a item that column is not zero.", Logger::LogLevel::Warn);
+        return;
+    }
+
+    if(!item)
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "received a nullptr item.", Logger::LogLevel::Warn);
+        return;
+    }
+
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "received a item " + item->text(0), Logger::LogLevel::Info);
 
     switch((FileTreeWidget::TreeItemType)item->type())
     {
@@ -365,7 +380,7 @@ void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
 {
     if(!item) return;
 
-    browserWidget->grayOutAll();
+    //browserWidget->grayOutAll();
 
     if(TextEdit *textEdit = item->editor)
     {
@@ -375,7 +390,8 @@ void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
 
     fileTree->saveAllFile();
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__, "test", Logger::LogLevel::Debug);
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "execute gnuplot " + item->text(0), Logger::LogLevel::Info);
 
     gnuplotExecutor->setWorkingFolderPath(item->fileInfo().absolutePath());
     gnuplotExecutor->execGnuplot(item->process, QList<QString>() << "load '" + item->fileInfo().absoluteFilePath() + "'", true);
@@ -384,13 +400,13 @@ void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
 void GnuplotEditor::receiveGnuplotStdOut(const QString& text)
 {
     /* 出力の表示 */
-    browserWidget->outputText(text, BrowserWidget::MessageType::GnuplotStdOut);
+    //browserWidget->outputText(text, BrowserWidget::MessageType::GnuplotStdOut);
 }
 
 void GnuplotEditor::receiveGnuplotStdErr(const QString& text, const int line)
 {
     /* 出力の表示 */
-    browserWidget->outputText(text, BrowserWidget::MessageType::GnuplotStdErr);
+    //browserWidget->outputText(text, BrowserWidget::MessageType::GnuplotStdErr);
 
     /* エラー行の設定とハイライト */
     //if(TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->widget(0)))
@@ -431,6 +447,9 @@ void GnuplotEditor::showGnuplotHelpWindow()
 
 void GnuplotEditor::reboot()
 {
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "reboot requested.", Logger::LogLevel::Info);
+
     /* アプリを終了させる。アプリが終了する前にQMainWindow::closeEvent()が呼び出される */
     QCoreApplication::quit();
 

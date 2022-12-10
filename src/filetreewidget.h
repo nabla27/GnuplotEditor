@@ -65,7 +65,6 @@ private:
     inline static int updateTime = 1000;
 
 signals:
-    void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
     void pathChanged(const QString& path);
     void editStateChanged(const bool isSaved);
     void updated();
@@ -225,7 +224,6 @@ private:
 
 signals:
     void folderPathChanged(const QString& path);
-    void errorCaused(const QString& message, const BrowserWidget::MessageType& type);
 };
 
 
