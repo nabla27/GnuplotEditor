@@ -290,7 +290,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
 
 void GnuplotEditor::setupSheetItem(TreeSheetItem *item)
 {
-    //connect(item, &TreeSheetItem::errorCaused, browserWidget, &BrowserWidget::outputText);
+
 }
 
 void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
@@ -301,7 +301,6 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     editorArea->setWidget(item->table, item);
     editorMenu->setCurrentItem(item);
 
-    //connect(item->table, &GnuplotTable::tableUpdated, this, &GnuplotEditor::executeGnuplot);
     //connect(gnuplotSetting, &GnuplotSettingWidget::autoCompileMsecSet, item->table, &GnuplotTable::setUpdateMsec);
 }
 
@@ -323,44 +322,6 @@ void GnuplotEditor::setImageWidget(TreeImageItem *item)
         item->imageDisplay->show();
     }
 }
-
-//void GnuplotEditor::executeGnuplot()
-//{
-//    if(TreeFileItem *i = editorArea->currentTreeFileItem())
-//    {
-//        qDebug() << i->text(0);
-//    }
-//    else
-//        qDebug() << static_cast<TreeFileItem*>(fileTree->currentItem())->text(0);
-//
-//    return;
-//
-//    //if(!currentScript) return;
-//
-//    /* browserの過去の出力をグレイアウト */
-//    browserWidget->grayOutAll();
-//
-//    /* ファイルが選ばれていない場合は無効 */
-//    //if(gnuplotWidget->count() < 1) {
-//    //    browserWidget->outputText("scripts are not selected.", BrowserWidget::MessageType::SystemErr);
-//    //    return;
-//    //}
-//
-//    /* エラー行のリセット */
-//    //qobject_cast<TextEdit*>(gnuplotWidget->currentWidget())->setErrorLineNumber(-1);
-//    //qobject_cast<TextEdit*>(gnuplotWidget->currentWidget())->highlightLine();
-//    //if(TextEdit *editor = currentScript->editor)
-//    //{
-//    //    editor->setErrorLineNumber(-1);
-//    //    editor->highlightLine();
-//    //}
-//
-//    /* ファイルの保存 */
-//    fileTree->saveAllFile();
-//
-//    /* gnuplotにコマンドを渡す */
-//    //emit exeGnuplotRequested(gnuplotProcess, QList<QString>() << "load '" + currentScript->info.absoluteFilePath() + "'");
-//}
 
 void GnuplotEditor::executeItem(TreeFileItem *item)
 {
@@ -395,31 +356,6 @@ void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
 
     gnuplotExecutor->setWorkingFolderPath(item->fileInfo().absolutePath());
     gnuplotExecutor->execGnuplot(item->process, QList<QString>() << "load '" + item->fileInfo().absoluteFilePath() + "'", true);
-}
-
-void GnuplotEditor::receiveGnuplotStdOut(const QString& text)
-{
-    /* 出力の表示 */
-    //browserWidget->outputText(text, BrowserWidget::MessageType::GnuplotStdOut);
-}
-
-void GnuplotEditor::receiveGnuplotStdErr(const QString& text, const int line)
-{
-    /* 出力の表示 */
-    //browserWidget->outputText(text, BrowserWidget::MessageType::GnuplotStdErr);
-
-    /* エラー行の設定とハイライト */
-    //if(TextEdit *currentEditor = qobject_cast<TextEdit*>(gnuplotWidget->widget(0)))
-    //{
-    //    currentEditor->setErrorLineNumber(line - 1);
-    //    currentEditor->highlightLine();
-    //}
-    //if(!currentScript) return;
-    //if(TextEdit *editor = currentScript->editor)
-    //{
-    //    editor->setErrorLineNumber(line - 1);
-    //    editor->highlightLine();
-    //}
 }
 
 void GnuplotEditor::findKeyword()

@@ -11,7 +11,6 @@
 
 #include <QAction>
 #include <QFileDialog>
-#include <QProcess>
 #include "filetreewidget.h"
 #include "texteditor.h"
 #include "standardpixmap.h"

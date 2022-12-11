@@ -13,7 +13,6 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QFileDialog>
-#include <QProcess>
 #include <QFileSystemWatcher>
 #include <QThread>
 #include <QMenu>
@@ -153,14 +152,18 @@ void TreeFileItem::setSavedState(const bool isSaved)
 TreeScriptItem::TreeScriptItem(QTreeWidgetItem *parent, int type, const QFileInfo& info)
     : TreeFileItem(parent, type, info)
     , editor(new TextEdit)
-    , process(new QProcess())
+    , process(new GnuplotProcess(nullptr))
 {
     TreeScriptItem::load();
 
     connect(editor, &TextEdit::textChanged, this, &TreeScriptItem::setEdited);
-    connect(this, &TreeScriptItem::closeProcessRequested, process, &QProcess::close);
-    connect(this, &TreeScriptItem::destroyed, process, &QProcess::close);
-    connect(this, &TreeScriptItem::destroyed, process, &QProcess::deleteLater);
+    connect(process, &GnuplotProcess::standardOutputRead, logger, QOverload<const QString&, const Logger::LogLevel&>::of(&Logger::output));
+    connect(process, &GnuplotProcess::aboutToExecute, editor, &TextEdit::resetErrorLineNumber);
+    connect(process, &GnuplotProcess::errorCaused, editor, &TextEdit::setErrorLineNumber);
+
+    connect(this, &TreeScriptItem::closeProcessRequested, process, &GnuplotProcess::close);
+    connect(this, &TreeScriptItem::destroyed, process, &GnuplotProcess::close);
+    connect(this, &TreeScriptItem::destroyed, process, &GnuplotProcess::deleteLater);
     connect(this, &TreeScriptItem::pathChanged, [this](){ if(editor) editor->setParentFolderPath(this->info.absolutePath()); });
 
     editor->setParentFolderPath(info.absolutePath());

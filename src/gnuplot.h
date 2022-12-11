@@ -56,11 +56,14 @@
 //};
 
 #include <QObject>
+#include <QProcess>
+#include "logger.h"
 
 
 class Gnuplot;
 class QThread;
-class QProcess;
+class GnuplotProcess;
+
 
 class GnuplotExecutor : public QObject
 {
@@ -70,7 +73,7 @@ public:
     ~GnuplotExecutor();
 
 public:
-    void execGnuplot(QProcess *process, const QList<QString>& cmd, bool enablePreCmd);
+    void execGnuplot(GnuplotProcess *process, const QList<QString>& cmd, bool enablePreCmd);
     void execGnuplot(const QList<QString>& cmd, bool enablePreCmd);
     void setExePath(const QString& path);
     void setInitializeCmd(const QString& cmd);
@@ -81,13 +84,13 @@ public:
 
 private:
     QThread *_gnuplotThread;
-    QProcess *defaultProcess;
+    GnuplotProcess *defaultProcess;
 
     class Gnuplot;
     Gnuplot *gnuplot;
 
 signals:
-    void executeRequested(QProcess *process, const QList<QString>& cmd, bool enablePreCmd);
+    void executeRequested(GnuplotProcess *process, const QList<QString>& cmd, bool enablePreCmd);
     void setExePathRequested(const QString& path);
     void setInitializeCmdRequested(const QString& cmd);
     void setPreProcessingCmdRequested(const QString& cmd);
@@ -106,7 +109,7 @@ public:
     explicit Gnuplot(QObject *parent);
 
 public slots:
-    void execute(QProcess *process, const QList<QString>& cmd, bool enablePreCmd);
+    void execute(GnuplotProcess *process, const QList<QString>& cmd, bool enablePreCmd);
     void setExePath(const QString& path) { this->exePath = path; }
     void setInitializeCmd(const QString& cmd) { this->initCmd = cmd.split("\n"); }
     void setPreProcessingCmd(const QString& cmd) { this->preCmd = cmd.split("\n"); }
@@ -117,6 +120,29 @@ private:
     QList<QString> initCmd;
     QList<QString> preCmd;
     QString workingPath;
+};
+
+
+
+
+
+
+
+
+class GnuplotProcess : public QProcess
+{
+    Q_OBJECT
+public:
+    explicit GnuplotProcess(QObject *parent);
+
+private:
+    void readStdOut();
+    void readStdErr();
+
+signals:
+    void standardOutputRead(const QString& out, const Logger::LogLevel& level);
+    void errorCaused(const int errorLine);
+    void aboutToExecute();
 };
 
 

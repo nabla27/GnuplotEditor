@@ -118,7 +118,6 @@
 //}
 
 #include <QThread>
-#include <QProcess>
 #include <QDebug>
 #include "logger.h"
 
@@ -127,7 +126,7 @@
 GnuplotExecutor::GnuplotExecutor(QObject *parent)
     : QObject(parent)
     , _gnuplotThread(new QThread(this))
-    , defaultProcess(new QProcess())
+    , defaultProcess(new GnuplotProcess(nullptr))
     , gnuplot(new Gnuplot(nullptr))
 {
     defaultProcess->moveToThread(_gnuplotThread);
@@ -138,7 +137,7 @@ GnuplotExecutor::GnuplotExecutor(QObject *parent)
      * qt.core.qobject.connect: QObject::connect: Cannot queue arguments of type 'QProcess*'
      * (Make sure 'QProcess*' is registered using qRegisterMetaType().)
      */
-    qRegisterMetaType<QProcess*>();
+    qRegisterMetaType<GnuplotProcess*>();
 
     connect(this, &GnuplotExecutor::executeRequested, gnuplot, &GnuplotExecutor::Gnuplot::execute);
     connect(this, &GnuplotExecutor::setExePathRequested, gnuplot, &GnuplotExecutor::Gnuplot::setExePath);
@@ -153,7 +152,7 @@ GnuplotExecutor::~GnuplotExecutor()
     _gnuplotThread->wait();
 }
 
-void GnuplotExecutor::execGnuplot(QProcess *process, const QList<QString>&cmd, bool enablePreCmd)
+void GnuplotExecutor::execGnuplot(GnuplotProcess *process, const QList<QString>&cmd, bool enablePreCmd)
 {
     emit executeRequested(process, cmd, enablePreCmd);
 }
@@ -194,7 +193,7 @@ GnuplotExecutor::Gnuplot::Gnuplot(QObject *parent)
 
 }
 
-void GnuplotExecutor::Gnuplot::execute(QProcess *process, const QList<QString>& cmdlist, bool enablePreCmd)
+void GnuplotExecutor::Gnuplot::execute(GnuplotProcess *process, const QList<QString>& cmdlist, bool enablePreCmd)
 {
     if(!process)
     {
@@ -203,14 +202,14 @@ void GnuplotExecutor::Gnuplot::execute(QProcess *process, const QList<QString>& 
         return;
     }
 
-    if(process->state() == QProcess::ProcessState::NotRunning)
+    if(process->state() == GnuplotProcess::ProcessState::NotRunning)
     {
         process->start(exePath, QStringList() << "-persist");
 
         logger->output(__FILE__, __LINE__, __FUNCTION__,
                        "the process id[" + QString::number(process->processId()) + "] started.", Logger::LogLevel::Info);
 
-        if(process->error() == QProcess::ProcessError::FailedToStart)
+        if(process->error() == GnuplotProcess::ProcessError::FailedToStart)
         {
             process->close();
 
@@ -221,8 +220,11 @@ void GnuplotExecutor::Gnuplot::execute(QProcess *process, const QList<QString>& 
         }
     }
 
+    emit process->aboutToExecute();
+
     {
-        logger->output("execute gnuplot process id[" + QString::number(process->processId()) + "]", Logger::LogLevel::GnuplotInfo);
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "execute gnuplot process id[" + QString::number(process->processId()) + "]", Logger::LogLevel::GnuplotInfo);
     }
 
     /* workingFolderPath に移動 */
@@ -230,7 +232,8 @@ void GnuplotExecutor::Gnuplot::execute(QProcess *process, const QList<QString>& 
         const QString moveDirCmd = "cd '" + workingPath + "'";
         process->write((moveDirCmd + "\n").toUtf8().constData());
 
-        logger->output(moveDirCmd, Logger::LogLevel::GnuplotInfo);
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       moveDirCmd, Logger::LogLevel::GnuplotInfo);
     }
 
     if(enablePreCmd)
@@ -239,14 +242,16 @@ void GnuplotExecutor::Gnuplot::execute(QProcess *process, const QList<QString>& 
         {
             process->write((initCmd + "\n").toUtf8().constData());
 
-            logger->output(initCmd, Logger::LogLevel::GnuplotInfo);
+            logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           initCmd, Logger::LogLevel::GnuplotInfo);
         }
 
         for(const QString& preCmd : this->preCmd)
         {
             process->write((preCmd + "\n").toUtf8().constData());
 
-            logger->output(preCmd, Logger::LogLevel::GnuplotInfo);
+            logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           preCmd, Logger::LogLevel::GnuplotInfo);
         }
     }
 
@@ -254,7 +259,8 @@ void GnuplotExecutor::Gnuplot::execute(QProcess *process, const QList<QString>& 
     {
         process->write((cmd + "\n").toUtf8().constData());
 
-        logger->output(cmd, Logger::LogLevel::GnuplotInfo);
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       cmd, Logger::LogLevel::GnuplotInfo);
     }
 }
 
@@ -262,16 +268,49 @@ void GnuplotExecutor::Gnuplot::execute(QProcess *process, const QList<QString>& 
 
 
 
+#include <QRegularExpressionMatchIterator>
 
+GnuplotProcess::GnuplotProcess(QObject *parent)
+    : QProcess(parent)
+{
+    connect(this, &GnuplotProcess::readyReadStandardOutput, this, &GnuplotProcess::readStdOut);
+    connect(this, &GnuplotProcess::readyReadStandardError, this, &GnuplotProcess::readStdErr);;
+}
 
+void GnuplotProcess::readStdOut()
+{
+    const QString out(readAllStandardOutput());
 
+    if(!out.isEmpty())
+        emit standardOutputRead(out, Logger::LogLevel::GnuplotStdOut);
+}
 
+void GnuplotProcess::readStdErr()
+{
+    QList<int> list;
 
+    const QString err = readAllStandardError();
 
+    QRegularExpressionMatchIterator iter(QRegularExpression("line \\d+:").globalMatch(err));
+    while(iter.hasNext())
+    {
+        QRegularExpressionMatch match(iter.next());
+        list << match.captured(0).sliced(5, match.captured(0).size() - 6).toInt();
+    }
 
+    const int errorLine = (list.size() < 1) ? -1 : list.at(0);
 
-
-
+    if(errorLine == -1)
+    {
+        if(!err.isEmpty())
+            emit standardOutputRead(err, Logger::LogLevel::GnuplotStdOut);
+    }
+    else
+    {
+        emit standardOutputRead(err, Logger::LogLevel::GnuplotStdErr);
+        emit errorCaused(errorLine);
+    }
+}
 
 
 

@@ -19,9 +19,9 @@
 #include <QStyle>
 
 class TableArea;
-class QProcess;
 class QFileSystemWatcher;
 class TextEdit;
+class GnuplotProcess;
 
 
 
@@ -100,7 +100,7 @@ private slots:
 public:
     static QHash<QString, ReadType> suffix;
     TextEdit *editor;
-    QProcess *process;
+    GnuplotProcess *process;
 
 signals:
     void saveRequested(const QString& path, const QString& text);
