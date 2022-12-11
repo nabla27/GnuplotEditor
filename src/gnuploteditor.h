@@ -61,7 +61,7 @@ public:
     ~GnuplotEditor();
 
 public slots:
-    //QApplication::focusChanged(QWidget*,QWidget*)で呼ばれる
+    /* QApplication::focusChanged(QWidget*,QWidget*)で呼ばれる */
     void setCurrentItem();
 
 protected:
@@ -80,11 +80,9 @@ private:
 private slots:
     void receiveTreeItem(QTreeWidgetItem *item, const int column);
 
-    /* execute gnuplot */
+    /* execute */
     void executeItem(TreeFileItem *item);
     void executeGnuplot(TreeScriptItem *item);
-    void receiveGnuplotStdOut(const QString& text);
-    void receiveGnuplotStdErr(const QString& text, const int line);
 
     /* menu bar */
     void findKeyword();
