@@ -1,5 +1,4 @@
 HEADERS += \
-    $$PWD/browserwidget.h \
     $$PWD/consolewidget.h \
     $$PWD/cursorwatcher.h \
     $$PWD/editorsettingwidget.h \
@@ -30,7 +29,6 @@ HEADERS += \
 #>>>>>>> d2f7655fc2dea0117945d23b8e5e25ce22252c9f
 
 SOURCES += \
-    $$PWD/browserwidget.cpp \
     $$PWD/consolewidget.cpp \
     $$PWD/editorsettingwidget.cpp \
     $$PWD/editorsyntaxhighlighter.cpp \

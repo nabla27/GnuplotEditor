@@ -26,22 +26,23 @@
 #include "menubar.h"
 #include "consolewidget.h"
 #include "logger.h"
+#include "gnuplot.h"
 
 
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
 
-    , editorSetting(new EditorSetting(nullptr))
-    , gnuplotSetting(new GnuplotSettingWidget(nullptr))
-    , templateCustom(new TemplateCustomWidget(this))
-    , fileTreeSetting(new FileTreeSettingWidget(nullptr))
-
     , fileMenu(new FileMenu("&File", this))
     , editorMenu(new EditorMenu("&Editor", this))
     , gnuplotMenu(new GnuplotMenu("&Gnuplot", this))
     , viewMenu(new ViewMenu("&View", this))
     , helpMenu(new HelpMenu("&Help", this))
+
+    , editorSetting(new EditorSetting(nullptr))
+    , gnuplotSetting(new GnuplotSettingWidget(nullptr))
+    , templateCustom(new TemplateCustomWidget(this))
+    , fileTreeSetting(new FileTreeSettingWidget(nullptr))
 {
     /* ウィンドウをスクリーン画面に対して(0.4,0.5)の比率サイズに設定 */
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
@@ -67,6 +68,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     //connect(fileTree, &FileTreeWidget::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(fileTree, &FileTreeWidget::folderPathChanged, fileTreeSetting, &FileTreeSettingWidget::setPreviousFolderPath);
     //connect(browserWidget, &BrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
+    connect(outputWidget, &LogBrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
     connect(fileTreeSetting, &FileTreeSettingWidget::reloadRequested, fileTree, &FileTreeWidget::saveAndLoad);
 
     /* gnuplotとそのプロセスは別スレッドで非同期処理 */
@@ -227,14 +229,20 @@ void GnuplotEditor::initializeLayout()
     /* 各ウィジェット内のアイテムの初期化 */
     consoleWidget = new ConsoleWidget(displayTab);
     //browserWidget = new BrowserWidget(displayTab);
+    outputWidget = new LogBrowserWidget(displayTab);
 
     displayTab->addTab(consoleWidget, "&Console");
     //displayTab->addTab(browserWidget, "&Output");
+    displayTab->addTab(outputWidget, "&Output");
 
     displayTab->setTabPosition(QTabWidget::TabPosition::South);
+    outputWidget->addFilter(Logger::LogLevel::GnuplotStdOut);
+    outputWidget->addFilter(Logger::LogLevel::GnuplotStdErr);
+    outputWidget->setAutoScroll(true);
 
     connect(treeModelCombo, &QComboBox::currentIndexChanged, fileTree, &FileTreeWidget::setTreeModel);
     connect(editorArea, &EditorArea::executeRequested, this, &GnuplotEditor::executeItem);
+    connect(logger, &Logger::logPushed, outputWidget, &LogBrowserWidget::appendLog);
 }
 
 void GnuplotEditor::setCurrentItem()
@@ -316,6 +324,8 @@ void GnuplotEditor::executeItem(TreeFileItem *item)
 {
     if(!item) return;
 
+    outputWidget->grayOutAll();
+
     switch(FileTreeWidget::TreeItemType(item->type()))
     {
     case FileTreeWidget::TreeItemType::Script:
@@ -329,8 +339,6 @@ void GnuplotEditor::executeItem(TreeFileItem *item)
 void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
 {
     if(!item) return;
-
-    //browserWidget->grayOutAll();
 
     if(TextEdit *textEdit = item->editor)
     {
