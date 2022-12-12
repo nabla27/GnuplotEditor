@@ -398,9 +398,9 @@ void TreeSheetItem::receiveLoadResult(const QList<QList<QString> >& data, const 
 
 TreeImageItem::TreeImageItem(QTreeWidgetItem *parent, int type, const QFileInfo &info)
     : TreeFileItem(parent, type, info)
-    , imageDisplay(nullptr)
+    , imageDisplay(new ImageDisplay(nullptr))
 {
-
+    imageDisplay->setImagePath(info.absoluteFilePath());
 }
 
 TreeImageItem::~TreeImageItem()
@@ -410,6 +410,11 @@ TreeImageItem::~TreeImageItem()
         imageDisplay->deleteLater();
         imageDisplay = nullptr;
     }
+}
+
+QWidget *TreeImageItem::widget()
+{
+    return imageDisplay;
 }
 
 
