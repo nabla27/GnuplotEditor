@@ -152,7 +152,7 @@ public:
     ~TreeImageItem();
 
 public:
-    //QWidget* widget() override { return imageDisplay; }
+    QWidget* widget() override;
 
 public:
     ImageDisplay *imageDisplay;

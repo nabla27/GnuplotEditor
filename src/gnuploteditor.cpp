@@ -308,19 +308,8 @@ void GnuplotEditor::setImageWidget(TreeImageItem *item)
 {
     if(!item) return;
 
-    if(item->imageDisplay)
-    {
-        item->imageDisplay->updateImage();
-        item->imageDisplay->show(); //ウィンドウが閉じられていたら表示
-        item->imageDisplay->activateWindow(); //他アプリ含めて一番前面にする
-        item->imageDisplay->raise(); //同アプリ内で一番上に
-    }
-    else
-    {
-        item->imageDisplay = new ImageDisplay(nullptr);
-        item->imageDisplay->setImagePath(item->fileInfo().absoluteFilePath());
-        item->imageDisplay->show();
-    }
+    editorArea->setWidget(item->widget(), item);
+    editorMenu->setCurrentItem(item);
 }
 
 void GnuplotEditor::executeItem(TreeFileItem *item)
