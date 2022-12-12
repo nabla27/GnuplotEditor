@@ -11,12 +11,14 @@
 #define GNUPLOTSETTINGWIDGET_H
 
 #include <QWidget>
-#include <QTextBrowser>
-#include <QLineEdit>
-#include <QToolButton>
-#include <QApplication>
-#include "gnuplot.h"
-#include "texteditor.h"
+
+
+class LogBrowserWidget;
+class QLineEdit;
+class QToolButton;
+class TextEdit;
+
+
 
 class GnuplotSettingWidget : public QWidget
 {
@@ -31,23 +33,23 @@ public slots:
 
 private slots:
     void selectGnuplotPath();
-    void setGnuplotPath() { emit exePathSet(pathEdit->text()); }
-    void setGnuplotInitCmd() { emit initCmdSet(initializeCmd->toPlainText()); }
-    void setGnuplotPreCmd() { emit preCmdSet(preCmd->toPlainText()); }
+    void setGnuplotPath();
+    void setGnuplotInitCmd();
+    void setGnuplotPreCmd();
 
 private:
     void initializeLayout();
     void saveXmlSetting();
 
 private:
-    QTextBrowser *browser;
+    LogBrowserWidget *browser;
     QLineEdit *pathEdit;
     QToolButton *pathTool;
     TextEdit *initializeCmd;
     TextEdit *preCmd;
 
-    const QString settingFolderPath = QApplication::applicationDirPath() + "/setting";
-    const QString settingFileName = "gnuplot-setting.xml";
+    const QString settingFolderPath;
+    const QString settingFileName;
 
 signals:
     void autoCompileMsecSet(const int msec);

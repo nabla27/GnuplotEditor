@@ -22,12 +22,11 @@
 Logger::Logger(QObject *parent)
     : QObject(parent)
     , writer(new LogWriter(nullptr))
-    , viwer(nullptr)
 {
     writer->moveToThread(&ioThread);
     ioThread.start();
 
-    connect(this, &Logger::writeRequested, writer, &Logger::LogWriter::write);
+    connect(this, &Logger::logPushed, writer, &Logger::LogWriter::write);
     connect(this, &Logger::logPathChanged, writer, &Logger::LogWriter::setLogFilePath);
 }
 
@@ -35,42 +34,17 @@ Logger *logger = new Logger(nullptr);
 
 void Logger::output(const QString &message, const LogLevel &level)
 {
-    emit writeRequested(message, level);
+    emit logPushed(message, level);
 }
 
 void Logger::output(const QString &file, const int line, const QString& func, const QString &message, const LogLevel &level)
 {
-    emit writeRequested("FILE(" + file + ") LINE(" + QString::number(line) + ") FUNC(" + func + ")\n" + message, level);
+    output("FILE(" + file + ") LINE(" + QString::number(line) + ") FUNC(" + func + ")\n" + message, level);
 }
 
 void Logger::setLogFilePath(const QString &path)
 {
-    if(!viwer)
-    {
-        setupViwer();
-        viwer->setLogFilePath(path);
-        viwer->load();
-    }
-
-
-    viwer->setLogFilePath(path);
     emit logPathChanged(path);
-}
-
-void Logger::showLogViwer()
-{
-    if(!viwer) setupViwer();
-
-    viwer->show();
-}
-
-void Logger::setupViwer()
-{
-    if(viwer) delete viwer;
-
-    viwer = new Logger::LogViwer(nullptr);
-    connect(this, &Logger::destroyed, viwer, &Logger::LogViwer::deleteLater);
-    connect(viwer, &Logger::LogViwer::logPushed, this, QOverload<const QString&, const int, const QString&, const QString&, const Logger::LogLevel&>::of(&Logger::output));
 }
 
 
@@ -117,58 +91,88 @@ void Logger::LogWriter::setLogFilePath(const QString &path)
 
 
 
-Logger::LogViwer::LogViwer(QWidget *parent)
-    : QWidget(parent)
-    , browser(new QTextBrowser(this))
-    , fileWatcher(new QFileSystemWatcher(this))
-    , writeTimer(new QTimer(this))
+
+
+
+QHash<Logger::LogLevel, QColor> LogBrowserWidget::logLevelColor
+= { { Logger::LogLevel::Debug, Qt::black },
+    { Logger::LogLevel::Info, Qt::black},
+    { Logger::LogLevel::Warn, Qt::yellow},
+    { Logger::LogLevel::Error, Qt::red},
+    { Logger::LogLevel::Fatal, Qt::red},
+    { Logger::LogLevel::GnuplotInfo, Qt::black},
+    { Logger::LogLevel::GnuplotStdOut, Qt::blue},
+    { Logger::LogLevel::GnuplotStdErr, Qt::red}
+  };
+
+LogBrowserWidget::LogBrowserWidget(QWidget *parent)
+    : QTextBrowser(parent)
 {
-    QVBoxLayout *vLayout = new QVBoxLayout(this);
-    setLayout(vLayout);
-    vLayout->setSpacing(0);
-    vLayout->setContentsMargins(0, 0, 0, 0);
-    setContentsMargins(0, 0, 0, 0);
-
-    vLayout->addWidget(browser);
-
-    setWindowFlag(Qt::WindowType::Window);
-
-    writeTimer->setSingleShot(true);
-    writeTimer->setInterval(1000);
-    connect(fileWatcher, &QFileSystemWatcher::fileChanged, writeTimer, QOverload<void>::of(&QTimer::start));
-    connect(writeTimer, &QTimer::timeout, this, &Logger::LogViwer::load);
+    setFontFamily("Consolas");
 }
 
-void Logger::LogViwer::load()
+void LogBrowserWidget::addFilter(const Logger::LogLevel &level)
 {
-    if(fileWatcher->files().isEmpty())
-    {
-        emit logPushed(__FILE__, __LINE__, __FUNCTION__, "fileWacher is emply.", Logger::LogLevel::Warn);
-        return;
-    }
-
-    const QString path = fileWatcher->files().first();
-
-    QFile file(path);
-    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        QTextStream in(&file);
-        browser->setPlainText(in.readAll());
-        file.close();
-    }
-    else
-    {
-        emit logPushed(__FILE__, __LINE__, __FUNCTION__, "failed to read log file.", LogLevel::Error);
-    }
-
-    browser->verticalScrollBar()->setValue(browser->verticalScrollBar()->maximum());
+    logFilter.insert(level);
 }
 
-void Logger::LogViwer::setLogFilePath(const QString &path)
+void LogBrowserWidget::addAllFilter()
 {
-    fileWatcher->removePaths(fileWatcher->files());
-    fileWatcher->addPath(path);
+    for(int i = 0; i < QMetaEnum::fromType<Logger::LogLevel>().keyCount(); ++i)
+    {
+        logFilter.insert(Logger::LogLevel(i));
+    }
 }
+
+void LogBrowserWidget::removeFilter(const Logger::LogLevel &level)
+{
+    logFilter.remove(level);
+}
+
+void LogBrowserWidget::clearFilter()
+{
+    logFilter.clear();
+}
+
+void LogBrowserWidget::appendLog(const QString &message, const Logger::LogLevel &level)
+{
+    if(!logFilter.contains(level)) return;
+
+    QTextCursor tc = textCursor();
+    tc.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
+    const int previousEndPosition = tc.position();
+
+    append("");
+    append("[" + enumToString(level) + "] " + QDateTime::currentDateTime().toString());
+    append(message);
+
+    tc.setPosition(previousEndPosition);
+    tc.movePosition(QTextCursor::End, QTextCursor::KeepAnchor);
+
+    QTextCharFormat fm = tc.charFormat();
+    fm.setForeground(logLevelColor.value(level));
+    tc.setCharFormat(fm);
+
+    if(isAutoScroll)
+        verticalScrollBar()->setValue(verticalScrollBar()->maximum());
+}
+
+void LogBrowserWidget::setAutoScroll(bool enable)
+{
+    isAutoScroll = enable;
+}
+
+void LogBrowserWidget::grayOutAll()
+{
+    QTextCursor tc = textCursor();
+    tc.movePosition(QTextCursor::Start, QTextCursor::MoveAnchor);
+    tc.movePosition(QTextCursor::End, QTextCursor::KeepAnchor);
+
+    QTextCharFormat fm = tc.charFormat();
+    fm.setForeground(Qt::lightGray);
+    tc.setCharFormat(fm);
+}
+
 
 
 

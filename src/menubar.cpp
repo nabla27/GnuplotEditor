@@ -336,18 +336,21 @@ HelpMenu::HelpMenu(const QString &title, QWidget *parent)
     : QMenu(title, parent)
     , aLogWindow(new QAction("Log", this))
     , aReboot(new QAction("Reboot", this))
+
+    , logWindow(new LogBrowserWidget(this))
 {
     addAction(aLogWindow);
     addAction(aReboot);
 
-    connect(aLogWindow, &QAction::triggered, logger, &Logger::showLogViwer);
+    connect(aLogWindow, &QAction::triggered, logWindow, &LogBrowserWidget::show);
     connect(aReboot, &QAction::triggered, this, &HelpMenu::rebootRequested);
+
+    connect(logger, &Logger::logPushed, logWindow, &LogBrowserWidget::appendLog);
+    logWindow->addAllFilter();
+    logWindow->hide();
+    logWindow->setWindowFlag(Qt::Window);
 }
 
-void HelpMenu::showLogWindow()
-{
-    logger->showLogViwer();
-}
 
 
 

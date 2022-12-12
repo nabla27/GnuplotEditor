@@ -35,7 +35,7 @@ class HelpMenu;
 class TreeModelCombo;
 class FileTreeWidget;
 class ConsoleWidget;
-//class BrowserWidget;
+class LogBrowserWidget;
 
 
 
@@ -91,16 +91,16 @@ private slots:
     void reboot();
 
 private:
-    EditorSetting *editorSetting;
-    GnuplotSettingWidget *gnuplotSetting;
-    TemplateCustomWidget *templateCustom;
-    FileTreeSettingWidget *fileTreeSetting;
-
     FileMenu *fileMenu;
     EditorMenu *editorMenu;
     GnuplotMenu *gnuplotMenu;
     ViewMenu *viewMenu;
     HelpMenu *helpMenu;
+
+    EditorSetting *editorSetting;
+    GnuplotSettingWidget *gnuplotSetting;
+    TemplateCustomWidget *templateCustom;
+    FileTreeSettingWidget *fileTreeSetting;
 
     TreeModelCombo *treeModelCombo;
     FileTreeWidget *fileTree;
@@ -108,7 +108,7 @@ private:
     EditorArea *editorArea;
 
     ConsoleWidget *consoleWidget;
-    //BrowserWidget *browserWidget;
+    LogBrowserWidget *outputWidget;
 };
 
 

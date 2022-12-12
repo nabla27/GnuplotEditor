@@ -13,16 +13,22 @@
 #include <QSpinBox>
 #include <QFileDialog>
 #include <QScrollBar>
+#include <QLineEdit>
+#include <QToolButton>
+#include <QApplication>
 #include "utility.h"
+#include "texteditor.h"
 #include "logger.h"
 
 GnuplotSettingWidget::GnuplotSettingWidget(QWidget *parent)
     : QWidget(parent)
-    , browser(new QTextBrowser(this))
+    , browser(new LogBrowserWidget(this))
     , pathEdit(new QLineEdit(this))
     , pathTool(new QToolButton(this))
     , initializeCmd(new TextEdit(this))
     , preCmd(new TextEdit(this))
+    , settingFolderPath(QApplication::applicationDirPath() + "/setting")
+    , settingFileName("gnuplot-setting.xml")
 {
     initializeLayout();
 
@@ -31,11 +37,29 @@ GnuplotSettingWidget::GnuplotSettingWidget(QWidget *parent)
     connect(pathTool, &QToolButton::released, this, &GnuplotSettingWidget::selectGnuplotPath);
     connect(initializeCmd, &TextEdit::textChanged, this, &GnuplotSettingWidget::setGnuplotInitCmd);
     connect(preCmd, &TextEdit::textChanged, this, &GnuplotSettingWidget::setGnuplotPreCmd);
+
+    browser->addFilter(Logger::LogLevel::GnuplotInfo);
+    connect(logger, &Logger::logPushed, browser, &LogBrowserWidget::appendLog);
 }
 
 GnuplotSettingWidget::~GnuplotSettingWidget()
 {
     saveXmlSetting();
+}
+
+void GnuplotSettingWidget::setGnuplotPath()
+{
+    emit exePathSet(pathEdit->text());
+}
+
+void GnuplotSettingWidget::setGnuplotInitCmd()
+{
+    emit initCmdSet(initializeCmd->toPlainText());
+}
+
+void GnuplotSettingWidget::setGnuplotPreCmd()
+{
+    emit preCmdSet(preCmd->toPlainText());
 }
 
 void GnuplotSettingWidget::initializeLayout()

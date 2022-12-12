@@ -13,6 +13,7 @@
 #include <QMenu>
 
 class TreeFileItem;
+class LogBrowserWidget;
 
 
 class FileMenu : public QMenu
@@ -167,8 +168,7 @@ private:
     QAction *aLogWindow;
     QAction *aReboot;
 
-private slots:
-    void showLogWindow();
+    LogBrowserWidget *logWindow;
 
 signals:
     void rebootRequested();

@@ -299,24 +299,31 @@ void EditorStackedWidget::requestExecute()
     emit editorArea->executeRequested(currentTreeFileItem());
 }
 
-void EditorStackedWidget::changeEditState(bool edited)
+void EditorStackedWidget::changeEditState(bool isSaved)
 {
     const int index = editorStack->currentIndex();
     TreeFileItem *item = items.at(index);
 
-    if(edited)
-        editorListCombo->setItemText(index, item->text(0));
-    else
+    const QString text = editorListCombo->itemText(index);
+    if(text.isEmpty()) return;
+
+    const bool isPrevSaved = text.back() !='*';  //前の状態は保存状態であったか
+
+
+    if(isSaved && !isPrevSaved)
     {
-        const QString text = editorListCombo->itemText(index);
-        if(!text.isEmpty() && text.back() != '*')
-        {
-            editorListCombo->setItemText(index, item->text(0) + "*");
-        }
+        //非保存状態 -> 保存状態
+        editorListCombo->setItemText(index, item->text(0));
+    }
+    else if(!isSaved && isPrevSaved)
+    {
+        //保存状態 -> 非保存状態
+        editorListCombo->setItemText(index, item->text(0) + "*");
     }
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "the edit state of current widget is changed.", Logger::LogLevel::Info);
+    if(isSaved != isPrevSaved)
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "the edit state of current widget is changed.", Logger::LogLevel::Info);
 }
 
 

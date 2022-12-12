@@ -16,6 +16,7 @@
 #include <QThread>
 #include <QTextStream>
 #include <QWidget>
+#include <QTextBrowser>
 
 
 class QTextBrowser;
@@ -35,21 +36,17 @@ public slots:
     void output(const QString& message, const Logger::LogLevel& level);
     void output(const QString& file, const int line, const QString& func, const QString& message, const Logger::LogLevel& level);
     void setLogFilePath(const QString& path);
-    void showLogViwer();
-
-private:
-    void setupViwer();
 
 private:
     QThread ioThread;
 
     class LogWriter;
-    class LogViwer;
     LogWriter *writer;
-    LogViwer *viwer;
 
 signals:
-    void writeRequested(const QString& message, const Logger::LogLevel& level);
+    /* public signal */
+    void logPushed(const QString& message, const Logger::LogLevel& level);
+    /* private signal */
     void logPathChanged(const QString& path);
 };
 extern Logger *logger;
@@ -81,23 +78,30 @@ private:
 
 
 
-class Logger::LogViwer : public QWidget
+
+
+class LogBrowserWidget : public QTextBrowser
 {
     Q_OBJECT
 public:
-    explicit LogViwer(QWidget *parent);
+    explicit LogBrowserWidget(QWidget *parent);
 
 public:
-    void load();
-    void setLogFilePath(const QString& path);
+    void addFilter(const Logger::LogLevel& level);
+    void addAllFilter();
+    void removeFilter(const Logger::LogLevel& level);
+    void clearFilter();
+
+public slots:
+    void appendLog(const QString& message, const Logger::LogLevel& level);
+    void setAutoScroll(bool enable);
+    void grayOutAll();
 
 private:
-    QTextBrowser *browser;
-    QFileSystemWatcher *fileWatcher;
-    QTimer *writeTimer;
+    QSet<Logger::LogLevel> logFilter;
+    static QHash<Logger::LogLevel, QColor> logLevelColor;
 
-signals:
-    void logPushed(const QString& file, const int line, const QString& func, const QString& message, const Logger::LogLevel& level);
+    bool isAutoScroll = false;
 };
 
 
