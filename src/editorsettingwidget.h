@@ -17,7 +17,6 @@
 #include <QFontDialog>
 #include <QDoubleSpinBox>
 #include <QCheckBox>
-#include "browserwidget.h"
 #include "texteditor.h"
 #include <QApplication>
 

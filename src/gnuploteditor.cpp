@@ -27,6 +27,7 @@
 #include "consolewidget.h"
 #include "logger.h"
 #include "gnuplot.h"
+#include "utility.h"
 
 
 

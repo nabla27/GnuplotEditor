@@ -18,6 +18,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QTimer>
+
 #include "imagedisplay.h"
 #include "gnuplot.h"
 #include "tablesettingwidget.h"
@@ -25,6 +26,7 @@
 #include "iofile.h"
 #include "standardpixmap.h"
 #include "logger.h"
+#include "utility.h"
 
 
 
@@ -1090,6 +1092,19 @@ void FileTreeWidget::newFile()
 
     /* ファイルが作成されれば、dirWatcherのdirectoryChanged() --> updateFileTree() によってTreeに追加される */
 }
+
+
+
+
+TreeModelCombo::TreeModelCombo(QWidget *parent)
+    : QComboBox(parent)
+{
+    addItems(enumToStrings(FileTreeWidget::FileTreeModel(0)));
+}
+
+
+
+
 
 
 
