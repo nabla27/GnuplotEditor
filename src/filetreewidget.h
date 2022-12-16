@@ -13,7 +13,6 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QComboBox>
-#include "browserwidget.h"
 #include <QFileInfo>
 #include <QApplication>
 #include <QStyle>
@@ -233,10 +232,7 @@ class TreeModelCombo : public QComboBox
 {
     Q_OBJECT
 public:
-    explicit TreeModelCombo(QWidget *parent) : QComboBox(parent)
-    {
-        addItems(enumToStrings(FileTreeWidget::FileTreeModel(0)));
-    }
+    explicit TreeModelCombo(QWidget *parent);
 
     QSize minimumSizeHint() const override { return QSize(0, 0); }
 };
