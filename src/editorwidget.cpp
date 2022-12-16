@@ -11,6 +11,8 @@
 
 #include <QComboBox>
 #include <QSplitter>
+#include <QMimeData>
+#include <QDrag>
 
 #include "layoutparts.h"
 #include "standardpixmap.h"
@@ -26,19 +28,20 @@ EditorStackedWidget::EditorStackedWidget(EditorArea *editorArea, QSplitter *pare
     , editorArea(editorArea)
     , parentSplitter(parentSplitter)
     , contents(new QWidget(this))
-    , editorListCombo(new QComboBox(this))
+    , fileComboBox(new FileComboBox(this))
     , editorStack(new QStackedWidget(this))
     , executeScript(new mlayout::IconLabel(this))
 {
     setWidgetResizable(true);
 
-    editorListCombo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+    fileComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
-    connect(editorStack, &QStackedWidget::currentChanged, editorListCombo, &QComboBox::setCurrentIndex);
-    connect(editorStack, &QStackedWidget::widgetRemoved, editorListCombo, &QComboBox::removeItem);
+    connect(editorStack, &QStackedWidget::currentChanged, fileComboBox, &QComboBox::setCurrentIndex);
+    connect(editorStack, &QStackedWidget::widgetRemoved, fileComboBox, &QComboBox::removeItem);
     connect(editorStack, &QStackedWidget::widgetRemoved, this, &EditorStackedWidget::removeItem);
     connect(editorStack, &QStackedWidget::currentChanged, this, &EditorStackedWidget::setCurrentItem);
-    connect(editorListCombo, &QComboBox::currentIndexChanged, editorStack, &QStackedWidget::setCurrentIndex);
+    connect(fileComboBox, &EditorStackedWidget::FileComboBox::currentIndexChanged, editorStack, &QStackedWidget::setCurrentIndex);
+    connect(fileComboBox, &EditorStackedWidget::FileComboBox::dropItemRequested, this, &EditorStackedWidget::addItem);
 
     setupLayout();
 }
@@ -61,7 +64,7 @@ void EditorStackedWidget::setupLayout()
     vLayout->addLayout(hLayout);
     vLayout->addWidget(editorStack);
 
-    hLayout->addWidget(editorListCombo);
+    hLayout->addWidget(fileComboBox);
     hLayout->addWidget(removeEditor);
     hLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Preferred));
     hLayout->addWidget(executeScript);
@@ -159,9 +162,23 @@ void EditorStackedWidget::separateAreaV()
     separateArea(Qt::Orientation::Vertical);
 }
 
-void EditorStackedWidget::addWidget(QWidget *widget, TreeFileItem *item)
+void EditorStackedWidget::addItem(TreeFileItem *item)
 {
-    if(!item) return;
+    if(!item)
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "nullptr item receive.", Logger::LogLevel::Warn);
+        return;
+    }
+
+    QWidget *widget = item->widget();
+
+    if(!widget)
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "widget of item is nullptr.", Logger::LogLevel::Warn);
+        return;
+    }
 
     const int index = editorStack->indexOf(widget);
 
@@ -171,11 +188,11 @@ void EditorStackedWidget::addWidget(QWidget *widget, TreeFileItem *item)
         editorStack->addWidget(widget);
 
         if(item->isSaved())
-            editorListCombo->addItem(item->text(0));
+            fileComboBox->addItem(item->text(0));
         else
-            editorListCombo->addItem(item->text(0) + "*");
+            fileComboBox->addItem(item->text(0) + "*");
 
-        editorListCombo->setItemIcon(editorListCombo->count() - 1, item->icon(0));
+        fileComboBox->setItemIcon(fileComboBox->count() - 1, item->icon(0));
         items.append(item);
 
         if((int)item->type() == (int)FileTreeWidget::TreeItemType::Script)
@@ -196,7 +213,7 @@ void EditorStackedWidget::addWidget(QWidget *widget, TreeFileItem *item)
 
 void EditorStackedWidget::removeCurrentWidget()
 {
-    if(editorListCombo->count() < 1)
+    if(fileComboBox->count() < 1)
     {
         logger->output(__FILE__, __LINE__, __FUNCTION__,
                        "tried to remove current widget, but the editor list combobox was already empty.", Logger::LogLevel::Warn);
@@ -304,7 +321,7 @@ void EditorStackedWidget::changeEditState(bool isSaved)
     const int index = editorStack->currentIndex();
     TreeFileItem *item = items.at(index);
 
-    const QString text = editorListCombo->itemText(index);
+    const QString text = fileComboBox->itemText(index);
     if(text.isEmpty()) return;
 
     const bool isPrevSaved = text.back() !='*';  //前の状態は保存状態であったか
@@ -313,17 +330,100 @@ void EditorStackedWidget::changeEditState(bool isSaved)
     if(isSaved && !isPrevSaved)
     {
         //非保存状態 -> 保存状態
-        editorListCombo->setItemText(index, item->text(0));
+        fileComboBox->setItemText(index, item->text(0));
     }
     else if(!isSaved && isPrevSaved)
     {
         //保存状態 -> 非保存状態
-        editorListCombo->setItemText(index, item->text(0) + "*");
+        fileComboBox->setItemText(index, item->text(0) + "*");
     }
 
     if(isSaved != isPrevSaved)
         logger->output(__FILE__, __LINE__, __FUNCTION__,
                        "the edit state of current widget is changed.", Logger::LogLevel::Info);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EditorStackedWidget::FileComboBox::FileComboBox(EditorStackedWidget *w)
+    : QComboBox(w)
+    , parentStackedWidget(w)
+{
+    setAcceptDrops(true);
+}
+
+void EditorStackedWidget::FileComboBox::mousePressEvent(QMouseEvent *e)
+{
+    if(e->button() != Qt::LeftButton) return;
+
+    QMimeData *mimeData = new QMimeData;
+    QDrag *drag = new QDrag(this);
+    TreeFileItem *item = parentStackedWidget->currentTreeFileItem();
+
+    mimeData->setParent(this);
+    mimeData->setColorData(QVariant(QVariant::fromValue(static_cast<QObject*>(item))));
+    mimeData->setObjectName(TreeFileItem::staticMetaObject.className());
+
+    drag->setMimeData(mimeData);
+    drag->setPixmap(item->icon(0).pixmap(25, 25));
+
+    Qt::DropAction dropAction = drag->exec(Qt::DropAction::MoveAction);
+
+    switch(dropAction)
+    {
+    case Qt::DropAction::IgnoreAction:
+    {
+        mimeData->deleteLater();
+        drag->deleteLater();
+        break;
+    }
+    default:
+        break;
+    }
+
+    if(underMouse())
+        QComboBox::mousePressEvent(e);  //マウスが置かれていた場合にのみ，comboBoxをpopupShowする
+}
+
+void EditorStackedWidget::FileComboBox::dragEnterEvent(QDragEnterEvent *e)
+{
+    if(e->mimeData()->objectName() == QString(TreeFileItem::staticMetaObject.className()))
+    {
+        e->acceptProposedAction();
+    }
+    else
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "invalid item dragged.", Logger::LogLevel::Info);
+    }
+
+    QComboBox::dragEnterEvent(e);
+}
+
+void EditorStackedWidget::FileComboBox::dropEvent(QDropEvent *e)
+{
+    if(e->mimeData()->objectName() == QString(TreeFileItem::staticMetaObject.className()))
+    {
+        emit dropItemRequested(qvariant_cast<TreeFileItem*>(e->mimeData()->colorData()));
+    }
+    else
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "invalid item dropped.", Logger::LogLevel::Info);
+    }
+
+    QComboBox::dropEvent(e);
 }
 
 
@@ -351,26 +451,26 @@ EditorArea::EditorArea(QWidget *parent)
     vLayout->setContentsMargins(0, 0, 0, 0);
 }
 
-void EditorArea::setWidget(QWidget *widget, TreeFileItem *item)
+void EditorArea::setItem(TreeFileItem *item)
 {
     if(!rootSplitter) setupRootSplitter();
 
     if(EditorStackedWidget *focusedStack = currentFocusedWidget<EditorStackedWidget>())
     {
-        focusedStack->addWidget(widget, item);
+        focusedStack->addItem(item);
         return;
     }
     else
     {
         if(EditorStackedWidget *stackChild = findChild<EditorStackedWidget*>())
         {
-            stackChild->addWidget(widget, item);
+            stackChild->addItem(item);
             return;
         }
 
         EditorStackedWidget *w = new EditorStackedWidget(this, rootSplitter);
         rootSplitter->addWidget(w);
-        w->addWidget(widget, item);
+        w->addItem(item);
     }
 }
 

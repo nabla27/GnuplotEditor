@@ -293,7 +293,7 @@ void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
     if(!item) return;
 
     editorSetting->addEditor(item->editor);
-    editorArea->setWidget(item->editor, item);
+    editorArea->setItem(item);
     editorMenu->setCurrentItem(item);
 }
 
@@ -307,7 +307,7 @@ void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
     if(!item) return;
 
     //DEBUG
-    editorArea->setWidget(item->table, item);
+    editorArea->setItem(item);
     editorMenu->setCurrentItem(item);
 
     //connect(gnuplotSetting, &GnuplotSettingWidget::autoCompileMsecSet, item->table, &GnuplotTable::setUpdateMsec);
@@ -317,7 +317,7 @@ void GnuplotEditor::setImageWidget(TreeImageItem *item)
 {
     if(!item) return;
 
-    editorArea->setWidget(item->widget(), item);
+    editorArea->setItem(item);
     editorMenu->setCurrentItem(item);
 }
 
