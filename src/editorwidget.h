@@ -12,6 +12,8 @@
 #define EDITORWIDGET_H
 #include <QStackedWidget>
 #include <QScrollArea>
+#include <QComboBox>
+
 
 //DEBUG
 #include <QDebug>
@@ -36,7 +38,7 @@ public:
     QSize minimumSizeHint() const override { return QSize(0, 0); }
 
 public:
-    void addWidget(QWidget *widget, TreeFileItem *item);
+    void addItem(TreeFileItem *item);
     TreeFileItem* currentTreeFileItem() const;
 
     void separateAreaH();
@@ -55,15 +57,49 @@ private slots:
     void requestExecute();
     void changeEditState(bool edited);
 
+protected:
+    class FileComboBox;
+
 private:
     EditorArea *editorArea;
     QList<TreeFileItem*> items;
     QSplitter *parentSplitter;
     QWidget *contents;
-    QComboBox *editorListCombo;
+    FileComboBox *fileComboBox;
     QStackedWidget *editorStack;
     mlayout::IconLabel *executeScript;
 };
+
+
+
+
+
+
+
+class EditorStackedWidget::FileComboBox : public QComboBox
+{
+    Q_OBJECT
+public:
+    explicit FileComboBox(EditorStackedWidget *w);
+
+public:
+    static void setDragItem(TreeFileItem *item);
+
+protected:
+    void mousePressEvent(QMouseEvent *e) override;
+    void dragEnterEvent(QDragEnterEvent *e);
+    void dropEvent(QDropEvent *e) override;
+
+private:
+    EditorStackedWidget *parentStackedWidget;
+
+signals:
+    void dropItemRequested(TreeFileItem *item);
+};
+
+
+
+
 
 
 
@@ -75,7 +111,7 @@ public:
 
     QSize minimumSizeHint() const override { return QSize(0, 0); }
 
-    void setWidget(QWidget *widget, TreeFileItem *item);
+    void setItem(TreeFileItem *item);
 
     TreeFileItem *currentTreeFileItem() const;
 
