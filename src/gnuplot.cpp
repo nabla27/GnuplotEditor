@@ -197,8 +197,7 @@ void GnuplotExecutor::Gnuplot::execute(GnuplotProcess *process, const QList<QStr
 {
     if(!process)
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "the process was nullptr.", Logger::LogLevel::Error);
+        __LOGOUT__("the process was nullptr.", Logger::LogLevel::Error);
         return;
     }
 
@@ -206,15 +205,13 @@ void GnuplotExecutor::Gnuplot::execute(GnuplotProcess *process, const QList<QStr
     {
         process->start(exePath, QStringList() << "-persist");
 
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "the process id[" + QString::number(process->processId()) + "] started.", Logger::LogLevel::Info);
+        __LOGOUT__("the process id[" + QString::number(process->processId()) + "] started.", Logger::LogLevel::Info);
 
         if(process->error() == GnuplotProcess::ProcessError::FailedToStart)
         {
             process->close();
 
-            logger->output(__FILE__, __LINE__, __FUNCTION__,
-                           "failed to start the process id[" + QString::number(process->processId()) + "].", Logger::LogLevel::Error);
+            __LOGOUT__("failed to start the process id[" + QString::number(process->processId()) + "].", Logger::LogLevel::Error);
 
             return;
         }
@@ -223,8 +220,7 @@ void GnuplotExecutor::Gnuplot::execute(GnuplotProcess *process, const QList<QStr
     emit process->aboutToExecute();
 
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "execute gnuplot process id[" + QString::number(process->processId()) + "]", Logger::LogLevel::GnuplotInfo);
+        __LOGOUT__("execute gnuplot process id[" + QString::number(process->processId()) + "]", Logger::LogLevel::GnuplotInfo);
     }
 
     /* workingFolderPath に移動 */
@@ -232,8 +228,7 @@ void GnuplotExecutor::Gnuplot::execute(GnuplotProcess *process, const QList<QStr
         const QString moveDirCmd = "cd '" + workingPath + "'";
         process->write((moveDirCmd + "\n").toUtf8().constData());
 
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       moveDirCmd, Logger::LogLevel::GnuplotInfo);
+        __LOGOUT__(moveDirCmd, Logger::LogLevel::GnuplotInfo);
     }
 
     if(enablePreCmd)
@@ -242,16 +237,14 @@ void GnuplotExecutor::Gnuplot::execute(GnuplotProcess *process, const QList<QStr
         {
             process->write((initCmd + "\n").toUtf8().constData());
 
-            logger->output(__FILE__, __LINE__, __FUNCTION__,
-                           initCmd, Logger::LogLevel::GnuplotInfo);
+            __LOGOUT__(initCmd, Logger::LogLevel::GnuplotInfo);
         }
 
         for(const QString& preCmd : this->preCmd)
         {
             process->write((preCmd + "\n").toUtf8().constData());
 
-            logger->output(__FILE__, __LINE__, __FUNCTION__,
-                           preCmd, Logger::LogLevel::GnuplotInfo);
+            __LOGOUT__(preCmd, Logger::LogLevel::GnuplotInfo);
         }
     }
 
@@ -259,8 +252,7 @@ void GnuplotExecutor::Gnuplot::execute(GnuplotProcess *process, const QList<QStr
     {
         process->write((cmd + "\n").toUtf8().constData());
 
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       cmd, Logger::LogLevel::GnuplotInfo);
+        __LOGOUT__(cmd, Logger::LogLevel::GnuplotInfo);
     }
 }
 

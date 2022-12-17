@@ -277,9 +277,7 @@ void GnuplotTable::plotCellPoints(const QList<std::array<int, 3> > &ranges, cons
 
     cmd += "e\n";
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "execute cell data requested from " +
-                   QString(GnuplotTable::staticMetaObject.className()), Logger::LogLevel::Info);
+    __LOGOUT__("execute cell data requested.", Logger::LogLevel::Info);
 
     gnuplotExecutor->execGnuplot(QStringList() << cmd, false);
 }
@@ -313,8 +311,7 @@ void GnuplotTable::gnuplotClip()
     /* クリップボードに貼り付け */
     QApplication::clipboard()->setText(cmd);
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "pasted to the clipboard.", Logger::LogLevel::Info);
+    __LOGOUT__("plot range pasted to the clipboard.", Logger::LogLevel::Info);
 }
 
 void GnuplotTable::toLatexCode()
@@ -372,8 +369,7 @@ void GnuplotTable::toLatexCode()
     /* クリップボードに貼り付け */
     QApplication::clipboard()->setText(clip);
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "pasted to the clipboard.", Logger::LogLevel::Info);
+    __LOGOUT__("latex table cmd pasted to the clipboard.", Logger::LogLevel::Info);
 }
 
 

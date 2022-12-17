@@ -349,8 +349,7 @@ void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
 
     fileTree->saveAllFile();
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "execute gnuplot " + item->text(0), Logger::LogLevel::Info);
+    __LOGOUT__("execute gnuplot \"" + item->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Info);
 
     gnuplotExecutor->setWorkingFolderPath(item->fileInfo().absolutePath());
     gnuplotExecutor->execGnuplot(item->process, QList<QString>() << "load '" + item->fileInfo().absoluteFilePath() + "'", true);
@@ -381,8 +380,7 @@ void GnuplotEditor::showGnuplotHelpWindow()
 
 void GnuplotEditor::reboot()
 {
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "reboot requested.", Logger::LogLevel::Info);
+    __LOGOUT__("reboot requested.", Logger::LogLevel::Info);
 
     /* アプリを終了させる。アプリが終了する前にQMainWindow::closeEvent()が呼び出される */
     QCoreApplication::quit();
