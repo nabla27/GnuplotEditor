@@ -363,6 +363,9 @@ EditorStackedWidget::FileComboBox::FileComboBox(EditorStackedWidget *w)
     setAcceptDrops(true);
 }
 
+/* mimeDataに一般のクラスオブジェクトをセットするとき，QVariantを用いてvoid*型でデータ渡し，
+ * objectNameにクラス名を与える．
+ */
 void EditorStackedWidget::FileComboBox::mousePressEvent(QMouseEvent *e)
 {
     if(e->button() != Qt::LeftButton) return;
@@ -407,14 +410,18 @@ void EditorStackedWidget::FileComboBox::dragEnterEvent(QDragEnterEvent *e)
         logger->output(__FILE__, __LINE__, __FUNCTION__,
                        "invalid item dragged.", Logger::LogLevel::Info);
     }
-
-    QComboBox::dragEnterEvent(e);
 }
 
 void EditorStackedWidget::FileComboBox::dropEvent(QDropEvent *e)
 {
     if(e->mimeData()->objectName() == QString(TreeFileItem::staticMetaObject.className()))
     {
+        if(e->source()->metaObject()->className() != QString(EditorStackedWidget::FileComboBox::staticMetaObject.className()))
+        {
+            logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           "source class is not different.", Logger::LogLevel::Debug);
+            return;
+        }
         emit dropItemRequested(qvariant_cast<TreeFileItem*>(e->mimeData()->colorData()));
     }
     else
@@ -422,8 +429,6 @@ void EditorStackedWidget::FileComboBox::dropEvent(QDropEvent *e)
         logger->output(__FILE__, __LINE__, __FUNCTION__,
                        "invalid item dropped.", Logger::LogLevel::Info);
     }
-
-    QComboBox::dropEvent(e);
 }
 
 

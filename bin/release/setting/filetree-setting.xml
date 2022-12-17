@@ -15,6 +15,10 @@
             <ext>html</ext>
             <readType>0</readType>
         </item>
+        <item>
+            <ext>log</ext>
+            <readType>0</readType>
+        </item>
     </scriptExtList>
     <sheetExtList>
         <item>

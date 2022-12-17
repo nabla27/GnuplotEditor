@@ -97,7 +97,7 @@ void Logger::LogWriter::setLogFilePath(const QString &path)
 QHash<Logger::LogLevel, QColor> LogBrowserWidget::logLevelColor
 = { { Logger::LogLevel::Debug, Qt::black },
     { Logger::LogLevel::Info, Qt::black},
-    { Logger::LogLevel::Warn, Qt::yellow},
+    { Logger::LogLevel::Warn, Qt::darkRed},
     { Logger::LogLevel::Error, Qt::red},
     { Logger::LogLevel::Fatal, Qt::red},
     { Logger::LogLevel::GnuplotInfo, Qt::black},

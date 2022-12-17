@@ -69,6 +69,9 @@ private slots:
     void emitSaveAsTemplate();
 
 private:
+    void resetCurrentItem();
+
+private:
     QAction *aReloadFile;
     QAction *aSaveFile;
     QAction *aSaveAllFiles;

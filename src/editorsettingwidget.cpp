@@ -158,7 +158,12 @@ void EditorSetting::setTextSize(const int ps)
 
 void EditorSetting::addEditor(TextEdit *editor)
 {
-    if(!editor) return;
+    if(!editor)
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "nullptr editor", Logger::LogLevel::Info);
+        return;
+    }
 
     if(editorList.contains(editor)) return;
 
