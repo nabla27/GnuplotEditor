@@ -444,6 +444,18 @@ EditorArea::EditorArea(QWidget *parent)
     vLayout->setContentsMargins(0, 0, 0, 0);
 }
 
+EditorArea::~EditorArea()
+{
+    if(rootSplitter)
+    {
+        /* ASSERT failure in EditorArea:
+         * "Called object is not of the correct type
+         * (class destructor may have already run)", file C:\Qt\6.4.1\msvc2019_64\include\QtCore/qobjectdefs_impl.h, line 120
+         */
+        disconnect(rootSplitter, &QSplitter::destroyed, this, &EditorArea::resetRootSplitter);
+    }
+}
+
 void EditorArea::setItem(TreeFileItem *item)
 {
     if(!rootSplitter) setupRootSplitter();

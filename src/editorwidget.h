@@ -108,6 +108,7 @@ class EditorArea : public QWidget
     Q_OBJECT
 public:
     explicit EditorArea(QWidget *parent);
+    ~EditorArea();
 
     QSize minimumSizeHint() const override { return QSize(0, 0); }
 
