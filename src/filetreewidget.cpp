@@ -18,6 +18,8 @@
 #include <QMenu>
 #include <QAction>
 #include <QTimer>
+#include <QMimeData>
+#include <QDrag>
 
 #include "imagedisplay.h"
 #include "gnuplot.h"
@@ -457,6 +459,8 @@ FileTreeWidget::FileTreeWidget(QWidget *parent)
     initializeContextMenu();
 
     connect(dirWatcher, &QFileSystemWatcher::directoryChanged, this, &FileTreeWidget::updateFileTree);
+
+    setAcceptDrops(true);
 }
 
 FileTreeWidget::~FileTreeWidget()
@@ -484,8 +488,8 @@ void FileTreeWidget::initializeContextMenu()
         connect(actRename, &QAction::triggered, this, &FileTreeWidget::renameFile);
         connect(actRemove, &QAction::triggered, this, &FileTreeWidget::removeFile);
         connect(actExport, &QAction::triggered, this, &FileTreeWidget::exportFile);
-        connect(actAdd, &QAction::triggered, this, &FileTreeWidget::addFile);
-        connect(actNew, &QAction::triggered, this, &FileTreeWidget::newFile);
+        connect(actAdd, &QAction::triggered, this, &FileTreeWidget::addFileFromDialog);
+        connect(actNew, &QAction::triggered, this, &FileTreeWidget::newFileFromDialog);
 
         fileMenu->addAction(actRename);
         fileMenu->addAction(actRemove);
@@ -532,6 +536,255 @@ void FileTreeWidget::onCustomContextMenu(const QPoint& pos)
     }
     default:
         break;
+    }
+}
+
+
+
+
+/* mimeDataに一般のクラスオブジェクトをセットするとき，QVariantを用いてvoid*型でデータ渡し，
+ * objectNameにクラス名を与える．
+ */
+void FileTreeWidget::mousePressEvent(QMouseEvent *e)
+{
+    if(e->button() != Qt::LeftButton ||
+       selectedItems().count() < 1)
+    {
+        QTreeWidget::mousePressEvent(e);
+        return;
+    }
+
+    const QPointF cursorPos = viewport()->mapFromGlobal(cursor().pos().toPointF());
+    TreeFileItem *item = static_cast<TreeFileItem*>(itemAt(QPoint(cursorPos.x(), cursorPos.y())));
+
+    if(!item)
+    {
+        QTreeWidget::mousePressEvent(e);
+        return;
+    }
+
+    QMimeData *mimeData = new QMimeData;
+    QDrag *drag = new QDrag(this);
+
+    mimeData->setParent(this);
+    mimeData->setColorData(QVariant(QVariant::fromValue(static_cast<QObject*>(item))));
+    mimeData->setObjectName(TreeFileItem::staticMetaObject.className());
+
+    drag->setMimeData(mimeData);
+    drag->setPixmap(item->icon(0).pixmap(25, 25));
+
+    Qt::DropAction dropAction = drag->exec(Qt::DropAction::MoveAction);
+
+    switch(dropAction)
+    {
+    case Qt::DropAction::IgnoreAction:
+    {
+        mimeData->deleteLater();
+        drag->deleteLater();
+        break;
+    }
+    default:
+        break;
+    }
+
+    QTreeWidget::mousePressEvent(e);
+}
+
+void FileTreeWidget::dragEnterEvent(QDragEnterEvent *e)
+{
+    if(e->mimeData()->hasUrls() ||
+       (e->mimeData()->objectName() == QString(TreeFileItem::staticMetaObject.className()) && e->source() == this))
+    {
+        e->acceptProposedAction(); //一度受け入れないとdragMoveEventは呼ばれない
+    }
+
+    //QTreeWidget::dragEnterEvent()を呼び出すとFileTreeWidget::dragMoveEvent()は呼ばれない
+}
+
+void FileTreeWidget::dragMoveEvent(QDragMoveEvent *e)
+{
+    //dragEnterEventでdragを受け付けるobjectは既にfilterされている
+
+    const QPointF cursorPos = viewport()->mapFromGlobal(cursor().pos().toPointF());
+    TreeFileItem *item = static_cast<TreeFileItem*>(itemAt(QPoint(cursorPos.x(), cursorPos.y())));
+
+    if(item)
+    {
+        clearSelection();
+        item->setSelected(true);
+
+        switch(FileTreeWidget::TreeItemType(item->type()))
+        {
+        case FileTreeWidget::TreeItemType::Root:
+        case FileTreeWidget::TreeItemType::Dir:
+        case FileTreeWidget::TreeItemType::ScriptFolder:
+        case FileTreeWidget::TreeItemType::SheetFolder:
+        case FileTreeWidget::TreeItemType::OtherFolder:
+            e->acceptProposedAction();
+            return;
+        default:
+            break;
+        }
+    }
+
+    e->setAccepted(false);
+}
+
+void FileTreeWidget::dropEvent(QDropEvent *e)
+{
+    const QPointF cursorPos = viewport()->mapFromGlobal(cursor().pos().toPointF());
+    TreeFileItem *itemUnderCursor = static_cast<TreeFileItem*>(itemAt(QPoint(cursorPos.x(), cursorPos.y())));
+
+    if(!itemUnderCursor) return;
+
+    const QString parentPath = itemUnderCursor->fileInfo().absoluteFilePath();
+
+    if(e->mimeData()->hasUrls())
+    {
+        addFilesFromUrls(e->mimeData()->urls(), parentPath);
+    }
+    else if(e->mimeData()->objectName() == QString(TreeFileItem::staticMetaObject.className()))
+    {
+        TreeFileItem *itemDragged = qvariant_cast<TreeFileItem*>(e->mimeData()->colorData());
+        moveItem(itemDragged, parentPath);
+    }
+}
+
+void FileTreeWidget::addFilesFromUrls(const QList<QUrl>& urls, const QString& parentPath)
+{
+    for(const QUrl& url : urls)
+    {
+        QFileInfo info(url.toLocalFile());
+        if(info.isFile())
+        {
+            const bool ok = QFile::copy(info.absoluteFilePath(), parentPath + "/" + info.fileName());
+
+            if(!ok)
+            {
+                logger->output(__FILE__, __LINE__, __FUNCTION__,
+                               "failed to copy the file " + info.absoluteFilePath() +
+                               " to " + parentPath + "/" + info.fileName(), Logger::LogLevel::Warn);
+            }
+        }
+        else
+        {
+            logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           "item that is not file cannot be dragged & copied.", Logger::LogLevel::Warn);
+        }
+    }
+}
+
+void FileTreeWidget::moveItem(TreeFileItem *item, const QString& parentPath)
+{
+    if(!item) return;
+
+    //フォルダーの場合，自分自身に自分コピーすると無限ループになる
+    if(item->fileInfo().absoluteFilePath() == parentPath) return;
+
+    const QString newPath = parentPath + "/" + item->fileInfo().fileName();
+
+    if(item->fileInfo().isFile())
+    {
+        const bool ok = QFile::copy(item->fileInfo().absoluteFilePath(), newPath);
+        if(ok)
+        {
+            if(QTreeWidgetItem *p = item->QTreeWidgetItem::parent())
+            {
+                QFile file(item->fileInfo().absoluteFilePath());
+                const bool isRemoved = file.remove();
+
+                if(!isRemoved)
+                {
+                    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                                   "failed to remove the file " + item->fileInfo().absoluteFilePath(), Logger::LogLevel::Warn);
+                }
+
+                removeItemFromTree(item);
+            }
+        }
+        else
+        {
+            logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           "fialed to copy the file " + item->fileInfo().absoluteFilePath() +
+                           " to " + newPath, Logger::LogLevel::Warn);
+        }
+    }
+    else if(item->fileInfo().isDir())
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "directory is not supported.", Logger::LogLevel::Debug);
+
+        if(newPath.contains(item->fileInfo().absoluteFilePath()))
+        {
+            logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           "Copying itself to itself results in an infinite loop", Logger::LogLevel::Warn);
+            return;
+        }
+
+        QDir oldDir(item->fileInfo().absoluteFilePath());
+        const bool ok = oldDir.mkdir(newPath);
+
+        if(!ok)
+        {
+            logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           "failed to make dir \"" + newPath + "\"", Logger::LogLevel::Warn);
+            return;
+        }
+
+        copyDirectoryRecursively(item->fileInfo().absoluteFilePath(), newPath);
+
+        if(!oldDir.removeRecursively())
+        {
+            logger->output(__FILE__, __LINE__, __FUNCTION__,
+                           "failed to remove dir recursively \"" + item->fileInfo().absoluteFilePath() + "\"", Logger::LogLevel::Warn);
+        }
+        else
+        {
+            removeItemFromTree(item);
+        }
+    }
+}
+
+void FileTreeWidget::removeItemFromTree(TreeFileItem *item)
+{
+    if(!item) return;
+
+    removeItemFromList(item);
+
+    if(QTreeWidgetItem *parentItem = item->QTreeWidgetItem::parent())
+    {
+        parentItem->removeChild(item);
+    }
+    else
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "no parent item", Logger::LogLevel::Debug);
+        removeItemWidget(item, 0);
+    }
+
+    delete item;
+    item = nullptr;
+}
+
+void FileTreeWidget::removeItemFromList(TreeFileItem *item)
+{
+    if(!item) return;
+
+    TreeFileItem::list.remove(item->fileInfo().absoluteFilePath());
+
+    const int childCount = item->childCount();
+
+    for(int i = 0; i < childCount; ++i)
+    {
+        TreeFileItem *child = static_cast<TreeFileItem*>(item->child(i));
+        if(child->childCount() > 0)
+        {   //フォルダ
+            removeItemFromList(child);
+        }
+        else
+        {   //ファイル
+            TreeFileItem::list.remove(child->fileInfo().absoluteFilePath());
+        }
     }
 }
 
@@ -800,21 +1053,28 @@ void FileTreeWidget::openFolder()
 
 void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QString &toPath)
 {
+    if(fromPath == toPath ||
+       toPath.contains(fromPath))
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "copying itself to itself results in an infinite loop", Logger::LogLevel::Warn);
+        return;
+    }
+
     /* ファイル */
-    QDir dirForFiles(fromPath);
-    dirForFiles.setNameFilters(fileFilter);
-    const QList<QFileInfo> fileInfoList = dirForFiles.entryInfoList(QDir::Filter::Files);
+    QDir oldDir(fromPath);
+    oldDir.setNameFilters(fileFilter);
+    const QList<QFileInfo> fileInfoList = oldDir.entryInfoList(QDir::Filter::Files);
 
     for(const QFileInfo& info : fileInfoList)
     {
-        const QString absPath = info.absoluteFilePath();         //コピー元のパス
-        const QString makePath = toPath + '/' + info.fileName(); //コピー先のパス
+        const QString oldPath = info.absoluteFilePath();         //コピー元のパス
+        const QString newPath = toPath + '/' + info.fileName(); //コピー先のパス
 
-        const bool ok = QFile::copy(absPath, makePath);
+        const bool ok = QFile::copy(oldPath, newPath);
         if(!ok) logger->output(__FILE__, __LINE__, __FUNCTION__,
-                               "Could not copy a file \"" + absPath + "\".", Logger::LogLevel::Error);
+                               "Could not copy a file \"" + oldPath + "\" \"" + newPath + "\".", Logger::LogLevel::Error);
     }
-
 
     /* ディレクトリ */
     QDir dirForDir(fromPath);
@@ -822,15 +1082,16 @@ void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QSt
 
     for(const QFileInfo& info : dirInfoList)
     {
-        const QString absPath = info.absoluteFilePath();         //コピー元のパス
-        const QString makePath = toPath + '/' + info.fileName(); //コピー先のパス
+        const QString oldPath = info.absoluteFilePath();         //コピー元のパス
+        const QString newPath = toPath + '/' + info.fileName(); //コピー先のパス
 
         QDir dir(toPath);
-        const bool ok = dir.mkdir(makePath);
-        if(!ok) logger->output(__FILE__, __LINE__, __FUNCTION__,
-                               "Could not copy a directory \"" + absPath + "\".", Logger::LogLevel::Error);
 
-        copyDirectoryRecursively(absPath, makePath);
+        const bool ok = dir.mkdir(newPath);
+        if(!ok) logger->output(__FILE__, __LINE__, __FUNCTION__,
+                               "Could not copy a directory \"" + oldPath + "\" \"" + newPath + "\".", Logger::LogLevel::Error);
+
+        copyDirectoryRecursively(oldPath, newPath);
     }
 }
 
@@ -931,10 +1192,10 @@ void FileTreeWidget::removeFile()
         return;
     }
 
-    //TreeFileItem::list.remove(item->info.absoluteFilePath());
-    TreeFileItem::list.remove(item->fileInfo().absoluteFilePath());
-    selectedItems().takeAt(0)->parent()->removeChild(item);
-    delete item; item = nullptr;
+    //TreeFileItem::list.remove(item->fileInfo().absoluteFilePath());
+    //selectedItems().takeAt(0)->parent()->removeChild(item);
+    //delete item; item = nullptr;
+    removeItemFromTree(item);
 }
 
 void FileTreeWidget::exportFile()
@@ -961,7 +1222,7 @@ void FileTreeWidget::exportFile()
     removeFile();
 }
 
-void FileTreeWidget::addFile()
+void FileTreeWidget::addFileFromDialog()
 {
     QString nameFilter;
     QString parentPath = folderPath;
@@ -1027,7 +1288,7 @@ void FileTreeWidget::addFile()
     }
 }
 
-void FileTreeWidget::newFile()
+void FileTreeWidget::newFileFromDialog()
 {
     QString folderPath = this->folderPath;
     QString defaultFileName = "";
@@ -1092,8 +1353,6 @@ void FileTreeWidget::newFile()
 
     /* ファイルが作成されれば、dirWatcherのdirectoryChanged() --> updateFileTree() によってTreeに追加される */
 }
-
-
 
 
 TreeModelCombo::TreeModelCombo(QWidget *parent)

@@ -174,7 +174,9 @@ public:
     enum class FileTreeModel { FileSystem, Gnuplot };
     enum class TreeItemType { Script = 1000, Sheet, Image, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
     Q_ENUM(FileTreeModel)
+
     static QStringList fileFilter;
+
     void setTreeModel(const int type);
     QString currentFolderPath() const { return folderPath; }
     QSize minimumSizeHint() const override { return QSize(0, 0); }
@@ -187,8 +189,14 @@ public slots:
     void addFolder();
     void saveFolder();
     void openFolder();
-    void addFile(); //Dir & Root
-    void newFile(); //Dir & Root
+    void addFileFromDialog(); //Dir & Root
+    void newFileFromDialog(); //Dir & Root
+
+protected:
+    void mousePressEvent(QMouseEvent *e) override;
+    void dragEnterEvent(QDragEnterEvent *e) override;
+    void dragMoveEvent(QDragMoveEvent *e) override;
+    void dropEvent(QDropEvent *e) override;
 
 private slots:
     void onCustomContextMenu(const QPoint& pos);
@@ -206,6 +214,12 @@ private:
     void updateFileSystemModelTree(const QString& path, QTreeWidgetItem *parent);
 
     void copyDirectoryRecursively(const QString& fromPath, const QString& toPath);
+    void addFilesFromUrls(const QList<QUrl>& urls, const QString& parentPath);
+    void moveItem(TreeFileItem *item, const QString& parentPath);
+
+    void removeItemFromTree(TreeFileItem *item);
+    void removeItemFromList(TreeFileItem *item);
+
 
 private:
     FileTreeModel treeModel;

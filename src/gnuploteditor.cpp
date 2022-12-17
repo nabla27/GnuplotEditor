@@ -146,8 +146,8 @@ void GnuplotEditor::initializeMenuBar()
     connect(fileMenu, &FileMenu::saveFolderRequested, fileTree, &FileTreeWidget::saveFolder);
     connect(fileMenu, &FileMenu::updateFolderRequested, fileTree, &FileTreeWidget::updateFileTree);
     connect(fileMenu, &FileMenu::reloadFolderRequested, fileTree, &FileTreeWidget::saveAndLoad);
-    connect(fileMenu, &FileMenu::openFileRequested, fileTree, &FileTreeWidget::addFile);
-    connect(fileMenu, &FileMenu::newFileRequested, fileTree, &FileTreeWidget::newFile);
+    connect(fileMenu, &FileMenu::openFileRequested, fileTree, &FileTreeWidget::addFileFromDialog);
+    connect(fileMenu, &FileMenu::newFileRequested, fileTree, &FileTreeWidget::newFileFromDialog);
     connect(fileMenu, &FileMenu::openTreeSettingRequested, fileTreeSetting, &FileTreeSettingWidget::show);
 
     connect(editorMenu, &EditorMenu::aboutToShow, this, &GnuplotEditor::setCurrentItem);

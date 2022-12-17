@@ -51,7 +51,7 @@ signals:
 };
 extern Logger *logger;
 
-
+#define __LOGOUT__(comment, type) logger->output(__FILE__, __LINE__, __FUNCTION__, comment, type)
 
 
 

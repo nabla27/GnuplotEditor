@@ -125,13 +125,25 @@ EditorMenu::EditorMenu(const QString &title, QWidget *parent)
     connect(aSaveAsTemplate, &QAction::triggered, this, &EditorMenu::emitSaveAsTemplate);
 }
 
+void EditorMenu::resetCurrentItem()
+{
+    currentItem = nullptr;
+    standardContextMenu = nullptr;
+}
+
 void EditorMenu::setCurrentItem(TreeFileItem *item)
 {
     logger->output(__FILE__, __LINE__, __FUNCTION__,
                    "item is set to " +
                    QString(EditorMenu::staticMetaObject.className()), Logger::LogLevel::Info);
 
+    if(currentItem)
+        disconnect(currentItem, &TreeFileItem::destroyed, this, &EditorMenu::resetCurrentItem);
+
     currentItem = item;
+
+    if(currentItem)
+        connect(currentItem, &TreeFileItem::destroyed, this, &EditorMenu::resetCurrentItem);
 
     if(standardContextMenu)
     {
