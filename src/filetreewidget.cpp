@@ -22,6 +22,7 @@
 #include <QDrag>
 
 #include "imagedisplay.h"
+#include "pdfviewer.h"
 #include "gnuplot.h"
 #include "tablesettingwidget.h"
 #include "texteditor.h"
@@ -52,6 +53,8 @@ void TreeFileItem::setFileIcon()
         setIcon(0, StandardPixmap::File::document()); break;
     case FileTreeWidget::TreeItemType::Image:
         setIcon(0, StandardPixmap::File::image()); break;
+    case FileTreeWidget::TreeItemType::Pdf:
+        setIcon(0, StandardPixmap::File::pdf()); break;
     case FileTreeWidget::TreeItemType::Other:
         setIcon(0, StandardPixmap::File::normal()); break;
     case FileTreeWidget::TreeItemType::Dir:
@@ -413,6 +416,35 @@ QWidget *TreeImageItem::widget()
     return imageDisplay;
 }
 
+
+
+
+
+
+
+
+
+
+TreePdfItem::TreePdfItem(QTreeWidgetItem *parent, int type, const QFileInfo &info)
+    : TreeFileItem(parent, type, info)
+    , viewer(new PdfViewer(nullptr))
+{
+    viewer->setFilePath(info.absoluteFilePath());
+}
+
+TreePdfItem::~TreePdfItem()
+{
+    if(viewer)
+    {
+        viewer->deleteLater();
+        viewer = nullptr;
+    }
+}
+
+QWidget *TreePdfItem::widget()
+{
+    return viewer;
+}
 
 
 
@@ -846,6 +878,8 @@ void FileTreeWidget::updateGnuplotModelTree(const QString &path)
         else if(ImageDisplay::isValidExtension(info.suffix()))
             //item = new TreeImageItem(otherFolderItem, (int)TreeItemType::Image);
             item = new TreeImageItem(otherFolderItem, (int)TreeItemType::Image, info);
+        else if(info.suffix() == "pdf")
+            item = new TreePdfItem(otherFolderItem, (int)TreeItemType::Pdf, info);
         else
             //item = new TreeFileItem(otherFolderItem, (int)TreeItemType::Other, info);
             item = new TreeFileItem(otherFolderItem, (int)TreeItemType::Other, info);
@@ -899,6 +933,8 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
         else if(ImageDisplay::isValidExtension(info.suffix()))
             //item = new TreeImageItem(parent, (int)TreeItemType::Image);
             item = new TreeImageItem(parent, (int)TreeItemType::Image, info);
+        else if(info.suffix() == "pdf")
+            item = new TreePdfItem(parent, (int)TreeItemType::Pdf, info);
         else
             //item = new TreeFileItem(parent, (int)TreeItemType::Other);
             item = new TreeFileItem(parent, (int)TreeItemType::Other, info);

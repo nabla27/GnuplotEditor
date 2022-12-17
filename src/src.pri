@@ -16,6 +16,7 @@ HEADERS += \
     $$PWD/iofile.h \
     $$PWD/logger.h \
     $$PWD/menubar.h \
+    $$PWD/pdfviewer.h \
     $$PWD/standardpixmap.h \
     $$PWD/tablesettingwidget.h \
     $$PWD/templatecustomwidget.h \
@@ -46,6 +47,7 @@ SOURCES += \
     $$PWD/logger.cpp \
     $$PWD/main.cpp \
     $$PWD/menubar.cpp \
+    $$PWD/pdfviewer.cpp \
     $$PWD/standardpixmap.cpp \
     $$PWD/tablesettingwidget.cpp \
     $$PWD/templatecustomwidget.cpp \

@@ -21,6 +21,8 @@ class TableArea;
 class QFileSystemWatcher;
 class TextEdit;
 class GnuplotProcess;
+class ImageDisplay;
+class PdfViewer;
 
 
 
@@ -142,7 +144,7 @@ signals:
 
 
 
-class ImageDisplay;
+
 class TreeImageItem : public TreeFileItem
 {
     Q_OBJECT
@@ -153,8 +155,28 @@ public:
 public:
     QWidget* widget() override;
 
-public:
+private:
     ImageDisplay *imageDisplay;
+};
+
+
+
+
+
+
+
+class TreePdfItem : public TreeFileItem
+{
+    Q_OBJECT
+public:
+    explicit TreePdfItem(QTreeWidgetItem *parent, int type, const QFileInfo& info);
+    ~TreePdfItem();
+
+public:
+    QWidget *widget() override;
+
+private:
+    PdfViewer *viewer;
 };
 
 
@@ -172,7 +194,7 @@ public:
     ~FileTreeWidget();
 
     enum class FileTreeModel { FileSystem, Gnuplot };
-    enum class TreeItemType { Script = 1000, Sheet, Image, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
+    enum class TreeItemType { Script = 1000, Sheet, Image, Pdf, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
     Q_ENUM(FileTreeModel)
 
     static QStringList fileFilter;

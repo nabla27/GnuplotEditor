@@ -71,11 +71,11 @@ private:
     void initializeMenuBar();
     void initializeLayout();
 
-    void setupScriptItem(TreeScriptItem *item);
-    void setupSheetItem(TreeSheetItem *item);
-    void setEditorWidget(TreeScriptItem *item);
-    void setSheetWidget(TreeSheetItem *item);
-    void setImageWidget(TreeImageItem *item);
+    //void setupScriptItem(TreeScriptItem *item);
+    //void setupSheetItem(TreeSheetItem *item);
+    //void setEditorWidget(TreeScriptItem *item);
+    //void setSheetWidget(TreeSheetItem *item);
+    //void setImageWidget(TreeImageItem *item);
 
 private slots:
     void receiveTreeItem(QTreeWidgetItem *item, const int column);

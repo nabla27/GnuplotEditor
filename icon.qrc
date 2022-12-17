@@ -48,5 +48,6 @@
         <file alias="icon_find">bin/release/icon/icon_find.png</file>
         <file alias="icon_openinwindow">bin/release/icon/icon_openinwindow.png</file>
         <file alias="icon_page">bin/release/icon/icon_page.png</file>
+        <file alias="file_pdf">bin/release/icon/file_pdf.png</file>
     </qresource>
 </RCC>
