@@ -147,8 +147,7 @@ void EditorStackedWidget::separateArea(const Qt::Orientation& orient)
 
     parentSplitter = splitter; //順番に気をつける
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "editor area separated.", Logger::LogLevel::Info);
+    __LOGOUT__("editor area separated.", Logger::LogLevel::Info);
 }
 
 
@@ -166,8 +165,7 @@ void EditorStackedWidget::addItem(TreeFileItem *item)
 {
     if(!item)
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "nullptr item receive.", Logger::LogLevel::Warn);
+        __LOGOUT__("nullptr item receive.", Logger::LogLevel::Warn);
         return;
     }
 
@@ -175,8 +173,7 @@ void EditorStackedWidget::addItem(TreeFileItem *item)
 
     if(!widget)
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "widget of item is nullptr.", Logger::LogLevel::Warn);
+        __LOGOUT__("widget of the item \"" + item->fileInfo().absoluteFilePath() + "\" is nullptr", Logger::LogLevel::Warn);
         return;
     }
 
@@ -207,16 +204,14 @@ void EditorStackedWidget::addItem(TreeFileItem *item)
     //updateTimer()が発せられる間に，stackのeditorが変更された場合，異なるitemがrequestExecuteされる問題がある
     connect(item, &TreeFileItem::updated, this, &EditorStackedWidget::requestExecute);
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "a new widget is added.", Logger::LogLevel::Info);
+    __LOGOUT__("a new widget is added.", Logger::LogLevel::Info);
 }
 
 void EditorStackedWidget::removeCurrentWidget()
 {
     if(fileComboBox->count() < 1)
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "tried to remove current widget, but the editor list combobox was already empty.", Logger::LogLevel::Warn);
+        __LOGOUT__("tried to remove current widget, but the editor list combobox was already empty", Logger::LogLevel::Warn);
         return;
     }
 
@@ -242,8 +237,7 @@ void EditorStackedWidget::removeAllStackedWidget()
         w->setParent(nullptr);
         w->hide();
 
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "all stacked widget are removed.", Logger::LogLevel::Info);
+        __LOGOUT__("all stacked widget are removed.", Logger::LogLevel::Info);
     }
 }
 
@@ -273,8 +267,7 @@ void EditorStackedWidget::closeThisArea()
 
     deleteLater();
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "this stacked widget is deleted.", Logger::LogLevel::Info);
+    __LOGOUT__("this stacked widget is deleted.", Logger::LogLevel::Info);
 }
 
 void EditorStackedWidget::removeItem(const int index)
@@ -310,8 +303,7 @@ void EditorStackedWidget::setCurrentItem(const int index)
 
 void EditorStackedWidget::requestExecute()
 {
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "execute requested from " + QString(EditorStackedWidget::staticMetaObject.className()), Logger::LogLevel::Info);
+    __LOGOUT__("execute requested from " + QString(EditorStackedWidget::staticMetaObject.className()), Logger::LogLevel::Info);
 
     emit editorArea->executeRequested(currentTreeFileItem());
 }
@@ -339,8 +331,7 @@ void EditorStackedWidget::changeEditState(bool isSaved)
     }
 
     if(isSaved != isPrevSaved)
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "the edit state of current widget is changed.", Logger::LogLevel::Info);
+        __LOGOUT__("the editor state of current widget is changed.", Logger::LogLevel::Info);
 }
 
 
@@ -407,8 +398,7 @@ void EditorStackedWidget::FileComboBox::dragEnterEvent(QDragEnterEvent *e)
     }
     else
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "invalid item dragged.", Logger::LogLevel::Info);
+        __LOGOUT__("invalid item dragged.", Logger::LogLevel::Info);
     }
 }
 
@@ -418,16 +408,14 @@ void EditorStackedWidget::FileComboBox::dropEvent(QDropEvent *e)
     {
         if(e->source()->metaObject()->className() != QString(EditorStackedWidget::FileComboBox::staticMetaObject.className()))
         {
-            logger->output(__FILE__, __LINE__, __FUNCTION__,
-                           "source class is not different.", Logger::LogLevel::Debug);
+            __LOGOUT__("source class is not different. this case is not surpported.", Logger::LogLevel::Debug);
             return;
         }
         emit dropItemRequested(qvariant_cast<TreeFileItem*>(e->mimeData()->colorData()));
     }
     else
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "invalid item dropped.", Logger::LogLevel::Info);
+        __LOGOUT__("invalid item dropped.", Logger::LogLevel::Info);
     }
 }
 

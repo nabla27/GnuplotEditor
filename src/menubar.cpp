@@ -133,9 +133,7 @@ void EditorMenu::resetCurrentItem()
 
 void EditorMenu::setCurrentItem(TreeFileItem *item)
 {
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "item is set to " +
-                   QString(EditorMenu::staticMetaObject.className()), Logger::LogLevel::Info);
+    __LOGOUT__("item is set to " + QString(EditorMenu::staticMetaObject.className()), Logger::LogLevel::Info);
 
     if(currentItem)
         disconnect(currentItem, &TreeFileItem::destroyed, this, &EditorMenu::resetCurrentItem);
@@ -177,9 +175,7 @@ void EditorMenu::setCurrentItem(TreeFileItem *item)
     }
     else
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "nullptr item is set to " +
-                       QString(EditorMenu::staticMetaObject.className()), Logger::LogLevel::Info);
+        __LOGOUT__("nullptr item is set to " + QString(EditorMenu::staticMetaObject.className()), Logger::LogLevel::Info);
     }
 
     aReloadFile->setEnabled(itemExists);

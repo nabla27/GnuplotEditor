@@ -103,8 +103,7 @@ void TextEdit::insertToSelectedHeadBlock(const QString &text) const
         if(tc.position() > end) return;
     }
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "An infinite loop occurred or the upper limit of the selection range was exceeded.", Logger::LogLevel::Warn);
+    __LOGOUT__("An infinite loop occurred or the upper limit of the selection range was exceeded.", Logger::LogLevel::Warn);
 }
 
 void TextEdit::removeFromSelectedHeadBlock(const QString &text) const
@@ -136,8 +135,7 @@ void TextEdit::removeFromSelectedHeadBlock(const QString &text) const
         if(tc.position() > end) return;
     }
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "An infinite loop occurred or the upper limit of the selection range was exceeded.", Logger::LogLevel::Warn);
+    __LOGOUT__("An infinite loop occurred or the upper limit of the selection range was exceeded.", Logger::LogLevel::Warn);
 }
 
 void TextEdit::reverseSelectedCommentState() const
@@ -169,8 +167,7 @@ void TextEdit::reverseSelectedCommentState() const
         if(tc.position() > end) return;
     }
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "An infinite loop occurred or the upper limit of the selection range was exceeded.", Logger::LogLevel::Warn);
+    __LOGOUT__("An infinite loop occurred or the upper limit of the selection range was exceeded.", Logger::LogLevel::Warn);
 }
 
 /* 右クリックしながらホイールで文字サイズ変更 */

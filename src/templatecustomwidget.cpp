@@ -160,8 +160,7 @@ void TemplateCustomWidget::addTemplate(const QString& script)
     else
     {
         QMessageBox::critical(this, "Error", "Could not create the template.");
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Faied to create the template " + templateFilePath, Logger::LogLevel::Error);
+        __LOGOUT__("Faied to create the template \"" + templateFilePath + "\".", Logger::LogLevel::Error);
     }
 }
 
@@ -186,13 +185,11 @@ void TemplateCustomWidget::setupTemplateList(const QString& folderPath)
     {
         if(templateFolderDir.mkdir(folderPath))
         {
-            logger->output(__FILE__, __LINE__, __FUNCTION__,
-                           "template folder " + folderPath + " was made.", Logger::LogLevel::Info);
+            __LOGOUT__("template folder \"" + folderPath + "\" was made.", Logger::LogLevel::Info);
         }
         else
         {
-            logger->output(__FILE__, __LINE__, __FUNCTION__,
-                           "failed to make dir " + folderPath, Logger::LogLevel::Warn);
+            __LOGOUT__("failed to make dir " + folderPath, Logger::LogLevel::Warn);
         }
     }
 
@@ -221,8 +218,7 @@ void TemplateCustomWidget::setupTemplateList(const QString& folderPath)
         {
             if(info.suffix() != "txt")
             {
-                logger->output(__FILE__, __LINE__, __FUNCTION__,
-                               "skip the file " + info.absoluteFilePath(), Logger::LogLevel::Warn);
+                __LOGOUT__("skip the file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Warn);
                 continue;
             }
             itemType = TemplateItemWidget::ItemType::File;
@@ -290,8 +286,7 @@ void TemplateCustomWidget::saveCurrentTemplateFile()
     }
     else
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "cound not open and save the file " + currentTemplateFilePath, Logger::LogLevel::Error);
+        __LOGOUT__("cound not open and save the file \"" + currentTemplateFilePath + "\".", Logger::LogLevel::Error);
     }
 }
 
@@ -310,8 +305,7 @@ void TemplateCustomWidget::setTemplate(const QString& filePath)
     if(!file.exists())
     {
         editor->setPlainText(filePath + " was not found.");
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       filePath + " was not found.", Logger::LogLevel::Error);
+        __LOGOUT__(filePath + " was not found.", Logger::LogLevel::Error);
         return;
     }
 
@@ -321,8 +315,7 @@ void TemplateCustomWidget::setTemplate(const QString& filePath)
     if(!ok)
     {
         editor->setPlainText("Could not read a file " + filePath + "\n\n" + script);
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "could not read a file " + filePath, Logger::LogLevel::Error);
+        __LOGOUT__("could not read a file " + filePath, Logger::LogLevel::Error);
         return;
     }
 
@@ -438,8 +431,7 @@ void TemplateCustomWidget::createNewTemplate()
     else
     {
         QMessageBox::critical(this, "Error", "Could not create the file.");
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Failed to open the file " + newFile.fileName(), Logger::LogLevel::Error);
+        __LOGOUT__("Failed to open the file \"" + newFile.fileName() + "\".", Logger::LogLevel::Error);
     }
 }
 
@@ -458,8 +450,7 @@ void TemplateCustomWidget::createNewFolder()
     else
     {
         QMessageBox::critical(this, "Error", "Could not create the folder");
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Failed to make the dir " + newFolderPath, Logger::LogLevel::Error);
+        __LOGOUT__("Failed to make the dir \"" + newFolderPath + "\".", Logger::LogLevel::Error);
     }
 }
 
@@ -648,8 +639,7 @@ void TemplateItemWidget::renameTempalteFile()
     if(!file.exists())
     {
         QMessageBox::warning(this, "Error", "Could not find the file " + filePath);
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "could not find the file " + filePath, Logger::LogLevel::Error);
+        __LOGOUT__("could not find the file \"" + filePath + "\".", Logger::LogLevel::Error);
         return;
     }
 
@@ -661,8 +651,7 @@ void TemplateItemWidget::renameTempalteFile()
     if(!file.rename(filePath, newFilePath))
     {
         QMessageBox::critical(this, "Error", "Could not rename the file.");
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "failed to rename the file " + filePath + " to " + newFilePath, Logger::LogLevel::Error);
+        __LOGOUT__("failed to rename the file \"" + filePath + "\" to \"" + newFilePath + "\".", Logger::LogLevel::Error);
         return;
     }
 
@@ -687,8 +676,7 @@ void TemplateItemWidget::renameFolder()
     if(!dir.rename(oldFolderName, newFolderName))
     {
         QMessageBox::critical(this, "Error", "Could not rename the folder.");
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Failed to rename the folder " + oldFolderName + " to " + newFolderName, Logger::LogLevel::Error);
+        __LOGOUT__("Failed to rename the folder \"" + oldFolderName + "\" to \"" + newFolderName + "\".", Logger::LogLevel::Error);
         return;
     }
 
@@ -718,8 +706,7 @@ void TemplateItemWidget::removeTemplateFile()
     else
     {
         QMessageBox::critical(this, "Error", "Could not remove the file.");
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Fialed to remove the file " + filePath, Logger::LogLevel::Error);
+        __LOGOUT__("Fialed to remove the file \"" + filePath + "\".", Logger::LogLevel::Error);
     }
 }
 
@@ -735,8 +722,7 @@ void TemplateItemWidget::removeFolder()
     if(!dir.removeRecursively())
     {
         QMessageBox::critical(this, "Error", "Counld not remove the folder.");
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Failed to remove dir recursively " + filePath, Logger::LogLevel::Error);
+        __LOGOUT__("Failed to remove dir recursively \"" + filePath + "\".", Logger::LogLevel::Error);
         return;
     }
 

@@ -201,8 +201,7 @@ void TreeScriptItem::save()
     case ReadType::Html:
         /* htmlを読み込んで表示した後はただのtextになるため，htmlとしてセーブできない */
     default:
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Faield to save this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
+        __LOGOUT__("failed to save this file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Error);
         return;
     }
 
@@ -224,8 +223,7 @@ void TreeScriptItem::load()
         break;
     }
     default:
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Failed to load this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
+        __LOGOUT__("Failed to load this file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Error);
         return;
     }
 
@@ -247,8 +245,7 @@ void TreeScriptItem::receiveSavedResult(const bool& ok)
     setSavedState(ok);
     if(!ok)
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Failed to save this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
+        __LOGOUT__("Failed to save this file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Error);
     }
 }
 
@@ -278,8 +275,7 @@ void TreeScriptItem::receiveLoadedResult(const QString& text, const bool& ok)
         return;
     }
 
-    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                   "Failed to load this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
+    __LOGOUT__("Failed to load this file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Error);
 }
 
 
@@ -329,8 +325,7 @@ void TreeSheetItem::save()
         break;
     }
     default:
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Failed to save this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
+        __LOGOUT__("Failed to save this file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Error);
         return;
     }
 
@@ -360,8 +355,7 @@ void TreeSheetItem::load()
         break;
     }
     default:
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Fialed to load this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
+        __LOGOUT__("Fialed to load this file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Error);
         return;
     }
 
@@ -378,8 +372,7 @@ void TreeSheetItem::receiveSavedResult(const bool& ok)
     setSavedState(ok);
     if(!ok)
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Fialed to save this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
+        __LOGOUT__("Fialed to save this file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Error);
     }
 }
 
@@ -392,8 +385,7 @@ void TreeSheetItem::receiveLoadResult(const QList<QList<QString> >& data, const 
     }
     else
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Failed to load this file " + info.absoluteFilePath(), Logger::LogLevel::Error);
+        __LOGOUT__("Failed to load this file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Error);
     }
 }
 
@@ -661,15 +653,12 @@ void FileTreeWidget::addFilesFromUrls(const QList<QUrl>& urls, const QString& pa
 
             if(!ok)
             {
-                logger->output(__FILE__, __LINE__, __FUNCTION__,
-                               "failed to copy the file " + info.absoluteFilePath() +
-                               " to " + parentPath + "/" + info.fileName(), Logger::LogLevel::Warn);
+                __LOGOUT__("failed to copy the file " + info.absoluteFilePath() + " to " + parentPath + "/" + info.fileName(), Logger::LogLevel::Warn);
             }
         }
         else
         {
-            logger->output(__FILE__, __LINE__, __FUNCTION__,
-                           "item that is not file cannot be dragged & copied.", Logger::LogLevel::Warn);
+            __LOGOUT__("item that is not file cannot be dragged & copied. url(" + url.toString() + ")", Logger::LogLevel::Warn);
         }
     }
 }
@@ -695,8 +684,7 @@ void FileTreeWidget::moveItem(TreeFileItem *item, const QString& parentPath)
 
                 if(!isRemoved)
                 {
-                    logger->output(__FILE__, __LINE__, __FUNCTION__,
-                                   "failed to remove the file " + item->fileInfo().absoluteFilePath(), Logger::LogLevel::Warn);
+                    __LOGOUT__("failed to remove the file \"" + item->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Warn);
                 }
 
                 removeItemFromTree(item);
@@ -704,20 +692,14 @@ void FileTreeWidget::moveItem(TreeFileItem *item, const QString& parentPath)
         }
         else
         {
-            logger->output(__FILE__, __LINE__, __FUNCTION__,
-                           "fialed to copy the file " + item->fileInfo().absoluteFilePath() +
-                           " to " + newPath, Logger::LogLevel::Warn);
+            __LOGOUT__("fialed to copy the file \"" + item->fileInfo().absoluteFilePath() + "\" to \"" + newPath + "\".", Logger::LogLevel::Warn);
         }
     }
     else if(item->fileInfo().isDir())
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "directory is not supported.", Logger::LogLevel::Debug);
-
         if(newPath.contains(item->fileInfo().absoluteFilePath()))
         {
-            logger->output(__FILE__, __LINE__, __FUNCTION__,
-                           "Copying itself to itself results in an infinite loop", Logger::LogLevel::Warn);
+            __LOGOUT__("Copying itself to itself results in an infinite loop", Logger::LogLevel::Warn);
             return;
         }
 
@@ -726,8 +708,7 @@ void FileTreeWidget::moveItem(TreeFileItem *item, const QString& parentPath)
 
         if(!ok)
         {
-            logger->output(__FILE__, __LINE__, __FUNCTION__,
-                           "failed to make dir \"" + newPath + "\"", Logger::LogLevel::Warn);
+            __LOGOUT__("failed to make dir \"" + newPath + "\"", Logger::LogLevel::Warn);
             return;
         }
 
@@ -735,8 +716,7 @@ void FileTreeWidget::moveItem(TreeFileItem *item, const QString& parentPath)
 
         if(!oldDir.removeRecursively())
         {
-            logger->output(__FILE__, __LINE__, __FUNCTION__,
-                           "failed to remove dir recursively \"" + item->fileInfo().absoluteFilePath() + "\"", Logger::LogLevel::Warn);
+            __LOGOUT__("failed to remove dir recursively \"" + item->fileInfo().absoluteFilePath() + "\"", Logger::LogLevel::Warn);
         }
         else
         {
@@ -757,8 +737,7 @@ void FileTreeWidget::removeItemFromTree(TreeFileItem *item)
     }
     else
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "no parent item", Logger::LogLevel::Debug);
+        __LOGOUT__("no parent item", Logger::LogLevel::Debug);
         removeItemWidget(item, 0);
     }
 
@@ -1056,8 +1035,7 @@ void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QSt
     if(fromPath == toPath ||
        toPath.contains(fromPath))
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "copying itself to itself results in an infinite loop", Logger::LogLevel::Warn);
+        __LOGOUT__("copying itself to itself results in an infinite loop", Logger::LogLevel::Warn);
         return;
     }
 
@@ -1072,8 +1050,7 @@ void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QSt
         const QString newPath = toPath + '/' + info.fileName(); //コピー先のパス
 
         const bool ok = QFile::copy(oldPath, newPath);
-        if(!ok) logger->output(__FILE__, __LINE__, __FUNCTION__,
-                               "Could not copy a file \"" + oldPath + "\" \"" + newPath + "\".", Logger::LogLevel::Error);
+        if(!ok) __LOGOUT__("Could not copy a file \"" + oldPath + "\" \"" + newPath + "\".", Logger::LogLevel::Error);
     }
 
     /* ディレクトリ */
@@ -1088,8 +1065,7 @@ void FileTreeWidget::copyDirectoryRecursively(const QString &fromPath, const QSt
         QDir dir(toPath);
 
         const bool ok = dir.mkdir(newPath);
-        if(!ok) logger->output(__FILE__, __LINE__, __FUNCTION__,
-                               "Could not copy a directory \"" + oldPath + "\" \"" + newPath + "\".", Logger::LogLevel::Error);
+        if(!ok) __LOGOUT__("Could not copy a directory \"" + oldPath + "\" \"" + newPath + "\".", Logger::LogLevel::Error);
 
         copyDirectoryRecursively(oldPath, newPath);
     }
@@ -1139,8 +1115,7 @@ void FileTreeWidget::renameFile()
     //if(!dir.rename(item->info.absoluteFilePath(), newAbsoluteFilePath))
     if(!dir.rename(item->fileInfo().absoluteFilePath(), newAbsoluteFilePath))
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Failed to rename the file " + oldFileName + " to " + newAbsoluteFilePath, Logger::LogLevel::Error);
+        __LOGOUT__("Failed to rename the file \"" + oldFileName + "\" to \"" + newAbsoluteFilePath + "\".", Logger::LogLevel::Error);
         return;
     }
 
@@ -1187,8 +1162,7 @@ void FileTreeWidget::removeFile()
 
     if(!ok)
     {
-        logger->output(__FILE__, __LINE__, __FUNCTION__,
-                       "Failed to remove the file " + item->fileInfo().absoluteFilePath(), Logger::LogLevel::Error);
+        __LOGOUT__("Failed to remove the file \"" + item->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Error);
         return;
     }
 
@@ -1215,8 +1189,7 @@ void FileTreeWidget::exportFile()
 
     const bool ok = QFile::copy(item->fileInfo().absoluteFilePath(), pathForSave + '/' + item->fileInfo().fileName());
 
-    if(!ok) logger->output(__FILE__, __LINE__, __FUNCTION__,
-                           "Could not copy a file \"" + item->fileInfo().absoluteFilePath() + "\"", Logger::LogLevel::Error);
+    if(!ok) __LOGOUT__("Could not copy a file \"" + item->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Error);
 
     /* 削除するか確認する */
     removeFile();
