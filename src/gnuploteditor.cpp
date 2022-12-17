@@ -251,13 +251,10 @@ void GnuplotEditor::setCurrentItem()
     editorMenu->setCurrentItem(editorArea->currentTreeFileItem());
 }
 
-void GnuplotEditor::setupScriptItem(TreeScriptItem *item)
+void GnuplotEditor::receiveTreeItem(QTreeWidgetItem *_item, const int column)
 {
-    //connect(item, &TreeFileItem::errorCaused, browserWidget, &BrowserWidget::outputText);
-}
+    TreeFileItem *item = static_cast<TreeFileItem*>(_item);
 
-void GnuplotEditor::receiveTreeItem(QTreeWidgetItem *item, const int column)
-{
     if(column != 0)
     {
         logger->output(__FILE__, __LINE__, __FUNCTION__,
@@ -278,48 +275,48 @@ void GnuplotEditor::receiveTreeItem(QTreeWidgetItem *item, const int column)
     switch((FileTreeWidget::TreeItemType)item->type())
     {
     case FileTreeWidget::TreeItemType::Script:
-        setEditorWidget(static_cast<TreeScriptItem*>(item)); break;
+    {
+        editorSetting->addEditor(static_cast<TreeScriptItem*>(item)->editor);
+        break;
+    }
     case FileTreeWidget::TreeItemType::Sheet:
-        setSheetWidget(static_cast<TreeSheetItem*>(item)); break;
     case FileTreeWidget::TreeItemType::Image:
-        setImageWidget(static_cast<TreeImageItem*>(item)); break;
+    case FileTreeWidget::TreeItemType::Pdf:
     default:
         break;
     }
-}
-
-void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
-{
-    if(!item) return;
-
-    editorSetting->addEditor(item->editor);
-    editorArea->setItem(item);
-    editorMenu->setCurrentItem(item);
-}
-
-void GnuplotEditor::setupSheetItem(TreeSheetItem *item)
-{
-
-}
-
-void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
-{
-    if(!item) return;
-
-    //DEBUG
-    editorArea->setItem(item);
-    editorMenu->setCurrentItem(item);
-
-    //connect(gnuplotSetting, &GnuplotSettingWidget::autoCompileMsecSet, item->table, &GnuplotTable::setUpdateMsec);
-}
-
-void GnuplotEditor::setImageWidget(TreeImageItem *item)
-{
-    if(!item) return;
 
     editorArea->setItem(item);
     editorMenu->setCurrentItem(item);
 }
+
+//void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
+//{
+//    if(!item) return;
+//
+//    editorSetting->addEditor(item->editor);
+//    editorArea->setItem(item);
+//    editorMenu->setCurrentItem(item);
+//}
+//
+//void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
+//{
+//    if(!item) return;
+//
+//    //DEBUG
+//    editorArea->setItem(item);
+//    editorMenu->setCurrentItem(item);
+//
+//    //connect(gnuplotSetting, &GnuplotSettingWidget::autoCompileMsecSet, item->table, &GnuplotTable::setUpdateMsec);
+//}
+//
+//void GnuplotEditor::setImageWidget(TreeImageItem *item)
+//{
+//    if(!item) return;
+//
+//    editorArea->setItem(item);
+//    editorMenu->setCurrentItem(item);
+//}
 
 void GnuplotEditor::executeItem(TreeFileItem *item)
 {

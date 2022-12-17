@@ -36,6 +36,7 @@ public:
         static QPixmap document() { return QPixmap(":/icon/file_doc"); }
         static QPixmap normal() { return QPixmap(":/icon/file_normal"); }
         static QPixmap image() { return QPixmap(":/icon/file_image"); }
+        static QPixmap pdf() { return QPixmap(":/icon/file_pdf"); }
         static QPixmap fileAdd() { return QPixmap(":/icon/file_fileadd"); }
         static QPixmap fileReload() { return QPixmap(":/icon/file_filereload"); }
         static QPixmap folderAdd() { return QPixmap(":/icon/file_folderadd"); }
