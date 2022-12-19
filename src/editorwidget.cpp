@@ -203,14 +203,6 @@ void EditorStackedWidget::addItem(TreeFileItem *item)
     connect(item, &TreeFileItem::editStateChanged, this, &EditorStackedWidget::changeEditState);
     //updateTimer()が発せられる間に，stackのeditorが変更された場合，異なるitemがrequestExecuteされる問題がある
     connect(item, &TreeFileItem::updated, this, &EditorStackedWidget::requestExecute);
-    connect(item, &TreeFileItem::destroyed, [=]()
-    {
-        const int index = items.indexOf(item);
-        if(index < items.count())
-            items[index] = nullptr;
-        else
-            __LOGOUT__("out of index. " + QString::number(index) + "<" + QString::number(index), Logger::LogLevel::Warn);
-    });
 
     __LOGOUT__("a new widget is added.", Logger::LogLevel::Info);
 }
@@ -278,9 +270,16 @@ void EditorStackedWidget::closeThisArea()
     __LOGOUT__("this stacked widget is deleted.", Logger::LogLevel::Info);
 }
 
+/* エディタがdeleteされたりすることにより消去されたら呼び出され，QList<TreeFileItem>から削除する．
+ * TreeFileItemより先にTreeFileItem::widget()がdeleteされることが前提となる．
+ * 先にTreeFileItem削除された場合，QList<TreeFileItem>ないのポインタは無効であり，参照すればcrashする．*/
 void EditorStackedWidget::removeItem(const int index)
 {
-    if(index < 0 || items.count() <= index) return;
+    if(index < 0 || items.count() <= index)
+    {
+        __LOGOUT__("invalid index " + QString::number(items.count()) + "<" + QString::number(index), Logger::LogLevel::Warn);
+        return;
+    }
 
     if(TreeFileItem *item = items.at(index))
     {
@@ -290,6 +289,7 @@ void EditorStackedWidget::removeItem(const int index)
     }
     else
     {
+        __LOGOUT__("removing item is nullptr.", Logger::LogLevel::Warn);
         items.removeAt(index);
     }
 }

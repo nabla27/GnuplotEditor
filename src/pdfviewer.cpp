@@ -39,7 +39,7 @@ PdfViewer::PdfViewer(QWidget *parent)
 {
     view->setDocument(document);
     view->setPageMode(QPdfView::PageMode::MultiPage);
-    timer->setInterval(1000);
+    timer->setInterval(500);
     timer->setSingleShot(true);
 
     connect(fileWatcher, &QFileSystemWatcher::fileChanged, timer, QOverload<void>::of(&QTimer::start));
@@ -78,6 +78,12 @@ PdfViewer::PdfViewer(QWidget *parent)
 void PdfViewer::setFilePath(const QString &path)
 {
     this->filePath = path;
+
+    if(!fileWatcher->files().isEmpty())
+        fileWatcher->removePaths(fileWatcher->files());
+
+    fileWatcher->addPath(path);
+
     reload();
 
     pageSpinBox->setMaximum(document->pageCount() - 1);
@@ -100,6 +106,8 @@ void PdfViewer::closeDocument()
 
 void PdfViewer::reload()
 {
+    /* gnuplot生成でファイルが変更された場合の一回目のloadでは失敗する．
+     * gnuplotがファイルを開いているのことが原因かもしれない */
     const QPdfDocument::Error err = document->load(filePath);
 
     if(err != QPdfDocument::Error::None)
