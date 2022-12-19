@@ -203,6 +203,14 @@ void EditorStackedWidget::addItem(TreeFileItem *item)
     connect(item, &TreeFileItem::editStateChanged, this, &EditorStackedWidget::changeEditState);
     //updateTimer()が発せられる間に，stackのeditorが変更された場合，異なるitemがrequestExecuteされる問題がある
     connect(item, &TreeFileItem::updated, this, &EditorStackedWidget::requestExecute);
+    connect(item, &TreeFileItem::destroyed, [=]()
+    {
+        const int index = items.indexOf(item);
+        if(index < items.count())
+            items[index] = nullptr;
+        else
+            __LOGOUT__("out of index. " + QString::number(index) + "<" + QString::number(index), Logger::LogLevel::Warn);
+    });
 
     __LOGOUT__("a new widget is added.", Logger::LogLevel::Info);
 }
@@ -274,10 +282,16 @@ void EditorStackedWidget::removeItem(const int index)
 {
     if(index < 0 || items.count() <= index) return;
 
-    TreeFileItem *item = items.at(index);
-    item->disconnect(item, &TreeFileItem::editStateChanged, this, &EditorStackedWidget::changeEditState);
-    item->disconnect(item, &TreeFileItem::updated, this, &EditorStackedWidget::requestExecute);
-    items.removeAt(index);
+    if(TreeFileItem *item = items.at(index))
+    {
+        item->disconnect(item, &TreeFileItem::editStateChanged, this, &EditorStackedWidget::changeEditState);
+        item->disconnect(item, &TreeFileItem::updated, this, &EditorStackedWidget::requestExecute);
+        items.removeAt(index);
+    }
+    else
+    {
+        items.removeAt(index);
+    }
 }
 
 TreeFileItem* EditorStackedWidget::currentTreeFileItem() const

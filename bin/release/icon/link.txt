@@ -86,7 +86,8 @@ icon_page:
 <a target="_blank" href="https://icons8.com/icon/1767/%E6%96%87%E5%AD%A6">文学</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 file_pdf:
 <a target="_blank" href="https://icons8.com/icon/39195/pdf">PDF</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
-
+file_category:
+<a target="_blank" href="https://icons8.com/icon/14083/%E3%83%95%E3%82%A9%E3%83%AB%E3%83%80%E3%83%BC%E3%82%92%E9%96%8B%E3%81%8F">フォルダーを開く</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 
 
 
