@@ -43,31 +43,6 @@ QStringList FileTreeWidget::fileFilter = QStringList();
 
 
 
-void TreeFileItem::setFileIcon()
-{
-    switch (FileTreeWidget::TreeItemType(type()))
-    {
-    case FileTreeWidget::TreeItemType::Script:
-        setIcon(0, StandardPixmap::File::code()); break;
-    case FileTreeWidget::TreeItemType::Sheet:
-        setIcon(0, StandardPixmap::File::document()); break;
-    case FileTreeWidget::TreeItemType::Image:
-        setIcon(0, StandardPixmap::File::image()); break;
-    case FileTreeWidget::TreeItemType::Pdf:
-        setIcon(0, StandardPixmap::File::pdf()); break;
-    case FileTreeWidget::TreeItemType::Other:
-        setIcon(0, StandardPixmap::File::normal()); break;
-    case FileTreeWidget::TreeItemType::Dir:
-    case FileTreeWidget::TreeItemType::Root:
-    case FileTreeWidget::TreeItemType::ScriptFolder:
-    case FileTreeWidget::TreeItemType::SheetFolder:
-    case FileTreeWidget::TreeItemType::OtherFolder:
-        setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
-        break;
-    default:
-        break;
-    }
-}
 
 
 TreeFileItem::TreeFileItem(QTreeWidgetItem *parent, int type, const QFileInfo &info)
@@ -75,7 +50,6 @@ TreeFileItem::TreeFileItem(QTreeWidgetItem *parent, int type, const QFileInfo &i
     , info(info)
     , updateTimer(new QTimer(this))
 {
-    setFileIcon();
     setFilePath(info.absoluteFilePath());
 
     updateTimer->setSingleShot(true);
@@ -86,7 +60,6 @@ TreeFileItem::TreeFileItem(QTreeWidget *parent, int type, const QFileInfo &info)
     : QTreeWidgetItem(parent, type)
     , info(info)
 {
-    setFileIcon();
     setFilePath(info.absoluteFilePath());
 }
 
@@ -149,6 +122,28 @@ void TreeFileItem::setSavedState(const bool isSaved)
 
 
 
+TreeNoCategorizedItem::TreeNoCategorizedItem(QTreeWidgetItem *parent, const QFileInfo &info)
+    : TreeFileItem(parent, (int)FileTreeWidget::TreeItemType::NoCategorized, info)
+{
+    setIcon(0, StandardPixmap::File::normal());
+}
+
+void TreeNoCategorizedItem::save()
+{
+    __LOGOUT__("no supported to save.", Logger::LogLevel::Warn);
+}
+
+void TreeNoCategorizedItem::load()
+{
+    __LOGOUT__("no supported to load.", Logger::LogLevel::Warn);
+}
+
+void TreeNoCategorizedItem::remove()
+{
+    QFile file(info.absoluteFilePath());
+
+    emit removed(file.remove());
+}
 
 
 
@@ -156,8 +151,83 @@ void TreeFileItem::setSavedState(const bool isSaved)
 
 
 
-TreeScriptItem::TreeScriptItem(QTreeWidgetItem *parent, int type, const QFileInfo& info)
-    : TreeFileItem(parent, type, info)
+
+TreeFolderItem::TreeFolderItem(QTreeWidgetItem *parent, const QFileInfo &info)
+    : TreeFileItem(parent, (int)FileTreeWidget::TreeItemType::Dir, info)
+{
+    setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
+}
+
+TreeFolderItem::TreeFolderItem(QTreeWidget *parent, const QFileInfo &info)
+    : TreeFileItem(parent, (int)FileTreeWidget::TreeItemType::Dir, info)
+{
+    setIcon(0, QApplication::style()->standardIcon(QStyle::SP_DirIcon));
+}
+
+void TreeFolderItem::save()
+{
+    __LOGOUT__("no supported to save.", Logger::LogLevel::Warn);
+}
+
+void TreeFolderItem::load()
+{
+    __LOGOUT__("no supported to load.", Logger::LogLevel::Warn);
+}
+
+void TreeFolderItem::remove()
+{
+    //childにpdfがある場合，操作中で削除できないだろう
+    QDir dir(info.absoluteFilePath());
+    emit removed(dir.removeRecursively());
+}
+
+
+
+
+
+
+
+
+
+TreeCategoryItem::TreeCategoryItem(QTreeWidgetItem *parent, const QFileInfo &info, const int type)
+    : TreeFileItem(parent, (int)FileTreeWidget::TreeItemType::Category, info)
+    , categoryType(type)
+{
+    setIcon(0, StandardPixmap::File::category());
+}
+
+void TreeCategoryItem::save()
+{
+    __LOGOUT__("no supported to save.", Logger::LogLevel::Warn);
+}
+
+void TreeCategoryItem::load()
+{
+    __LOGOUT__("no supported to load.", Logger::LogLevel::Warn);
+}
+
+void TreeCategoryItem::remove()
+{
+    __LOGOUT__("no supported to remove.", Logger::LogLevel::Warn);
+    emit removed(false);
+}
+
+int TreeCategoryItem::category()
+{
+    return categoryType;
+}
+
+
+
+
+
+
+
+
+
+
+TreeScriptItem::TreeScriptItem(QTreeWidgetItem *parent, const QFileInfo& info)
+    : TreeFileItem(parent, (int)FileTreeWidget::TreeItemType::Script, info)
     , editor(new TextEdit)
     , process(new GnuplotProcess(nullptr))
 {
@@ -175,6 +245,8 @@ TreeScriptItem::TreeScriptItem(QTreeWidgetItem *parent, int type, const QFileInf
 
     editor->setParentFolderPath(info.absolutePath());
     process->moveToThread(gnuplotExecutor->gnuplotThread());
+
+    setIcon(0, StandardPixmap::File::code());
 }
 
 TreeScriptItem::~TreeScriptItem()
@@ -233,6 +305,13 @@ void TreeScriptItem::load()
     emit loadRequested(info.absoluteFilePath());
 }
 
+void TreeScriptItem::remove()
+{
+    QFile file(info.absoluteFilePath());
+
+    emit removed(file.remove());
+}
+
 QWidget* TreeScriptItem::widget()
 {
     return editor;
@@ -289,11 +368,13 @@ void TreeScriptItem::receiveLoadedResult(const QString& text, const bool& ok)
 
 
 
-TreeSheetItem::TreeSheetItem(QTreeWidgetItem *parent, int type, const QFileInfo &info)
-    : TreeFileItem(parent, type, info)
+TreeSheetItem::TreeSheetItem(QTreeWidgetItem *parent, const QFileInfo &info)
+    : TreeFileItem(parent, (int)FileTreeWidget::TreeItemType::Sheet, info)
     , table(new TableArea(nullptr))
 {
     TreeSheetItem::load();
+
+    setIcon(0, StandardPixmap::File::document());
 
     connect(table->tableWidget(), &GnuplotTable::cellChanged, this, &TreeSheetItem::setEdited);
 }
@@ -365,6 +446,13 @@ void TreeSheetItem::load()
     emit loadRequested(info.absoluteFilePath());
 }
 
+void TreeSheetItem::remove()
+{
+    QFile file(info.absoluteFilePath());
+
+    emit removed(file.remove());
+}
+
 QWidget *TreeSheetItem::widget()
 {
     return table;
@@ -395,11 +483,36 @@ void TreeSheetItem::receiveLoadResult(const QList<QList<QString> >& data, const 
 
 
 
-TreeImageItem::TreeImageItem(QTreeWidgetItem *parent, int type, const QFileInfo &info)
-    : TreeFileItem(parent, type, info)
+
+
+
+
+TreeImageItem::TreeImageItem(QTreeWidgetItem *parent, const QFileInfo &info)
+    : TreeFileItem(parent, (int)FileTreeWidget::TreeItemType::Image, info)
     , imageDisplay(new ImageDisplay(nullptr))
 {
     imageDisplay->setImagePath(info.absoluteFilePath());
+
+    setIcon(0, StandardPixmap::File::image());
+
+    connect(this, &TreeImageItem::pathChanged, imageDisplay, &ImageDisplay::setImagePath);
+}
+
+void TreeImageItem::save()
+{
+    __LOGOUT__("no supported to save.", Logger::LogLevel::Warn);
+}
+
+void TreeImageItem::load()
+{
+    imageDisplay->updateImage();
+}
+
+void TreeImageItem::remove()
+{
+    QFile file(info.absoluteFilePath());
+
+    emit removed(file.remove());
 }
 
 TreeImageItem::~TreeImageItem()
@@ -425,11 +538,52 @@ QWidget *TreeImageItem::widget()
 
 
 
-TreePdfItem::TreePdfItem(QTreeWidgetItem *parent, int type, const QFileInfo &info)
-    : TreeFileItem(parent, type, info)
+TreePdfItem::TreePdfItem(QTreeWidgetItem *parent, const QFileInfo &info)
+    : TreeFileItem(parent, (int)FileTreeWidget::TreeItemType::Pdf, info)
     , viewer(new PdfViewer(nullptr))
 {
     viewer->setFilePath(info.absoluteFilePath());
+
+    setIcon(0, StandardPixmap::File::pdf());
+
+    connect(this, &TreePdfItem::pathChanged, viewer, &PdfViewer::setFilePath);
+}
+
+void TreePdfItem::save()
+{
+    __LOGOUT__("no supported to save.", Logger::LogLevel::Warn);
+}
+
+void TreePdfItem::load()
+{
+    viewer->reload();
+}
+
+void TreePdfItem::remove()
+{
+    viewer->closeDocument();
+
+    /* closeDocument()を実行してからしばらくしないとファイルを消せない．
+     * emitしてしばらくしてから成功していればFileTreeから消される */
+    QFile *file = new QFile(info.absoluteFilePath(), nullptr);
+    QTimer *timer = new QTimer(nullptr);
+
+    timer->setInterval(500);
+    timer->setSingleShot(true);
+
+    auto removePdfLater = [=]()
+    {
+        bool ok = file->remove();
+
+        file->deleteLater();
+        timer->deleteLater();
+
+        emit removed(ok);
+    };
+
+    connect(timer, &QTimer::timeout, removePdfLater);
+
+    timer->start();
 }
 
 TreePdfItem::~TreePdfItem()
@@ -497,11 +651,11 @@ void FileTreeWidget::initializeContextMenu()
 {
         if(!fileMenu) delete fileMenu;
         if(!dirMenu) delete dirMenu;
-        if(!rootMenu) delete rootMenu;
+        if(!categoryMenu) delete categoryMenu;
 
         fileMenu = new QMenu(this);
         dirMenu = new QMenu(this);
-        rootMenu = new QMenu(this);
+        categoryMenu = new QMenu(this);
 
         QAction *actRename = new QAction("Rename", fileMenu);
         QAction *actRemove = new QAction("Remove", fileMenu);
@@ -524,8 +678,8 @@ void FileTreeWidget::initializeContextMenu()
         dirMenu->addAction(actRename);
         dirMenu->addAction(actRemove);
 
-        rootMenu->addAction(actAdd);
-        rootMenu->addAction(actNew);
+        categoryMenu->addAction(actAdd);
+        categoryMenu->addAction(actNew);
 }
 
 void FileTreeWidget::onCustomContextMenu(const QPoint& pos)
@@ -536,7 +690,9 @@ void FileTreeWidget::onCustomContextMenu(const QPoint& pos)
     {
     case TreeItemType::Script:
     case TreeItemType::Sheet:
-    case TreeItemType::Other:
+    case TreeItemType::Image:
+    case TreeItemType::Pdf:
+    case TreeItemType::NoCategorized:
     {
         fileMenu->exec(viewport()->mapToGlobal(pos));
         break;
@@ -546,18 +702,9 @@ void FileTreeWidget::onCustomContextMenu(const QPoint& pos)
         dirMenu->exec(viewport()->mapToGlobal(pos));
         break;
     }
-    case TreeItemType::Root:
-    {
-        rootMenu->exec(viewport()->mapToGlobal(pos));
+    case TreeItemType::Category:
+        categoryMenu->exec(viewport()->mapToGlobal(pos));
         break;
-    }
-    case TreeItemType::ScriptFolder:
-    case TreeItemType::SheetFolder:
-    case TreeItemType::OtherFolder:
-    {
-        rootMenu->exec(viewport()->mapToGlobal(pos));
-        break;
-    }
     default:
         break;
     }
@@ -639,11 +786,7 @@ void FileTreeWidget::dragMoveEvent(QDragMoveEvent *e)
 
         switch(FileTreeWidget::TreeItemType(item->type()))
         {
-        case FileTreeWidget::TreeItemType::Root:
         case FileTreeWidget::TreeItemType::Dir:
-        case FileTreeWidget::TreeItemType::ScriptFolder:
-        case FileTreeWidget::TreeItemType::SheetFolder:
-        case FileTreeWidget::TreeItemType::OtherFolder:
             e->acceptProposedAction();
             return;
         default:
@@ -709,18 +852,14 @@ void FileTreeWidget::moveItem(TreeFileItem *item, const QString& parentPath)
         const bool ok = QFile::copy(item->fileInfo().absoluteFilePath(), newPath);
         if(ok)
         {
-            if(QTreeWidgetItem *p = item->QTreeWidgetItem::parent())
-            {
-                QFile file(item->fileInfo().absoluteFilePath());
-                const bool isRemoved = file.remove();
+            connect(item, &TreeFileItem::removed, [=](const bool ok){
+                if(ok)
+                    removeItemFromTree(item);
+                else
+                    __LOGOUT__("failed to remove the file \"" + item->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Error);
+            });
 
-                if(!isRemoved)
-                {
-                    __LOGOUT__("failed to remove the file \"" + item->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Warn);
-                }
-
-                removeItemFromTree(item);
-            }
+            item->remove();
         }
         else
         {
@@ -821,7 +960,7 @@ void FileTreeWidget::loadFileTree()
     setHeaderHidden(true);
 
     //rootTreeItem = new TreeFileItem(this, (int)TreeItemType::Root);
-    rootTreeItem = new TreeFileItem(this, (int)TreeItemType::Root, QFileInfo(folderPath));
+    rootTreeItem = new TreeFolderItem(this, QFileInfo(folderPath));
     //rootTreeItem->setText(0, folderPath.sliced(folderPath.lastIndexOf('/')));
     //rootTreeItem->setToolTip(0, folderPath);
     //rootTreeItem->info = QFileInfo(folderPath);
@@ -836,9 +975,9 @@ void FileTreeWidget::loadFileTree()
     }
     case FileTreeModel::Gnuplot:
     {
-        scriptFolderItem = new TreeFileItem(rootTreeItem, (int)TreeItemType::ScriptFolder, QFileInfo(folderPath));
-        sheetFolderItem = new TreeFileItem(rootTreeItem, (int)TreeItemType::SheetFolder, QFileInfo(folderPath ));
-        otherFolderItem = new TreeFileItem(rootTreeItem, (int)TreeItemType::OtherFolder, QFileInfo(folderPath));
+        scriptFolderItem = new TreeCategoryItem(rootTreeItem, QFileInfo(folderPath), (int)FileTreeWidget::TreeItemType::Script);
+        sheetFolderItem = new TreeCategoryItem(rootTreeItem, QFileInfo(folderPath ), (int)FileTreeWidget::TreeItemType::Sheet);
+        otherFolderItem = new TreeCategoryItem(rootTreeItem, QFileInfo(folderPath), (int)FileTreeWidget::TreeItemType::NoCategorized);
 
         scriptFolderItem->setText(0, "Script");
         sheetFolderItem->setText(0, "Sheet");
@@ -870,24 +1009,16 @@ void FileTreeWidget::updateGnuplotModelTree(const QString &path)
         TreeFileItem *item;
 
         if(TreeScriptItem::suffix.contains(info.suffix()))
-            //item = new TreeScriptItem(scriptFolderItem, (int)TreeItemType::Script);
-            item = new TreeScriptItem(scriptFolderItem, (int)TreeItemType::Script, info);
+            item = new TreeScriptItem(scriptFolderItem, info);
         else if(TreeSheetItem::suffix.contains(info.suffix()))
-            //item = new TreeSheetItem(sheetFolderItem, (int)TreeItemType::Sheet);
-            item = new TreeSheetItem(sheetFolderItem, (int)TreeItemType::Sheet, info);
+            item = new TreeSheetItem(sheetFolderItem, info);
         else if(ImageDisplay::isValidExtension(info.suffix()))
-            //item = new TreeImageItem(otherFolderItem, (int)TreeItemType::Image);
-            item = new TreeImageItem(otherFolderItem, (int)TreeItemType::Image, info);
+            item = new TreeImageItem(otherFolderItem, info);
         else if(info.suffix() == "pdf")
-            item = new TreePdfItem(otherFolderItem, (int)TreeItemType::Pdf, info);
+            item = new TreePdfItem(otherFolderItem, info);
         else
-            //item = new TreeFileItem(otherFolderItem, (int)TreeItemType::Other, info);
-            item = new TreeFileItem(otherFolderItem, (int)TreeItemType::Other, info);
+            item = new TreeNoCategorizedItem(otherFolderItem, info);
 
-        //const QString rootFolderName = rootTreeItem->info.fileName();
-        //item->setText(0, absPath.sliced(absPath.lastIndexOf(rootFolderName) + rootFolderName.count() + 1)); //作業ディレクトリからの相対パスを表示する
-        //item->setToolTip(0, absPath);
-        //item->info = info;
         TreeFileItem::list.insert(absPath, item);
     }
 
@@ -925,23 +1056,16 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
         TreeFileItem *item;
 
         if(TreeScriptItem::suffix.contains(info.suffix()))
-            //item = new TreeScriptItem(parent, (int)TreeItemType::Script);
-            item = new TreeScriptItem(parent, (int)TreeItemType::Script, info);
+            item = new TreeScriptItem(parent, info);
         else if(TreeSheetItem::suffix.contains(info.suffix()))
-            //item = new TreeSheetItem(parent, (int)TreeItemType::Sheet);
-            item = new TreeSheetItem(parent, (int)TreeItemType::Sheet, info);
+            item = new TreeSheetItem(parent, info);
         else if(ImageDisplay::isValidExtension(info.suffix()))
-            //item = new TreeImageItem(parent, (int)TreeItemType::Image);
-            item = new TreeImageItem(parent, (int)TreeItemType::Image, info);
+            item = new TreeImageItem(parent, info);
         else if(info.suffix() == "pdf")
-            item = new TreePdfItem(parent, (int)TreeItemType::Pdf, info);
+            item = new TreePdfItem(parent, info);
         else
-            //item = new TreeFileItem(parent, (int)TreeItemType::Other);
-            item = new TreeFileItem(parent, (int)TreeItemType::Other, info);
+            item = new TreeNoCategorizedItem(parent, info);
 
-        //item->setText(0, info.fileName());
-        //item->setToolTip(0, absPath);
-        //item->info = info;
         TreeFileItem::list.insert(absPath, item);
     }
 
@@ -960,7 +1084,7 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
             //item->setText(0, info.fileName());
             //item->setToolTip(0, absPath);
             //item->info = info;
-            TreeFileItem *item = new TreeFileItem(parent, (int)TreeItemType::Dir, info);
+            TreeFolderItem *item = new TreeFolderItem(parent, info);
             TreeFileItem::list.insert(absPath, item);
         }
 
@@ -1035,9 +1159,14 @@ void FileTreeWidget::addFolder()
     const QString toPath = folderPath + '/' + folder.sliced(folder.lastIndexOf('/') + 1);
     QDir dir(toPath);
     if(dir.mkdir(toPath))
+    {
         copyDirectoryRecursively(folder, toPath);
+    }
     else
-        QMessageBox::critical(this, "Error", "Could not add a folder.");
+    {
+        __LOGOUT__("failed to make the directory \"" + toPath + "\".", Logger::LogLevel::Error);
+        //QMessageBox::critical(this, "Error", "Could not add a folder.");
+    }
 }
 
 /* 作業ディレクトリごと指定したディレクトリ下に保存する */
@@ -1052,9 +1181,14 @@ void FileTreeWidget::saveFolder()
     const QString toPath = folder + '/' + folderPath.sliced(folderPath.lastIndexOf('/') + 1);
     QDir dir(toPath);
     if(dir.mkdir(toPath))
+    {
         copyDirectoryRecursively(folderPath, toPath);
+    }
     else
-        QMessageBox::critical(this, "Error", "Could not save a folder.");
+    {
+        __LOGOUT__("failed to make the directory \"" + toPath + "\".", Logger::LogLevel::Error);
+        //QMessageBox::critical(this, "Error", "Could not save a folder.");
+    }
 }
 
 void FileTreeWidget::openFolder()
@@ -1177,35 +1311,45 @@ void FileTreeWidget::removeFile()
 
     if(reply != QMessageBox::Yes) return;
 
-    bool ok = false;
-    //const QString absPath = item->info.absoluteFilePath();
-    const QString absPath = item->fileInfo().absoluteFilePath();
+    //bool ok = false;
 
-    if(item->type() == (int)TreeItemType::Dir)
-    {   //ディレクトリの場合の削除
-        dirWatcher->removePath(absPath);
-        QDir dir(absPath);
-        ok = dir.removeRecursively();
-        if(!ok)
-            dirWatcher->addPath(absPath);
-    }
-    else
-    {   //ファイルの場合の削除
-        //QDir dir(item->info.absolutePath());
-        QDir dir(item->fileInfo().absoluteFilePath());
-        ok = dir.remove(absPath);
-    }
+    //const QString absPath = item->fileInfo().absoluteFilePath();
 
-    if(!ok)
+    //if(item->type() == (int)TreeItemType::Dir)
+    //{   //ディレクトリの場合の削除
+    //    dirWatcher->removePath(absPath);
+    //    QDir dir(absPath);
+    //    ok = dir.removeRecursively();
+    //    if(!ok)
+    //        dirWatcher->addPath(absPath);
+    //}
+    //else
+    //{   //ファイルの場合の削除
+    //    QFile file(absPath);
+    //    ok = file.remove();
+    //}
+
+    //if(!ok)
+    //{
+    //    __LOGOUT__("Failed to remove the file \"" + item->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Error);
+    //    return;
+    //}
+
+    connect(item, &TreeFileItem::removed, [=](bool ok)
     {
-        __LOGOUT__("Failed to remove the file \"" + item->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Error);
-        return;
-    }
+        if(!this) return;
+        if(ok)
+            removeItemFromTree(item);
+        else
+            __LOGOUT__("failed to remove the file \"" + item->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Error);
+    });
+
+    item->remove();
 
     //TreeFileItem::list.remove(item->fileInfo().absoluteFilePath());
     //selectedItems().takeAt(0)->parent()->removeChild(item);
     //delete item; item = nullptr;
-    removeItemFromTree(item);
+    //removeItemFromTree(item);
 }
 
 void FileTreeWidget::exportFile()
@@ -1243,22 +1387,26 @@ void FileTreeWidget::addFileFromDialog()
         if(item)
         {
             /* 選択されたフォルダーによって，ダイアログのフィルターを設定する */
-            switch((TreeItemType)item->type())
+
+            if(item->type() == (int)FileTreeWidget::TreeItemType::Category)
             {
-            case TreeItemType::ScriptFolder:
-                nameFilter += "Script files (";
-                foreach(const QString& suffix, TreeScriptItem::suffix.keys())
-                    nameFilter += "*." + suffix + " ";
-                nameFilter += ")";
-                break;
-            case TreeItemType::SheetFolder:
-                nameFilter += "Sheet files (";
-                foreach(const QString& suffix, TreeSheetItem::suffix.keys())
-                    nameFilter += "*." + suffix + " ";
-                nameFilter += ")";
-                break;
-            default:
-                break;
+                switch((TreeItemType)static_cast<TreeCategoryItem*>(item)->category())
+                {
+                case TreeItemType::Script:
+                    nameFilter += "Script files (";
+                    foreach(const QString& suffix, TreeScriptItem::suffix.keys())
+                        nameFilter += "*." + suffix + " ";
+                    nameFilter += ")";
+                    break;
+                case TreeItemType::Sheet:
+                    nameFilter += "Sheet files (";
+                    foreach(const QString& suffix, TreeSheetItem::suffix.keys())
+                        nameFilter += "*." + suffix + " ";
+                    nameFilter += ")";
+                    break;
+                default:
+                    break;
+                }
             }
 
             /* ファイルを追加する親ディレクトリのパスも選択されたフォルダーによって設定する */
@@ -1308,23 +1456,26 @@ void FileTreeWidget::newFileFromDialog()
 
         if(item)
         {
-            /* ファイル名を入力する際のデフォルトテキストを拡張子によって変更 */
-            switch((TreeItemType)item->type())
+            if(item->type() == (int)FileTreeWidget::TreeItemType::Category)
             {
-            case TreeItemType::ScriptFolder:
-                if(TreeScriptItem::suffix.count() > 0)
-                    defaultFileName = "." + TreeScriptItem::suffix.begin().key();
-                folderPath = this->folderPath;
-                break;
-            case TreeItemType::SheetFolder:
-                if(TreeSheetItem::suffix.count() > 0)
-                    defaultFileName = "." + TreeSheetItem::suffix.begin().key();
-                folderPath = this->folderPath;
-                break;
-            default:
-                //folderPath = item->info.absoluteFilePath();
-                folderPath = item->fileInfo().absoluteFilePath();
-                break;
+                /* ファイル名を入力する際のデフォルトテキストを拡張子によって変更 */
+                switch((TreeItemType)static_cast<TreeCategoryItem*>(item)->category())
+                {
+                case TreeItemType::Script:
+                    if(TreeScriptItem::suffix.count() > 0)
+                        defaultFileName = "." + TreeScriptItem::suffix.begin().key();
+                    folderPath = this->folderPath;
+                    break;
+                case TreeItemType::Sheet:
+                    if(TreeSheetItem::suffix.count() > 0)
+                        defaultFileName = "." + TreeSheetItem::suffix.begin().key();
+                    folderPath = this->folderPath;
+                    break;
+                default:
+                    //folderPath = item->info.absoluteFilePath();
+                    folderPath = item->fileInfo().absoluteFilePath();
+                    break;
+                }
             }
         }
     }

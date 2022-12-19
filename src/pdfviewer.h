@@ -17,6 +17,8 @@ class QPdfDocument;
 class QPdfView;
 class QTimer;
 class QFileSystemWatcher;
+class QSpinBox;
+class QDoubleSpinBox;
 
 
 class PdfViewer : public QWidget
@@ -26,9 +28,11 @@ public:
 
 public slots:
     void setFilePath(const QString& path);
+    void closeDocument();
+    void reload();
 
 private slots:
-    void reload();
+    void setPdfPage(const int page);
 
 private:
     QString filePath;
@@ -38,6 +42,9 @@ private:
 
     QTimer *timer;
     QFileSystemWatcher *fileWatcher;
+
+    QSpinBox *pageSpinBox;
+    QDoubleSpinBox *zoomSpinBox;
 };
 
 #endif // PDFVIEWER_H

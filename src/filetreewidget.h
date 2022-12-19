@@ -34,8 +34,9 @@ public:
     explicit TreeFileItem(QTreeWidget *parent, int type, const QFileInfo& info);
 
 public:
-    virtual void save() {}
-    virtual void load() {}
+    virtual void save() = 0;
+    virtual void load() = 0;
+    virtual void remove() = 0;
     virtual QWidget* widget() { return nullptr; }
 
     void setFilePath(const QString& path);
@@ -57,9 +58,6 @@ protected:
     QFileInfo info;
 
 private:
-    void setFileIcon();
-
-private:
     bool isSavedFlag = true;
     QTimer *updateTimer;
     bool enableUpdateTimer = false;
@@ -69,6 +67,63 @@ signals:
     void pathChanged(const QString& path);
     void editStateChanged(const bool isSaved);
     void updated();
+    void removed(const bool ok);
+};
+
+
+
+
+
+class TreeNoCategorizedItem : public TreeFileItem
+{
+    Q_OBJECT
+public:
+    explicit TreeNoCategorizedItem(QTreeWidgetItem *parent, const QFileInfo& info);
+
+public:
+    void save() override;
+    void load() override;
+    void remove() override;
+};
+
+
+
+
+
+
+class TreeFolderItem : public TreeFileItem
+{
+    Q_OBJECT
+public:
+    explicit TreeFolderItem(QTreeWidgetItem *parent, const QFileInfo& info);
+    explicit TreeFolderItem(QTreeWidget *parent, const QFileInfo& info);
+
+public:
+    void save() override;
+    void load() override;
+    void remove() override;
+};
+
+
+
+
+
+
+class TreeCategoryItem : public TreeFileItem
+{
+    Q_OBJECT
+public:
+    explicit TreeCategoryItem(QTreeWidgetItem *parent, const QFileInfo& info, const int type);
+
+public:
+    void save() override;
+    void load() override;
+    void remove() override;
+
+    int category();
+
+public:
+    int categoryType;
 };
 
 
@@ -79,7 +134,7 @@ class TreeScriptItem : public TreeFileItem
 {
     Q_OBJECT
 public:
-    explicit TreeScriptItem(QTreeWidgetItem *parent, int type, const QFileInfo& info);
+    explicit TreeScriptItem(QTreeWidgetItem *parent, const QFileInfo& info);
 
     ~TreeScriptItem();
 
@@ -89,6 +144,7 @@ public:
 public:
     void save() override;
     void load() override;
+    void remove() override;
     QWidget* widget() override;
 
 public:
@@ -117,7 +173,7 @@ class TreeSheetItem : public TreeFileItem
 {
     Q_OBJECT
 public:
-    explicit TreeSheetItem(QTreeWidgetItem *parent, int type, const QFileInfo& info);
+    explicit TreeSheetItem(QTreeWidgetItem *parent, const QFileInfo& info);
 
     ~TreeSheetItem();
 
@@ -126,6 +182,7 @@ public:
 
     void save() override;
     void load() override;
+    void remove() override;
     QWidget *widget() override;
 
 private slots:
@@ -149,10 +206,13 @@ class TreeImageItem : public TreeFileItem
 {
     Q_OBJECT
 public:
-    explicit TreeImageItem(QTreeWidgetItem *parent, int type, const QFileInfo& info);
+    explicit TreeImageItem(QTreeWidgetItem *parent, const QFileInfo& info);
     ~TreeImageItem();
 
 public:
+    void save() override;
+    void load() override;
+    void remove() override;
     QWidget* widget() override;
 
 private:
@@ -169,10 +229,13 @@ class TreePdfItem : public TreeFileItem
 {
     Q_OBJECT
 public:
-    explicit TreePdfItem(QTreeWidgetItem *parent, int type, const QFileInfo& info);
+    explicit TreePdfItem(QTreeWidgetItem *parent, const QFileInfo& info);
     ~TreePdfItem();
 
 public:
+    void save() override;
+    void load() override;
+    void remove() override;
     QWidget *widget() override;
 
 private:
@@ -194,7 +257,7 @@ public:
     ~FileTreeWidget();
 
     enum class FileTreeModel { FileSystem, Gnuplot };
-    enum class TreeItemType { Script = 1000, Sheet, Image, Pdf, Other, Dir, Root, ScriptFolder, SheetFolder, OtherFolder };
+    enum class TreeItemType { Script = 1000, Sheet, Image, Pdf, NoCategorized, Dir, Category };
     Q_ENUM(FileTreeModel)
 
     static QStringList fileFilter;
@@ -246,19 +309,20 @@ private:
 private:
     FileTreeModel treeModel;
     TreeFileItem *rootTreeItem;
-    QTreeWidgetItem *scriptFolderItem;
-    QTreeWidgetItem *sheetFolderItem;
-    QTreeWidgetItem *otherFolderItem;
+    TreeCategoryItem *scriptFolderItem;
+    TreeCategoryItem *sheetFolderItem;
+    TreeCategoryItem *otherFolderItem;
 
     QString folderPath;
     QFileSystemWatcher *dirWatcher;
 
     QMenu *fileMenu;
     QMenu *dirMenu;
-    QMenu *rootMenu;
+    QMenu *categoryMenu;
 
 signals:
     void folderPathChanged(const QString& path);
+    void removed(const bool ok);
 };
 
 

@@ -32,6 +32,7 @@ public:
         //static QPixmap *folderOpen;
         //static QPixmap *fileSave;
         //static QPixmap *fileSaveAs;
+        static QPixmap category() { return QPixmap(":/icon/file_category"); }
         static QPixmap code() { return QPixmap(":/icon/file_code"); }
         static QPixmap document() { return QPixmap(":/icon/file_doc"); }
         static QPixmap normal() { return QPixmap(":/icon/file_normal"); }
