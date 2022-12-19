@@ -322,7 +322,6 @@ private:
 
 signals:
     void folderPathChanged(const QString& path);
-    void removed(const bool ok);
 };
 
 

@@ -44,7 +44,9 @@ QStringList FileTreeWidget::fileFilter = QStringList();
 
 
 
-
+/* TreeFileItemより先にTreeFileItem::widget()が削除されるようにする．
+ * widget()の親はnullptrであるから，各デストラクタでdeleteLator()ではなく，
+ * deleteを用いて，先に削除されるようにする．*/
 TreeFileItem::TreeFileItem(QTreeWidgetItem *parent, int type, const QFileInfo &info)
     : QTreeWidgetItem(parent, type)
     , info(info)
@@ -519,7 +521,7 @@ TreeImageItem::~TreeImageItem()
 {
     if(imageDisplay)
     {
-        imageDisplay->deleteLater();
+        delete imageDisplay;
         imageDisplay = nullptr;
     }
 }
@@ -590,7 +592,7 @@ TreePdfItem::~TreePdfItem()
 {
     if(viewer)
     {
-        viewer->deleteLater();
+        delete viewer;
         viewer = nullptr;
     }
 }
@@ -912,7 +914,7 @@ void FileTreeWidget::removeItemFromTree(TreeFileItem *item)
         removeItemWidget(item, 0);
     }
 
-    delete item;
+    item->deleteLater();
     item = nullptr;
 }
 
