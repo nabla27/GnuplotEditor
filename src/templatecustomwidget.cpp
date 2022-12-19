@@ -135,12 +135,12 @@ void TemplateCustomWidget::addTemplate(const QString& script)
     if(templateName.text().isEmpty()) return;
     if(templateName.text().contains('.'))
     {
-        QMessageBox::critical(this, "Error", "Do not include '.'");
+        __LOGOUT__("do not include the '.'", Logger::LogLevel::Error);
         return;
     }
     if(QFile::exists(currentTemplateFolderPath + '/' + templateName.text() + ".txt"))
     {
-        QMessageBox::critical(this, "Error", "The same file already exists");
+        __LOGOUT__("the same file \"" + currentTemplateFolderPath + "/" + templateName.text() + "\" already exists.", Logger::LogLevel::Error);
         return;
     }
 
@@ -159,7 +159,6 @@ void TemplateCustomWidget::addTemplate(const QString& script)
     }
     else
     {
-        QMessageBox::critical(this, "Error", "Could not create the template.");
         __LOGOUT__("Faied to create the template \"" + templateFilePath + "\".", Logger::LogLevel::Error);
     }
 }
@@ -414,7 +413,7 @@ void TemplateCustomWidget::createNewTemplate()
         newTemplateName = QInputDialog::getText(this, "Create New Template", "Enter the name.");
 
         if(newTemplateName.contains('.'))
-            QMessageBox::critical(this, "Error", "Do not include a suffix.");
+            __LOGOUT__("do not include a suffix.", Logger::LogLevel::Error);
         else
             break;
     }
@@ -430,7 +429,6 @@ void TemplateCustomWidget::createNewTemplate()
     }
     else
     {
-        QMessageBox::critical(this, "Error", "Could not create the file.");
         __LOGOUT__("Failed to open the file \"" + newFile.fileName() + "\".", Logger::LogLevel::Error);
     }
 }
@@ -449,7 +447,6 @@ void TemplateCustomWidget::createNewFolder()
         setupNewFolder(newFolderPath);
     else
     {
-        QMessageBox::critical(this, "Error", "Could not create the folder");
         __LOGOUT__("Failed to make the dir \"" + newFolderPath + "\".", Logger::LogLevel::Error);
     }
 }
@@ -638,7 +635,6 @@ void TemplateItemWidget::renameTempalteFile()
     QFile file(filePath);
     if(!file.exists())
     {
-        QMessageBox::warning(this, "Error", "Could not find the file " + filePath);
         __LOGOUT__("could not find the file \"" + filePath + "\".", Logger::LogLevel::Error);
         return;
     }
@@ -650,7 +646,6 @@ void TemplateItemWidget::renameTempalteFile()
 
     if(!file.rename(filePath, newFilePath))
     {
-        QMessageBox::critical(this, "Error", "Could not rename the file.");
         __LOGOUT__("failed to rename the file \"" + filePath + "\" to \"" + newFilePath + "\".", Logger::LogLevel::Error);
         return;
     }
@@ -675,7 +670,6 @@ void TemplateItemWidget::renameFolder()
     QDir dir(filePath.first(barIndex));
     if(!dir.rename(oldFolderName, newFolderName))
     {
-        QMessageBox::critical(this, "Error", "Could not rename the folder.");
         __LOGOUT__("Failed to rename the folder \"" + oldFolderName + "\" to \"" + newFolderName + "\".", Logger::LogLevel::Error);
         return;
     }
@@ -705,7 +699,6 @@ void TemplateItemWidget::removeTemplateFile()
     }
     else
     {
-        QMessageBox::critical(this, "Error", "Could not remove the file.");
         __LOGOUT__("Fialed to remove the file \"" + filePath + "\".", Logger::LogLevel::Error);
     }
 }
@@ -721,7 +714,6 @@ void TemplateItemWidget::removeFolder()
 
     if(!dir.removeRecursively())
     {
-        QMessageBox::critical(this, "Error", "Counld not remove the folder.");
         __LOGOUT__("Failed to remove dir recursively \"" + filePath + "\".", Logger::LogLevel::Error);
         return;
     }

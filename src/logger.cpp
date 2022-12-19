@@ -16,6 +16,7 @@
 #include <QVBoxLayout>
 #include <QScrollBar>
 #include <QTimer>
+#include <QMessageBox>
 
 
 
@@ -25,6 +26,10 @@ Logger::Logger(QObject *parent)
 {
     writer->moveToThread(&ioThread);
     ioThread.start();
+
+    dialogFilter.insert(Logger::LogLevel::Error);
+    dialogFilter.insert(Logger::LogLevel::Fatal);
+    dialogFilter.insert(Logger::LogLevel::Warn);
 
     connect(this, &Logger::logPushed, writer, &Logger::LogWriter::write);
     connect(this, &Logger::logPathChanged, writer, &Logger::LogWriter::setLogFilePath);
@@ -40,6 +45,32 @@ void Logger::output(const QString &message, const LogLevel &level)
 void Logger::output(const QString &file, const int line, const QString& func, const QString &message, const LogLevel &level)
 {
     output("FILE(" + file + ") LINE(" + QString::number(line) + ") FUNC(" + func + ")\n" + message, level);
+
+    if(dialogFilter.contains(level))
+    {
+        switch(level)
+        {
+        case LogLevel::Fatal:
+        case LogLevel::Error:
+        {
+            QMessageBox::critical(nullptr, "Error (" + file + ") " + QString::number(line), message);
+            break;
+        }
+        case LogLevel::Warn:
+        {
+            QMessageBox::warning(nullptr, "Warn (" + file + ") " + QString::number(line), message);
+            break;
+        }
+        case LogLevel::Info:
+        case LogLevel::Debug:
+        {
+            QMessageBox::information(nullptr, "Info (" + file + ") " + QString::number(line), message);
+            break;
+        }
+        default:
+            break;
+        }
+    }
 }
 
 void Logger::setLogFilePath(const QString &path)
@@ -95,12 +126,12 @@ void Logger::LogWriter::setLogFilePath(const QString &path)
 
 
 QHash<Logger::LogLevel, QColor> LogBrowserWidget::logLevelColor
-= { { Logger::LogLevel::Debug, Qt::black },
+= { { Logger::LogLevel::Debug, Qt::darkBlue },
     { Logger::LogLevel::Info, Qt::black},
     { Logger::LogLevel::Warn, Qt::darkRed},
     { Logger::LogLevel::Error, Qt::red},
     { Logger::LogLevel::Fatal, Qt::red},
-    { Logger::LogLevel::GnuplotInfo, Qt::black},
+    { Logger::LogLevel::GnuplotInfo, Qt::darkCyan},
     { Logger::LogLevel::GnuplotStdOut, Qt::blue},
     { Logger::LogLevel::GnuplotStdErr, Qt::red}
   };

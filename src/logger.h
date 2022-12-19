@@ -43,6 +43,8 @@ private:
     class LogWriter;
     LogWriter *writer;
 
+    QSet<LogLevel> dialogFilter;
+
 signals:
     /* public signal */
     void logPushed(const QString& message, const Logger::LogLevel& level);

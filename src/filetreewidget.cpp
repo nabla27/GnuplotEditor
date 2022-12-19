@@ -961,11 +961,8 @@ void FileTreeWidget::loadFileTree()
 
     setHeaderHidden(true);
 
-    //rootTreeItem = new TreeFileItem(this, (int)TreeItemType::Root);
     rootTreeItem = new TreeFolderItem(this, QFileInfo(folderPath));
-    //rootTreeItem->setText(0, folderPath.sliced(folderPath.lastIndexOf('/')));
-    //rootTreeItem->setToolTip(0, folderPath);
-    //rootTreeItem->info = QFileInfo(folderPath);
+
     TreeFileItem::list.insert(folderPath, rootTreeItem);
 
     switch(treeModel)
@@ -1082,10 +1079,6 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
 
         if(!TreeFileItem::list.contains(absPath))
         {
-            //TreeFileItem *item = new TreeFileItem(parent, (int)TreeItemType::Dir);
-            //item->setText(0, info.fileName());
-            //item->setToolTip(0, absPath);
-            //item->info = info;
             TreeFolderItem *item = new TreeFolderItem(parent, info);
             TreeFileItem::list.insert(absPath, item);
         }
@@ -1167,7 +1160,6 @@ void FileTreeWidget::addFolder()
     else
     {
         __LOGOUT__("failed to make the directory \"" + toPath + "\".", Logger::LogLevel::Error);
-        //QMessageBox::critical(this, "Error", "Could not add a folder.");
     }
 }
 
@@ -1189,7 +1181,6 @@ void FileTreeWidget::saveFolder()
     else
     {
         __LOGOUT__("failed to make the directory \"" + toPath + "\".", Logger::LogLevel::Error);
-        //QMessageBox::critical(this, "Error", "Could not save a folder.");
     }
 }
 
@@ -1259,8 +1250,6 @@ void FileTreeWidget::renameFile()
 
     if(!item) return;
 
-    //const qsizetype dotIndex = item->info.fileName().lastIndexOf('.');
-    //const QString oldFileName = (dotIndex == qsizetype(-1)) ? item->info.fileName() : item->info.fileName().first(dotIndex);
     const qsizetype dotIndex = item->fileInfo().fileName().lastIndexOf('.');
     const QString oldFileName = (dotIndex == qsizetype(-1)) ? item->fileInfo().fileName() : item->fileInfo().fileName().first(dotIndex);
 
@@ -1274,29 +1263,23 @@ void FileTreeWidget::renameFile()
         if(!ok || newFileName.isEmpty()) return;
 
         if(newFileName.contains('.'))
-            QMessageBox::critical(this, "Error", "Do not include the suffix.");
+            __LOGOUT__("do not include the suffix.", Logger::LogLevel::Error);
         else
             break;
     }
 
-    //const QString newAbsoluteFilePath = item->info.absoluteFilePath().replace(oldFileName, newFileName);
-    //QDir dir(item->info.absolutePath());
     const QString newAbsoluteFilePath = item->fileInfo().absoluteFilePath().replace(oldFileName, newFileName);
     QDir dir(item->fileInfo().absolutePath());
 
-    //if(!dir.rename(item->info.absoluteFilePath(), newAbsoluteFilePath))
     if(!dir.rename(item->fileInfo().absoluteFilePath(), newAbsoluteFilePath))
     {
         __LOGOUT__("Failed to rename the file \"" + oldFileName + "\" to \"" + newAbsoluteFilePath + "\".", Logger::LogLevel::Error);
         return;
     }
 
-    //TreeFileItem::list.remove(item->info.absoluteFilePath());
     TreeFileItem::list.remove(item->fileInfo().absoluteFilePath());
     TreeFileItem::list.insert(newAbsoluteFilePath, item);
-    //item->info.setFile(newAbsoluteFilePath);
-    //item->setText(0, item->info.fileName());
-    //item->setToolTip(0, newAbsoluteFilePath);
+
     item->setFilePath(newAbsoluteFilePath);
 }
 
@@ -1308,34 +1291,9 @@ void FileTreeWidget::removeFile()
 
     if(!item) return;
 
-    //QMessageBox::StandardButton reply = QMessageBox::question(this, "Remove", "Do you remove this \"" + item->info.fileName() + "\"??", QMessageBox::Yes | QMessageBox::No);
     QMessageBox::StandardButton reply = QMessageBox::question(this, "Remove", "Do you remove this \"" + item->fileInfo().fileName() + "\"??", QMessageBox::Yes | QMessageBox::No);
 
     if(reply != QMessageBox::Yes) return;
-
-    //bool ok = false;
-
-    //const QString absPath = item->fileInfo().absoluteFilePath();
-
-    //if(item->type() == (int)TreeItemType::Dir)
-    //{   //ディレクトリの場合の削除
-    //    dirWatcher->removePath(absPath);
-    //    QDir dir(absPath);
-    //    ok = dir.removeRecursively();
-    //    if(!ok)
-    //        dirWatcher->addPath(absPath);
-    //}
-    //else
-    //{   //ファイルの場合の削除
-    //    QFile file(absPath);
-    //    ok = file.remove();
-    //}
-
-    //if(!ok)
-    //{
-    //    __LOGOUT__("Failed to remove the file \"" + item->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Error);
-    //    return;
-    //}
 
     connect(item, &TreeFileItem::removed, [=](bool ok)
     {
@@ -1347,11 +1305,6 @@ void FileTreeWidget::removeFile()
     });
 
     item->remove();
-
-    //TreeFileItem::list.remove(item->fileInfo().absoluteFilePath());
-    //selectedItems().takeAt(0)->parent()->removeChild(item);
-    //delete item; item = nullptr;
-    //removeItemFromTree(item);
 }
 
 void FileTreeWidget::exportFile()
@@ -1415,7 +1368,6 @@ void FileTreeWidget::addFileFromDialog()
             switch((TreeItemType)item->type())
             {
             case TreeItemType::Dir:
-                //parentPath = item->info.absoluteFilePath();
                 parentPath = item->fileInfo().absoluteFilePath();
                 break;
             default:
@@ -1440,10 +1392,11 @@ void FileTreeWidget::addFileFromDialog()
 
             /* コピーしてこれば、自動的にdirWatcher::directoryChanged() --> updateFileTree() によってTreeに追加される */
 
-            if(!ok) QMessageBox::critical(this, "Error", "Could not copy the file \"" + filePath + "\".");
+            if(!ok)
+                __LOGOUT__("failed to copy the file \"" + filePath + "\".", Logger::LogLevel::Error);
         }
         else
-            QMessageBox::critical(this, "Error", "Same name file \"" + filePath + "\" already exists.");
+            __LOGOUT__("same file \"" + filePath + "\" already exists.", Logger::LogLevel::Error);
     }
 }
 
@@ -1474,7 +1427,6 @@ void FileTreeWidget::newFileFromDialog()
                     folderPath = this->folderPath;
                     break;
                 default:
-                    //folderPath = item->info.absoluteFilePath();
                     folderPath = item->fileInfo().absoluteFilePath();
                     break;
                 }
@@ -1492,7 +1444,9 @@ void FileTreeWidget::newFileFromDialog()
         if(!ok || newFileName.isEmpty()) return;
 
         if(TreeFileItem::list.contains(folderPath + '/' + newFileName))
-            QMessageBox::critical(this, "Error", "Same name file already exists.");
+        {
+            __LOGOUT__("same name file \"" + folderPath + "/" + newFileName + "\" already exists", Logger::LogLevel::Error);
+        }
         else
             break;
     }
@@ -1511,7 +1465,7 @@ void FileTreeWidget::newFileFromDialog()
     }
 
     if(!ok)
-        QMessageBox::critical(this, "Error", "Failed to create the new file.");
+        __LOGOUT__("failed to make the directory \"" + folderPath + "/" + newFileName + "\".", Logger::LogLevel::Error);
 
     /* ファイルが作成されれば、dirWatcherのdirectoryChanged() --> updateFileTree() によってTreeに追加される */
 }
