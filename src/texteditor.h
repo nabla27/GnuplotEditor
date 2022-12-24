@@ -22,23 +22,23 @@ class EditorManager;
 /* --- マウスカーソルによるtextUnderCursor()のtoolTip表示 ---
  * QTimer::timeout(void) -> TextEditor::requestToolTip()
  *                       -> TextEditor::toolTipRequested(QString)
- *                       -> CompletionModel::requestToolTip(QString)
- *                       -> CompletionModel::toolTipSet(QString)
- *                       -> TextEditor::setCompletionToolTip(QString)
+ *                       -> EditorManager::requestToolTip(QString)
+ *                       -> EditorManager::toolTipSet(QString)
+ *                       -> TextEditor::setDocumentToolTip(QString)
  *
  * --- 補完popupWindowのhighlightによるtoolTip表示 ---
  * QCompleter::highlighted(QString) -> TextEditor::toolTipRequested(QString)
- *                                  -> CompletionModel::requestToolTip(QString)
- *                                  -> CompletionModel::toolTipSet(QString)
- *                                  -> TextEditor::setCompletionToolTip(QString)
+ *                                  -> EditorManager::requestToolTip(QString)
+ *                                  -> EditorManager::toolTipSet(QString)
+ *                                  -> TextEditor::setDocumentToolTip(QString)
  *
  * --- 補完を決定する ---
  * QCompleter::activated(QString) -> TextEditor::insertCompletion(QString)
  *
  * --- keyboard入力による補完候補の決定 ---
  * TextEditor::keyPressEvent(QPressEvent*) -> TextEditor::changeCompletionModelRequested(QString)
- *                                         -> CompletionModel::requestModel(QString)
- *                                         -> CompletionModel::modelSet(QAbstractitemModel*)
+ *                                         -> EditorManager::requestModel(QString)
+ *                                         -> EditorManager::modelSet(QAbstractitemModel*)
  *                                         -> TextEditor::setCompletionModel(QAbstractItemModel*)
  *
  *
@@ -62,7 +62,7 @@ class TextEditor : public QPlainTextEdit
     Q_OBJECT
 public:
     explicit TextEditor(QWidget *parent);
-    virtual ~TextEditor();
+    virtual ~TextEditor() override;
 
 public slots:
     void setBackgroundColor(const QColor& color);
@@ -72,8 +72,6 @@ public slots:
 
 public:
     QString textUnderCursor();
-    void setCompletionModel(QAbstractItemModel *model);
-    void setCompletionToolTip(const QString& tooltip);
 
 protected:
     virtual void keyPressEvent(QKeyEvent *e) override;
@@ -92,6 +90,10 @@ protected slots:
     void highlight();
 
 private slots:
+    void setCompletionModel(QAbstractItemModel *model);
+    /* toolTip */
+    void setCursorToolTip();
+    void setDocumentToolTip(const QString& tooltip);
     /* lineNumberArea */
     void updateLineNumberAreaWidth();
     void updateLineNumberArea(const QRect& rect, int dy);
@@ -104,7 +106,7 @@ private:
 
 public:
     static QHash<QChar, QChar> braketList;
-    static QThread funcThread;
+    static QThread managerThread;
 
 private:
     QTimer *toolTipTimer;
@@ -114,6 +116,8 @@ private:
     QColor cursorLineColor;
 
     LineNumberArea *const _lineNumberArea;
+
+    inline static int count = 0;
 
 signals:
     void toolTipRequested(const QString& text);

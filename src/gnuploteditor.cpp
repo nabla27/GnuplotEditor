@@ -33,6 +33,8 @@
 #include "../plugin/editor_plugin.h"
 #include "plugin.h"
 #include <QPluginLoader>
+#include <QThreadPool>
+#include "texteditor.h"
 
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
@@ -54,6 +56,9 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 
     {
         const QString dllPath = "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/gnuplot-completion/x64/Release/gnuplot-completion.dll";
+        TextEditor *editor = new TextEditor(nullptr);
+        editor->show();
+        connect(this, &GnuplotEditor::destroyed, [=](){ delete editor; });
     }
 
 

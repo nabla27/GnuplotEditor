@@ -39,7 +39,7 @@ public:
     void setDllPath(const QString& path);
     void setSymbol(const QString& symbol);
     void setEnable(const bool enable) { enableFlag = enable; }
-    void isEnable() const { return enableFlag; }
+    bool isEnable() const { return enableFlag; }
     bool load();
     bool unload();
     bool resolve();
@@ -177,6 +177,8 @@ public:
 
     QSize sizeHint() const { return QSize(700, QWidget::sizeHint().height()); }
 
+    static QString pluginSettingPath();
+
 private:
     QTabWidget *tabWidget;
 
@@ -226,16 +228,21 @@ class PluginSettingWidget::EditorPluginPage : public QWidget
 
 public:
     EditorPluginPage(QWidget *parent);
+    ~EditorPluginPage();
 
 private slots:
-    void addPlugin();
+    void addPluginFromDialog();
     void removePlugin();
     void editPlugin();
     void changePlugin(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QList<int>& roles);
 
 private:
+    void addPlugin(const QString& dllPath, const QString& symbolName);
     void checkLoadState(QTreeWidgetItem *item);
     void checkResolveState(QTreeWidgetItem *item);
+
+    void loadFromXml();
+    void saveAsXml();
 
 private:
     QTreeWidget *listWidget;
