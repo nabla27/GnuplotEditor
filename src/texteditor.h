@@ -7,113 +7,117 @@
  * see https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 
-#ifndef TextEditOR_H
-#define TextEditOR_H
+#ifndef TEXTEDITOR_H
+#define TEXTEDITOR_H
 
 #include <QPlainTextEdit>
-#include "editorsyntaxhighlighter.h"
-#include <QThread>
 
 
-
+class QAbstractItemModel;
 class QCompleter;
-namespace gnuplot_cpl { class GnuplotCompletionModel; }
+class LineNumberArea;
+class EditorManager;
+
+
+/* --- マウスカーソルによるtextUnderCursor()のtoolTip表示 ---
+ * QTimer::timeout(void) -> TextEditor::requestToolTip()
+ *                       -> TextEditor::toolTipRequested(QString)
+ *                       -> CompletionModel::requestToolTip(QString)
+ *                       -> CompletionModel::toolTipSet(QString)
+ *                       -> TextEditor::setCompletionToolTip(QString)
+ *
+ * --- 補完popupWindowのhighlightによるtoolTip表示 ---
+ * QCompleter::highlighted(QString) -> TextEditor::toolTipRequested(QString)
+ *                                  -> CompletionModel::requestToolTip(QString)
+ *                                  -> CompletionModel::toolTipSet(QString)
+ *                                  -> TextEditor::setCompletionToolTip(QString)
+ *
+ * --- 補完を決定する ---
+ * QCompleter::activated(QString) -> TextEditor::insertCompletion(QString)
+ *
+ * --- keyboard入力による補完候補の決定 ---
+ * TextEditor::keyPressEvent(QPressEvent*) -> TextEditor::changeCompletionModelRequested(QString)
+ *                                         -> CompletionModel::requestModel(QString)
+ *                                         -> CompletionModel::modelSet(QAbstractitemModel*)
+ *                                         -> TextEditor::setCompletionModel(QAbstractItemModel*)
+ *
+ *
+ * --- 行表示エリアのpaintEvent ----
+ * TextEditor::blockCountChanged(int) -> TextEditor::updateLineNumberAreaWidth(void)
+ * TextEditor::updateRequested(QRect,int) -> TextEditor::updateLineNumerArea(QRect, int)
+ * LineNumberArea::paintEvent(QPaintEvent*) -> TextEditor::lineNumberAreaPaintEvent(QPaintEvent*)
+ *                                          -> TextEditor::paintLineNumberArea(QPainter,QRect,int)
+ *
+ * --- ハイライト ---
+ * TextEditor::cursorPositionChanged(void) -> TextEditor::highlight(void)
+ *                                         -> TextEditor::highlightExtraSelections(QList<QTextEdit::ExtraSelection>)
+ *                                         -> TextEditor::setExtraSelections(QList<QTextEdit::ExtraSelection>)
+ *
+ */
 
 
 
-
-class TextEdit : public QPlainTextEdit
+class TextEditor : public QPlainTextEdit
 {
     Q_OBJECT
 public:
-    TextEdit(QWidget *parent = nullptr);
-    ~TextEdit();
+    explicit TextEditor(QWidget *parent);
+    virtual ~TextEditor();
 
 public slots:
-    void setBackgroundColor(const QColor& color) { QPalette palette = this->palette(); palette.setColor(QPalette::Base, color); setPalette(palette); }
-    void setTextColor(const QColor& color) { QPalette palette = this->palette(); palette.setColor(QPalette::Text, color); setPalette(palette); }
-    void setTabSpace(const double& space) { setTabStopDistance(space); }
-    void setWrap(const bool wrap) { setLineWrapMode(QPlainTextEdit::LineWrapMode(wrap)); }
-    void setMainCmdColor(const QColor& color) { textHighlight->setFirstCmdColor(color); }
-    void setCommentColor(const QColor& color) { textHighlight->setCommentColor(color); }
-    void setStringColor(const QColor& color) { textHighlight->setStringColor(color); }
-    void setParentFolderPath(const QString& path) { emit currentFolderChanged(path); }
-    void insertToSelectedHeadBlock(const QString& text) const;
-    void removeFromSelectedHeadBlock(const QString& text) const;
-    void reverseSelectedCommentState() const;
+    void setBackgroundColor(const QColor& color);
+    void setTextColor(const QColor& color);
+    void setWrap(const bool wrap);
+    void setCursorLineColor(const QColor& color);
 
 public:
-    QString textUnderCursor() const;
+    QString textUnderCursor();
+    void setCompletionModel(QAbstractItemModel *model);
+    void setCompletionToolTip(const QString& tooltip);
 
 protected:
-    void wheelEvent(QWheelEvent *event) override;
+    virtual void keyPressEvent(QKeyEvent *e) override;
+    virtual void resizeEvent(QResizeEvent *e) override;
+
+    virtual void highlightExtraSelections(QList<QTextEdit::ExtraSelection>& selections);
+    virtual void paintLineNumberArea(QPainter& painter, const QRect& rect, const int number);
+
+    class LineNumberArea;
+    TextEditor::LineNumberArea *const lineNumberArea() { return _lineNumberArea; }
+
+protected slots:
+    /* completion */
+    void insertCompletion(const QString& completion);
+    /* highlight */
+    void highlight();
+
+private slots:
+    /* lineNumberArea */
+    void updateLineNumberAreaWidth();
+    void updateLineNumberArea(const QRect& rect, int dy);
+    void lineNumberAreaPaintEvent(QPaintEvent *event);
 
 private:
-    EditorSyntaxHighlighter *textHighlight;
+    void backTabOperation();
+    void insertBraketOperation(const QChar& c);
+    void removeBraketOperation(QKeyEvent *e);
 
-    /* completer */
 public:
-    void setCompleter(QCompleter *c);
-    QCompleter *completer() const;
-
-protected:
-    void keyPressEvent(QKeyEvent *e) override;
-    void focusInEvent(QFocusEvent *e) override;
+    static QHash<QChar, QChar> braketList;
+    static QThread funcThread;
 
 private:
-    void insertCompletion(QString completion);           //予測変換で決定された文字をエディタに挿入
-    void bracketCompletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar); //括弧の補完 [ ( ' "
-    void bracketDeletion(QKeyEvent *e, const QChar beforeChar, const QChar nextChar);   //括弧の削除
-    void changeCompleterModel();                                //入力コマンドから予測変換候補を変更
-
-private:
-    static const QChar tmlChar;
-    QCompleter *c = nullptr;
-    QString firstCmd = "";
-    QString previousCmd = "";
-    QString currentCmd = "";
-
     QTimer *toolTipTimer;
 
-    gnuplot_cpl::GnuplotCompletionModel *gnuplotcpl;
-    QThread completionThread;
-    void requestToopTipForCompletion(const QString& text);
-    void requestToolTipForCursor();
+    QCompleter *completer;
+    EditorManager *editorManager;
+    QColor cursorLineColor;
+
+    LineNumberArea *const _lineNumberArea;
 
 signals:
-    void completionRequested(const QString& firstCmd, const QString& preCmd, const int index);
-    void toolTipRequested(const QString& text, const QString& firstCmd, const QString& previousCmd);
-    void currentFolderChanged(const QString& path);
-
-private slots:
-    void setCompletionList(const QStringList& list);
-    void setCompletionToolTip(const QString& text);
-
-    /* lineNumer */
-public:
-    void lineNumberAreaPaintEvent(QPaintEvent *event);
-    int lineNumberAreaWidth();
-    void resetErrorLineNumber() { errorLineNumber = -1; highlightLine(); }
-    void setErrorLineNumber(const int num) { errorLineNumber = num - 1; highlightLine(); }
-
-public slots:
-    void highlightLine();
-    void setCursorLineColor(const QColor& color) { cursorLineColor = color; highlightLine(); }
-
-protected:
-    void resizeEvent(QResizeEvent *event) override;
-
-private slots:
-    void updateLineNumberAreaWidth(int newBlockCount);
-    void updateLineNumberArea(const QRect &rect, int dy);
-
-private:
-    QWidget *lineNumberArea;
-    int errorLineNumber = -1;
-    QColor cursorLineColor = QColor(50, 50, 50);
-
-signals:
-    void fontSizeChanged(const int ps);
+    void toolTipRequested(const QString& text);
+    void changeCompletionModelRequested(const QString& text);
 };
 
 
@@ -121,21 +125,24 @@ signals:
 
 
 
-class ReLineNumberArea : public QWidget
+class TextEditor::LineNumberArea : public QWidget
 {
+    Q_OBJECT
 public:
-    ReLineNumberArea(TextEdit *editor) : QWidget(editor), codeEditor(editor) {}
-    ~ReLineNumberArea() {}
+    explicit LineNumberArea(TextEditor *editor);
+
 public:
-    QSize sizeHint() const override{
-        return QSize(codeEditor->lineNumberAreaWidth(), 0);
-    }
+    QSize sizeHint() const override;
+    int lineNumberAreaWidth() const;
+    void setLeftMaring(int m) { _leftMargin = m; }
+    int leftMargin() const { return _leftMargin; }
+
 protected:
-    void paintEvent(QPaintEvent *event) override{
-        codeEditor->lineNumberAreaPaintEvent(event);
-    }
+    void paintEvent(QPaintEvent *event) override;
+
 private:
-    TextEdit *codeEditor;
+    TextEditor *editor;
+    int _leftMargin = 10;
 };
 
 
@@ -144,4 +151,5 @@ private:
 
 
 
-#endif // TextEditOR_H
+
+#endif // TEXTEDITOR_H

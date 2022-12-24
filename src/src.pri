@@ -1,6 +1,7 @@
 HEADERS += \
     $$PWD/consolewidget.h \
     $$PWD/cursorwatcher.h \
+    $$PWD/editormanager.h \
     $$PWD/editorsettingwidget.h \
     $$PWD/editorsyntaxhighlighter.h \
     $$PWD/editorwidget.h \
@@ -12,17 +13,20 @@ HEADERS += \
     $$PWD/gnuploteditor.h \
     $$PWD/gnuplotsettingwidget.h \
     $$PWD/gnuplottable.h \
+    $$PWD/gnuplottexteditor.h \
     $$PWD/imagedisplay.h \
     $$PWD/iofile.h \
     $$PWD/logger.h \
     $$PWD/menubar.h \
     $$PWD/pdfviewer.h \
+    $$PWD/plugin.h \
     $$PWD/standardpixmap.h \
     $$PWD/tablesettingwidget.h \
     $$PWD/templatecustomwidget.h \
-    $$PWD/texteditor.h \
 #<<<<<<< HEAD
 #    $$PWD/updatemanager.h \
+    $$PWD/textedit.h \
+    $$PWD/texteditor.h \
     $$PWD/windowmenubar.h
 #=======
     $$PWD/windowmenubar.h \
@@ -31,6 +35,7 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/consolewidget.cpp \
+    $$PWD/editormanager.cpp \
     $$PWD/editorsettingwidget.cpp \
     $$PWD/editorsyntaxhighlighter.cpp \
     $$PWD/editorwidget.cpp \
@@ -42,18 +47,21 @@ SOURCES += \
     $$PWD/gnuploteditor.cpp \
     $$PWD/gnuplotsettingwidget.cpp \
     $$PWD/gnuplottable.cpp \
+    $$PWD/gnuplottexteditor.cpp \
     $$PWD/imagedisplay.cpp \
     $$PWD/iofile.cpp \
     $$PWD/logger.cpp \
     $$PWD/main.cpp \
     $$PWD/menubar.cpp \
     $$PWD/pdfviewer.cpp \
+    $$PWD/plugin.cpp \
     $$PWD/standardpixmap.cpp \
     $$PWD/tablesettingwidget.cpp \
     $$PWD/templatecustomwidget.cpp \
-    $$PWD/texteditor.cpp \
 #<<<<<<< HEAD
 #    $$PWD/updatemanager.cpp \
+    $$PWD/textedit.cpp \
+    $$PWD/texteditor.cpp \
     $$PWD/windowmenubar.cpp
 #=======
     $$PWD/windowmenubar.cpp \

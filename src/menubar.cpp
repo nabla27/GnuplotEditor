@@ -12,9 +12,10 @@
 #include <QAction>
 #include <QFileDialog>
 #include "filetreewidget.h"
-#include "texteditor.h"
+#include "textedit.h"
 #include "standardpixmap.h"
 #include "logger.h"
+#include "plugin.h"
 
 
 FileMenu::FileMenu(const QString &title, QWidget *parent)
@@ -343,14 +344,18 @@ ViewMenu::ViewMenu(const QString &title, QWidget *parent)
 HelpMenu::HelpMenu(const QString &title, QWidget *parent)
     : QMenu(title, parent)
     , aLogWindow(new QAction("Log", this))
+    , aPlugins(new QAction("Plugins", this))
     , aReboot(new QAction("Reboot", this))
 
     , logWindow(new LogBrowserWidget(this))
+    , pluginSetting(new PluginSettingWidget(this))
 {
     addAction(aLogWindow);
+    addAction(aPlugins);
     addAction(aReboot);
 
     connect(aLogWindow, &QAction::triggered, logWindow, &LogBrowserWidget::show);
+    connect(aPlugins, &QAction::triggered, pluginSetting, &PluginSettingWidget::show);
     connect(aReboot, &QAction::triggered, this, &HelpMenu::rebootRequested);
 
     connect(logger, &Logger::logPushed, logWindow, &LogBrowserWidget::appendLog);

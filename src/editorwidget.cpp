@@ -19,7 +19,7 @@
 #include "logger.h"
 
 //DEBUG
-#include "texteditor.h"
+#include "textedit.h"
 #include "filetreewidget.h"
 #include <QScrollArea>
 

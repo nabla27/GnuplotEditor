@@ -14,6 +14,7 @@
 
 class TreeFileItem;
 class LogBrowserWidget;
+class PluginSettingWidget;
 
 
 class FileMenu : public QMenu
@@ -169,9 +170,11 @@ public:
 
 private:
     QAction *aLogWindow;
+    QAction *aPlugins;
     QAction *aReboot;
 
     LogBrowserWidget *logWindow;
+    PluginSettingWidget *pluginSetting;
 
 signals:
     void rebootRequested();

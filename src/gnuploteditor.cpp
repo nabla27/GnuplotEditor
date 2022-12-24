@@ -29,6 +29,10 @@
 #include "gnuplot.h"
 #include "utility.h"
 
+//DEBUG
+#include "../plugin/editor_plugin.h"
+#include "plugin.h"
+#include <QPluginLoader>
 
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
@@ -47,6 +51,11 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 {
     /* ウィンドウをスクリーン画面に対して(0.4,0.5)の比率サイズに設定 */
     setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
+
+    {
+        const QString dllPath = "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/gnuplot-completion/x64/Release/gnuplot-completion.dll";
+    }
+
 
     /* レイアウト生成 */
     initializeLayout();
