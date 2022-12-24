@@ -41,35 +41,42 @@ void Logger::output(const QString &message, const LogLevel &level)
 {
     emit logPushed(message, level);
 }
-
+#include <QStyle>
 void Logger::output(const QString &file, const int line, const QString& func, const QString &message, const LogLevel &level)
 {
     output("FILE(" + file + ") LINE(" + QString::number(line) + ") FUNC(" + func + ")\n" + message, level);
 
     if(dialogFilter.contains(level))
     {
+        QMessageBox messageBox;
+        messageBox.setWindowFlags(messageBox.windowFlags() | Qt::WindowStaysOnTopHint);
+        messageBox.setWindowTitle(file + " " + QString::number(line));
+        messageBox.setText(message);
+
         switch(level)
         {
         case LogLevel::Fatal:
         case LogLevel::Error:
         {
-            QMessageBox::critical(nullptr, "Error (" + file + ") " + QString::number(line), message);
+            messageBox.setIconPixmap(QMessageBox::standardIcon(QMessageBox::Icon::Critical));
             break;
         }
         case LogLevel::Warn:
         {
-            QMessageBox::warning(nullptr, "Warn (" + file + ") " + QString::number(line), message);
+            messageBox.setIconPixmap(QMessageBox::standardIcon(QMessageBox::Icon::Warning));
             break;
         }
         case LogLevel::Info:
         case LogLevel::Debug:
         {
-            QMessageBox::information(nullptr, "Info (" + file + ") " + QString::number(line), message);
+            messageBox.setIconPixmap(QMessageBox::standardIcon(QMessageBox::Icon::Information));
             break;
         }
         default:
-            break;
+            return;
         }
+
+        messageBox.exec();
     }
 }
 

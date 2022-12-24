@@ -17,7 +17,7 @@
 #include <QToolButton>
 #include <QApplication>
 #include "utility.h"
-#include "texteditor.h"
+#include "textedit.h"
 #include "logger.h"
 
 GnuplotSettingWidget::GnuplotSettingWidget(QWidget *parent)

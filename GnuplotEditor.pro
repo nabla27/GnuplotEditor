@@ -30,6 +30,7 @@ LIBS += "C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.19041.0\\um\\x64\\
         "C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.19041.0\\um\\x64\\user32.lib"      #WinAPI
 
 include(src/src.pri)
+include(plugin/plugin.pri)
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

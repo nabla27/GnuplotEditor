@@ -15,7 +15,7 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QApplication>
-#include "texteditor.h"
+#include "textedit.h"
 #include "layoutparts.h"
 
 class TemplateItemPanel;

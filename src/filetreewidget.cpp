@@ -25,7 +25,7 @@
 #include "pdfviewer.h"
 #include "gnuplot.h"
 #include "tablesettingwidget.h"
-#include "texteditor.h"
+#include "textedit.h"
 #include "iofile.h"
 #include "standardpixmap.h"
 #include "logger.h"

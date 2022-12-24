@@ -17,7 +17,7 @@
 #include <QFontDialog>
 #include <QDoubleSpinBox>
 #include <QCheckBox>
-#include "texteditor.h"
+#include "textedit.h"
 #include <QApplication>
 
 class EditorSetting : public QWidget
