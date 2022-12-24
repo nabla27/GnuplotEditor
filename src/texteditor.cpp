@@ -35,6 +35,8 @@ QHash<QChar, QChar> TextEditor::braketList =
     {'{', '}'}
 };
 
+QThread TextEditor::managerThread = QThread();
+
 TextEditor::TextEditor(QWidget *parent)
     : QPlainTextEdit(parent)
 
@@ -46,21 +48,46 @@ TextEditor::TextEditor(QWidget *parent)
 
     , _lineNumberArea(new TextEditor::LineNumberArea(this))
 {
+    count++;
+
     /* lineNumberArea */
     connect(this, &TextEditor::blockCountChanged, this, &TextEditor::updateLineNumberAreaWidth);
     connect(this, &TextEditor::updateRequest, this, &TextEditor::updateLineNumberArea);
     /* highlight */
     connect(this, &TextEditor::cursorPositionChanged, this, &TextEditor::highlight);
+    /* toolTip */
+    connect(toolTipTimer, &QTimer::timeout, this, &TextEditor::setCursorToolTip);
+    connect(completer, QOverload<const QString&>::of(&QCompleter::highlighted),  this, &TextEditor::toolTipRequested);
+    connect(this, &TextEditor::toolTipRequested, editorManager, &EditorManager::requestToolTip);
+    connect(editorManager, &EditorManager::toolTipSet, this, &TextEditor::setDocumentToolTip);
+    /* completion */
+    connect(completer, QOverload<const QString&>::of(&QCompleter::activated), this, &TextEditor::insertCompletion);
+    connect(this, &TextEditor::changeCompletionModelRequested, editorManager, &EditorManager::requestModel);
+    connect(editorManager, &EditorManager::modelSet, this, &TextEditor::setCompletionModel);
 
+    connect(this, &TextEditor::destroyed, editorManager, &EditorManager::deleteLater);
 
     setBackgroundColor(Qt::black);
     setTextColor(Qt::white);
+
+    if(!managerThread.isRunning()) managerThread.start();
+    editorManager->moveToThread(&managerThread);
+
+    toolTipTimer->setInterval(2000);
+    toolTipTimer->start();
+
+    updateLineNumberAreaWidth();
 }
 
 TextEditor::~TextEditor()
 {
-    editorManager->deleteLater();
-    editorManager = nullptr;
+    count--;
+
+    if(count == 0)
+    {
+        managerThread.quit();
+        managerThread.wait();
+    }
 }
 
 void TextEditor::setBackgroundColor(const QColor &color)
@@ -155,7 +182,22 @@ void TextEditor::setCompletionModel(QAbstractItemModel *model)
     completer->complete(cr);
 }
 
-void TextEditor::setCompletionToolTip(const QString &tooltip)
+void TextEditor::setCursorToolTip()
+{
+    if(!isActiveWindow() || !underMouse()) return;
+
+    QTextCursor tc = cursorForPosition(viewport()->mapFromGlobal(viewport()->cursor().pos()));
+
+    tc.movePosition(QTextCursor::EndOfWord, QTextCursor::MoveAnchor);
+    tc.movePosition(QTextCursor::StartOfWord, QTextCursor::KeepAnchor);
+
+    if(tc.selectedText().isEmpty())
+        return;
+    else
+        emit toolTipRequested(tc.selectedText());
+}
+
+void TextEditor::setDocumentToolTip(const QString &tooltip)
 {
     //前回表示されたtoolTipと同じであった場合，表示位置は移動しないので，一度空文字で非表示にする
     QToolTip::showText(QPoint(), "");

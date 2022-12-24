@@ -23,6 +23,7 @@
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QMessageBox>
+#include <QApplication>
 
 
 #include "utility.h"
@@ -49,6 +50,11 @@ PluginSettingWidget::PluginSettingWidget(QWidget *parent)
 
     hLayout->setSpacing(0);
     hLayout->setContentsMargins(0, 0, 0, 0);
+}
+
+QString PluginSettingWidget::pluginSettingPath()
+{
+    return QApplication::applicationDirPath() + "/setting/plugin-list.xml";
 }
 
 
@@ -188,12 +194,19 @@ PluginSettingWidget::EditorPluginPage::EditorPluginPage(QWidget *parent)
     listWidget->setHeaderLabels(enumToStrings(ItemIndex(0)));
 
     connect(listWidget->model(), &QAbstractItemModel::dataChanged, this, &EditorPluginPage::changePlugin);
-    connect(addButton, &QPushButton::released, this, &EditorPluginPage::addPlugin);
+    connect(addButton, &QPushButton::released, this, QOverload<void>::of(&EditorPluginPage::addPluginFromDialog));
     connect(removeButton, &QPushButton::released, this, &EditorPluginPage::removePlugin);
     connect(editButton, &QPushButton::released, this, &EditorPluginPage::editPlugin);
+
+    loadFromXml();
 }
 
-void PluginSettingWidget::EditorPluginPage::addPlugin()
+PluginSettingWidget::EditorPluginPage::~EditorPluginPage()
+{
+    saveAsXml();
+}
+
+void PluginSettingWidget::EditorPluginPage::addPluginFromDialog()
 {
     PluginOptionDialog dialog(this);
     const int code = dialog.exec();
@@ -208,6 +221,11 @@ void PluginSettingWidget::EditorPluginPage::addPlugin()
         return;
     }
 
+    addPlugin(dialog.dllPath(), dialog.symbolName());
+}
+
+void PluginSettingWidget::EditorPluginPage::addPlugin(const QString &dllPath, const QString &symbolName)
+{
     Plugin<editorplugin::EditorPlugin> *plugin = new Plugin<editorplugin::EditorPlugin>;
     PluginCollection::editorPlugins.insert(plugin->id(), plugin);
 
@@ -216,11 +234,11 @@ void PluginSettingWidget::EditorPluginPage::addPlugin()
     /* 順番に注意
      * addPlugin()でPlugin::load()が呼ばれるのはdllPathが設定されてからである必要がある
      * そうでないとQLibrary::libraryPath()が空文字である場合にloadしてエラーが起きる */
-    item->setText((int)ItemIndex::DLLPath, dialog.dllPath());
-    item->setText((int)ItemIndex::SymbolName, dialog.symbolName());
+    item->setText((int)ItemIndex::DLLPath, dllPath);
+    item->setText((int)ItemIndex::SymbolName, symbolName);
     item->setCheckState((int)ItemIndex::Enable, Qt::CheckState::Checked);
     item->setText((int)ItemIndex::ID, QString::number(plugin->id()));
-    item->setText((int)ItemIndex::Name, QFileInfo(dialog.dllPath()).baseName());
+    item->setText((int)ItemIndex::Name, QFileInfo(dllPath).baseName());
 
     listWidget->addTopLevelItem(item);
 }
@@ -431,6 +449,104 @@ void PluginSettingWidget::EditorPluginPage::checkResolveState(QTreeWidgetItem *i
     }
 }
 
+
+/*          Copyright Joe Coder 2004 - 2006.
+ * Distributed under the Boost Software License, Version 1.0.
+ *    (See accompanying file LICENSE_1_0.txt or copy at
+ *          https://www.boost.org/LICENSE_1_0.txt)
+ */
+#include "boost/property_tree/xml_parser.hpp"
+#include "boost/lexical_cast.hpp"
+#include "boost/foreach.hpp"
+
+void PluginSettingWidget::EditorPluginPage::loadFromXml()
+{
+    using namespace boost::property_tree;
+
+    const QString filePath = PluginSettingWidget::pluginSettingPath();
+
+    if(QFile::exists(filePath))
+    {
+        ptree pt;
+        read_xml(filePath.toUtf8().constData(), pt);
+
+        __LOGOUT__("read editor plugin list file \"" + filePath + "\".", Logger::LogLevel::Info);
+
+        boost::optional<std::string> child_editorplugin = pt.get_optional<std::string>("root.editorplugin");
+        if(!child_editorplugin)
+        {
+            qDebug() << "editorplugin not found";
+            return;
+        }
+        boost::optional<std::string> child_dllinfo = pt.get_optional<std::string>("root.editorplugin.dllinfo");
+        if(!child_dllinfo)
+        {
+            qDebug() << "editorplugin.dllinfo not found";
+            return;
+        }
+
+        BOOST_FOREACH(const ptree::value_type& child, pt.get_child("root.editorplugin")) //root.editorplugin.dllinfoを捜査
+        {   //childはroot.editorplugin.dllinfo
+            if(const boost::optional<std::string>& dllPath = child.second.get_optional<std::string>("dllpath"))
+                if(const boost::optional<std::string>& symbolName = child.second.get_optional<std::string>("symbolname"))
+                    addPlugin(QString::fromStdString(dllPath.value()), QString::fromStdString(symbolName.value()));
+        }
+    }
+    else
+    {
+        __LOGOUT__("dll list file was not found. \"" + filePath + "\".", Logger::LogLevel::Warn);
+    }
+}
+
+void PluginSettingWidget::EditorPluginPage::saveAsXml()
+{
+    /*
+     * root --- editorplugin --- dllinfo --- dllpath
+     *       |                |           |- symbolname
+     *       |                |
+     *       |                | - dllinfo --- dllpath
+     *       |                             |- symbolname
+     *       |- otherplugin
+     */
+
+
+    using namespace boost::property_tree;
+
+    ptree pt;
+
+    ptree& dllList = pt.add("root.editorplugin", "");
+    for(int i = 0; i < listWidget->topLevelItemCount(); ++i)
+    {
+        if(QTreeWidgetItem *item = listWidget->topLevelItem(i))
+        {
+            ptree& dllInfo = dllList.add("dllinfo", "");
+            dllInfo.add("dllpath", item->text((int)ItemIndex::DLLPath).toUtf8().constData());
+            dllInfo.add("symbolname", item->text((int)ItemIndex::SymbolName).toUtf8().constData());
+        }
+    }
+
+    const QString filePath = pluginSettingPath();
+    const QString folderPath = QFileInfo(filePath).absolutePath();
+
+    QDir dir(folderPath);
+    if(!dir.exists())
+    {   //フォルダが存在しない場合は作成する
+        if(dir.mkdir(folderPath))
+        {
+             __LOGOUT__("make a directory \"" + folderPath + "\".", Logger::LogLevel::Info);
+        }
+        else
+        {
+             __LOGOUT__("failed to make a directory \"" + folderPath + "\". could not save the editor-plugin list.", Logger::LogLevel::Error);
+                return;
+        }
+    }
+
+    constexpr int indent = 4;
+    write_xml(filePath.toUtf8().constData(), pt, std::locale(), xml_writer_make_settings<std::string>(' ', indent, "utf-8"));
+
+    __LOGOUT__("save the editor plugin list.", Logger::LogLevel::Info);
+}
 
 
 
