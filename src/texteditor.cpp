@@ -48,7 +48,7 @@ TextEditor::TextEditor(QWidget *parent)
 
     , _lineNumberArea(new TextEditor::LineNumberArea(this))
 {
-    count++;
+    instanceCount++;
 
     /* lineNumberArea */
     connect(this, &TextEditor::blockCountChanged, this, &TextEditor::updateLineNumberAreaWidth);
@@ -81,9 +81,9 @@ TextEditor::TextEditor(QWidget *parent)
 
 TextEditor::~TextEditor()
 {
-    count--;
+    instanceCount--;
 
-    if(count == 0)
+    if(instanceCount == 0)
     {
         managerThread.quit();
         managerThread.wait();
@@ -191,10 +191,20 @@ void TextEditor::setCursorToolTip()
     tc.movePosition(QTextCursor::EndOfWord, QTextCursor::MoveAnchor);
     tc.movePosition(QTextCursor::StartOfWord, QTextCursor::KeepAnchor);
 
-    if(tc.selectedText().isEmpty())
+    const QString text = tc.selectedText();
+
+    if(text.isEmpty())
         return;
     else
-        emit toolTipRequested(tc.selectedText());
+    {
+        static QString previousToolTip;
+
+        if(previousToolTip != text)
+        {
+            emit toolTipRequested(text);
+            previousToolTip = text;
+        }
+    }
 }
 
 void TextEditor::setDocumentToolTip(const QString &tooltip)
@@ -285,7 +295,10 @@ void TextEditor::keyPressEvent(QKeyEvent *e)
     /* 予測変換を無効にする場合 */
     {
         static QString eow("~!#$%{}|:<>?,;\\");
-        if(!e->text().isEmpty() && eow.contains(e->text().front())) return;
+        if(!e->text().isEmpty() && eow.contains(e->text().front()))
+        {
+            completer->popup()->hide();
+        }
     }
     /* 補完候補を変更する場合 */
     {

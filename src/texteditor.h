@@ -117,7 +117,7 @@ private:
 
     LineNumberArea *const _lineNumberArea;
 
-    inline static int count = 0;
+    inline static int instanceCount = 0;
 
 signals:
     void toolTipRequested(const QString& text);

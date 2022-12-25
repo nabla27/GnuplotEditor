@@ -348,14 +348,14 @@ HelpMenu::HelpMenu(const QString &title, QWidget *parent)
     , aReboot(new QAction("Reboot", this))
 
     , logWindow(new LogBrowserWidget(this))
-    , pluginSetting(new PluginSettingWidget(this))
+    , pluginSetting(new PluginListWidget(this))
 {
     addAction(aLogWindow);
     addAction(aPlugins);
     addAction(aReboot);
 
     connect(aLogWindow, &QAction::triggered, logWindow, &LogBrowserWidget::show);
-    connect(aPlugins, &QAction::triggered, pluginSetting, &PluginSettingWidget::show);
+    connect(aPlugins, &QAction::triggered, pluginSetting, &PluginListWidget::show);
     connect(aReboot, &QAction::triggered, this, &HelpMenu::rebootRequested);
 
     connect(logger, &Logger::logPushed, logWindow, &LogBrowserWidget::appendLog);
