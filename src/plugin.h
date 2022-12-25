@@ -14,6 +14,7 @@
 #include <QWidget>
 #include <QDialog>
 #include "logger.h"
+#include "../plugin/plugin_base.h"
 
 
 
@@ -23,6 +24,7 @@ class QTabWidget;
 class QLineEdit;
 class QFileDialog;
 class QTreeWidgetItem;
+class PluginSettingWidget;
 
 
 
@@ -166,11 +168,11 @@ struct PluginCollection
 
 
 
-class PluginSettingWidget : public QWidget
+class PluginListWidget : public QWidget
 {
     Q_OBJECT
 public:
-    PluginSettingWidget(QWidget *parent);
+    PluginListWidget(QWidget *parent);
 
     enum class ItemIndex { Enable, ID, Name, Version, DLLPath, SymbolName };
     Q_ENUM(ItemIndex)
@@ -193,7 +195,7 @@ private:
 
 
 
-class PluginSettingWidget::PluginOptionDialog : public QDialog
+class PluginListWidget::PluginOptionDialog : public QDialog
 {
     Q_OBJECT
 public:
@@ -222,7 +224,7 @@ private:
 
 
 
-class PluginSettingWidget::EditorPluginPage : public QWidget
+class PluginListWidget::EditorPluginPage : public QWidget
 {
     Q_OBJECT
 
@@ -235,6 +237,8 @@ private slots:
     void removePlugin();
     void editPlugin();
     void changePlugin(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QList<int>& roles);
+    void setButtonEnable();
+    void openSettingWidget();
 
 private:
     void addPlugin(const QString& dllPath, const QString& symbolName);
@@ -246,6 +250,29 @@ private:
 
 private:
     QTreeWidget *listWidget;
+    QPushButton *settingButton;
+
+    QHash<int, PluginSettingWidget*> settingWidgets;
+};
+
+
+
+
+
+
+
+
+class PluginSettingWidget : public QWidget
+{
+    Q_OBJECT
+public:
+    explicit PluginSettingWidget(QWidget *parent, std::vector<AbstractPlugin::SettingItem>*& items);
+
+private:
+    void setupForm();
+
+private:
+    std::vector<AbstractPlugin::SettingItem> *const items;
 };
 
 

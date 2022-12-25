@@ -6,41 +6,74 @@
 
 
 #include "editor_plugin.h"
+#include <unordered_map>
+#include <iostream>
 using namespace editorplugin;
+
+
+
 
 
 class GnuplotEditorManager : public EditorManager
 {
 public:
-	void setup() override
+	/* reimplement */
+	void toolTip(const std::string& text, ToolTip& toolTip) override;
+	void completions(const std::string& text, std::unordered_set<Completion>& completions);
+	/* original */
+	static void setup();
+	static std::vector<AbstractPlugin::SettingItem> items;
+
+private:
+	struct CommandInfo
 	{
-
-	}
-
-	void toolTip(const std::string& text, ToolTip& toolTip) override
-	{
-
-	}
-
-	void completions(const std::string& text, std::unordered_set<Completion>& completions) override
-	{
-
-	}
+		std::string toolTip;
+		std::string formula;
+	};
+	static std::unordered_map<std::string, CommandInfo> commands;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class GnupltEditorPlugin : public EditorPlugin
 {
 public:
 	void info(PluginInfo& info) override
 	{
-		info.name = "Gnuplot Editor Plugin";
+		info.name = "Gnuplot Editor Manager";
 		info.version = "1.0";
 	}
 
-	EditorManager* createInstance() const override
+	void setup() override
 	{
-		return new GnuplotEditorManager;
+		GnuplotEditorManager::setup();
 	}
+
+	void settingItems(std::vector<SettingItem>*& items)
+	{
+		items = &GnuplotEditorManager::items;
+	}
+
+	EditorManager* createInstance() const override { return new GnuplotEditorManager; }
 };
 
 
@@ -51,7 +84,4 @@ public:
 
 
 extern "C" GNUPLOTEDITOR_DLL void createPluginInstance(GnupltEditorPlugin *&p);
-//extern "C" GNUPLOTEDITOR_DLL void createPluginInstance(int* p);
-
-
 

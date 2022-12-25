@@ -1,0 +1,42 @@
+#,,
+break,The break command is only meaningful inside the bracketed iteration clause of a do or while statement. It causes the remaining statements inside the bracketed clause to be skipped and iteration is terminated. Execution resumes at the statement following the closing bracket.,
+cd,The cd command changes the working directory.,cd '<directory-name>'
+call,The call command is identical to the load command with one exception: the name of the file being loaded may be followed by up to nine parameters.,"call ""inputfile"" <param-1> <param-2> … <param-9>"
+clear,"The clear command erases the current screen or output device as specified by set terminal and set output. This usually generates a formfeed on hardcopy devices. For some terminals clear erases only the portion of the plotting surface defined by set size, so for these it can be used in conjunction with set multiplot to create an inset.",
+continue,The continue command is only meaningful inside the bracketed iteration clause of a do or while statement. It causes the remaining statements inside the bracketed clause to be skipped. Execution resumes at the start of the next iteration (if any remain in the loop condition).,
+do,"Execute a sequence of commands multiple times. The commands must be enclosed in curly brackets, and the opening ""{"" must be on the same line as the do keyword. This command cannot be used with old-style (un-bracketed) if/else statements. ",do for <iteration-spec> { <commands> … }
+evaluate,The evaluate command executes the commands given as an argument string. Newline characters are not allowed within the string.,eval <string expression>
+exit,"The commands exit and quit, as well as the END-OF-FILE character (usually Ctrl-D) terminate input from the current input stream: terminal session, pipe, or file input (pipe). If input streams are nested (inherited load scripts), then reading will continue in the parent stream. When the top level stream is closed, the program itself will exit.","exit\nexit message ""error message text""\nexit status <integer error code>"
+fit,"The fit command fits a user-supplied real-valued expression to a set of data points, using the nonlinear least-squares Marquardt-Levenberg algorithm. There can be up to 12 independent variables, there is always 1 dependent variable, and any number of parameters can be fitted. Optionally, error estimates can be input for weighting the data points.","fit {<range>} <expression> '<datafile>' {datafile-modifiers} {{unitweights} | {y|xy|z}error | errors <var1>{,<var2>,…}} via '<parameter file>' <var1>{,<avr2>,…}"
+help,The help command displays built-in help. To specify information on a particular topic.,help {<topic>}
+history,"The history command prints or saves previous commands in the history list, or reexecutes a previous entry in the list. To modify the behavior of this command. Input lines with history as their first command are not stored in the command history.",histoly {{quiet} <number> | <expression> | {!|?}<number>}
+if,"If the keyword if or else is immediately followed by an opening ""{"", then conditional execution applies to all statements, possibly on multiple input lines, until a matching ""}"" terminates the block. If commands may be nested.",if (<condition>) { <commands> … } else { <commands> … }
+for,"The plot, splot, set and unset commands may optionally contain an iteration for clause. This has the effect of executing the basic command multiple times, each time re-evaluating any expressions that make use of the iteration control variable. Iteration of arbitrary command sequences can be requested using the do command.","for [intvar = start:end{:increment]\nfor [stringvar in ""A B C D""]"
+import,The import command associates a user-defined function name with a function exported by an external shared object. This constitutes a plugin mechanism that extends the set of functions available in gnuplot.,"import func(x[,y,z,…]) from ""sharedobj[:symbol]"""
+load,,
+lower,,
+pause,,
+plot,,
+print,,
+printerr,,
+pwd,,
+quit,,
+paise,,
+refresh,,
+replot,,
+reread,,
+reset,,
+save,,
+set,,
+show,,
+shell,,
+splot,,
+stats,,
+system,,
+test,,
+toggle,,
+undefine,,
+unset,,
+update,,
+while,,
+#,,

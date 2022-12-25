@@ -43,7 +43,6 @@ struct Completion
 class EditorManager
 {
 public:
-    virtual void setup() = 0;
     virtual void toolTip(const std::string& text, ToolTip& toolTip) = 0;
     virtual void completions(const std::string& text, std::unordered_set<Completion>& completions) = 0;
 };

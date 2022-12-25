@@ -24,6 +24,8 @@
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QApplication>
+#include <QLabel>
+#include <QSpinBox>
 
 
 #include "utility.h"
@@ -35,7 +37,7 @@
 QHash<int, Plugin<editorplugin::EditorPlugin>*> PluginCollection::editorPlugins = {};
 
 
-PluginSettingWidget::PluginSettingWidget(QWidget *parent)
+PluginListWidget::PluginListWidget(QWidget *parent)
     : QWidget(parent)
     , tabWidget(new QTabWidget(this))
     , editorPluginPage(new EditorPluginPage(tabWidget))
@@ -52,7 +54,7 @@ PluginSettingWidget::PluginSettingWidget(QWidget *parent)
     hLayout->setContentsMargins(0, 0, 0, 0);
 }
 
-QString PluginSettingWidget::pluginSettingPath()
+QString PluginListWidget::pluginSettingPath()
 {
     return QApplication::applicationDirPath() + "/setting/plugin-list.xml";
 }
@@ -65,7 +67,7 @@ QString PluginSettingWidget::pluginSettingPath()
 
 
 
-PluginSettingWidget::PluginOptionDialog::PluginOptionDialog(QWidget *parent)
+PluginListWidget::PluginOptionDialog::PluginOptionDialog(QWidget *parent)
     : QDialog(parent)
     , dllPathEdit(new QLineEdit(this))
     , symbolNameEdit(new QLineEdit(this))
@@ -116,27 +118,27 @@ PluginSettingWidget::PluginOptionDialog::PluginOptionDialog(QWidget *parent)
     connect(cancelButton, &QPushButton::released, this, &PluginOptionDialog::reject);
 }
 
-void PluginSettingWidget::PluginOptionDialog::setDllPathText(const QString &text)
+void PluginListWidget::PluginOptionDialog::setDllPathText(const QString &text)
 {
     dllPathEdit->setText(text);
 }
 
-void PluginSettingWidget::PluginOptionDialog::setSymbolNameText(const QString &text)
+void PluginListWidget::PluginOptionDialog::setSymbolNameText(const QString &text)
 {
     symbolNameEdit->setText(text);
 }
 
-QString PluginSettingWidget::PluginOptionDialog::dllPath() const
+QString PluginListWidget::PluginOptionDialog::dllPath() const
 {
     return dllPathEdit->text();
 }
 
-QString PluginSettingWidget::PluginOptionDialog::symbolName() const
+QString PluginListWidget::PluginOptionDialog::symbolName() const
 {
     return symbolNameEdit->text();
 }
 
-void PluginSettingWidget::PluginOptionDialog::checkFileExists(const QString& path)
+void PluginListWidget::PluginOptionDialog::checkFileExists(const QString& path)
 {
     QFileInfo info(path);
 
@@ -168,9 +170,10 @@ void PluginSettingWidget::PluginOptionDialog::checkFileExists(const QString& pat
 
 
 
-PluginSettingWidget::EditorPluginPage::EditorPluginPage(QWidget *parent)
+PluginListWidget::EditorPluginPage::EditorPluginPage(QWidget *parent)
     : QWidget(parent)
     , listWidget(new QTreeWidget(this))
+    , settingButton(new QPushButton("Setting", this))
 {
     QHBoxLayout *hLayout = new QHBoxLayout(this);
     QVBoxLayout *vLayout = new QVBoxLayout;
@@ -184,6 +187,7 @@ PluginSettingWidget::EditorPluginPage::EditorPluginPage(QWidget *parent)
     vLayout->addWidget(addButton);
     vLayout->addWidget(removeButton);
     vLayout->addWidget(editButton);
+    vLayout->addWidget(settingButton);
     vLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Preferred, QSizePolicy::Expanding));
 
     hLayout->setSpacing(0);
@@ -192,21 +196,24 @@ PluginSettingWidget::EditorPluginPage::EditorPluginPage(QWidget *parent)
     listWidget->setColumnCount(getEnumCount(ItemIndex(0)));
     listWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     listWidget->setHeaderLabels(enumToStrings(ItemIndex(0)));
+    settingButton->setEnabled(false);
 
+    connect(listWidget, &QTreeWidget::itemSelectionChanged, this, &EditorPluginPage::setButtonEnable);
     connect(listWidget->model(), &QAbstractItemModel::dataChanged, this, &EditorPluginPage::changePlugin);
     connect(addButton, &QPushButton::released, this, QOverload<void>::of(&EditorPluginPage::addPluginFromDialog));
     connect(removeButton, &QPushButton::released, this, &EditorPluginPage::removePlugin);
     connect(editButton, &QPushButton::released, this, &EditorPluginPage::editPlugin);
+    connect(settingButton, &QPushButton::released, this, &EditorPluginPage::openSettingWidget);
 
     loadFromXml();
 }
 
-PluginSettingWidget::EditorPluginPage::~EditorPluginPage()
+PluginListWidget::EditorPluginPage::~EditorPluginPage()
 {
     saveAsXml();
 }
 
-void PluginSettingWidget::EditorPluginPage::addPluginFromDialog()
+void PluginListWidget::EditorPluginPage::addPluginFromDialog()
 {
     PluginOptionDialog dialog(this);
     const int code = dialog.exec();
@@ -224,7 +231,7 @@ void PluginSettingWidget::EditorPluginPage::addPluginFromDialog()
     addPlugin(dialog.dllPath(), dialog.symbolName());
 }
 
-void PluginSettingWidget::EditorPluginPage::addPlugin(const QString &dllPath, const QString &symbolName)
+void PluginListWidget::EditorPluginPage::addPlugin(const QString &dllPath, const QString &symbolName)
 {
     Plugin<editorplugin::EditorPlugin> *plugin = new Plugin<editorplugin::EditorPlugin>;
     PluginCollection::editorPlugins.insert(plugin->id(), plugin);
@@ -243,7 +250,7 @@ void PluginSettingWidget::EditorPluginPage::addPlugin(const QString &dllPath, co
     listWidget->addTopLevelItem(item);
 }
 
-void PluginSettingWidget::EditorPluginPage::removePlugin()
+void PluginListWidget::EditorPluginPage::removePlugin()
 {
     if(listWidget->selectedItems().count() < 1)
     {
@@ -262,6 +269,14 @@ void PluginSettingWidget::EditorPluginPage::removePlugin()
     if(Plugin<editorplugin::EditorPlugin> *p = PluginCollection::editorPlugins.take(item->text((int)ItemIndex::ID).toInt()))
     {
         listWidget->takeTopLevelItem(listWidget->indexOfTopLevelItem(item));
+
+        if(settingWidgets.contains(p->id()))
+        {
+            PluginSettingWidget *w = settingWidgets.value(p->id());
+            settingWidgets.remove(p->id());
+            if(w) w->deleteLater();
+        }
+
         delete item;
         delete p;
         item = nullptr;
@@ -274,7 +289,7 @@ void PluginSettingWidget::EditorPluginPage::removePlugin()
     }
 }
 
-void PluginSettingWidget::EditorPluginPage::editPlugin()
+void PluginListWidget::EditorPluginPage::editPlugin()
 {
     if(listWidget->selectedItems().count() < 1)
     {
@@ -303,7 +318,56 @@ void PluginSettingWidget::EditorPluginPage::editPlugin()
     item->setText((int)ItemIndex::SymbolName, dialog.symbolName());
 }
 
-void PluginSettingWidget::EditorPluginPage::changePlugin(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles)
+void PluginListWidget::EditorPluginPage::setButtonEnable()
+{
+    if(listWidget->selectedItems().count() < 1)
+    {
+        settingButton->setEnabled(false);
+        return;
+    }
+
+    QTreeWidgetItem *item = listWidget->selectedItems().at(0);
+
+    if(!item)
+    {
+        __LOGOUT__("selected item is nullptr.", Logger::LogLevel::Warn);
+        settingButton->setEnabled(false);
+        return;
+    }
+
+    const int id = item->text((int)ItemIndex::ID).toInt();
+
+    if(settingWidgets.contains(id))
+        settingButton->setEnabled(true);
+    else
+        settingButton->setEnabled(false);
+}
+
+void PluginListWidget::EditorPluginPage::openSettingWidget()
+{
+    if(listWidget->selectedItems().count() < 1)
+    {
+        __LOGOUT__("no selected items", Logger::LogLevel::Warn);
+        return;
+    }
+
+    QTreeWidgetItem *item = listWidget->selectedItems().at(0);
+
+    if(!item)
+    {
+        __LOGOUT__("selected item is nullptr.", Logger::LogLevel::Warn);
+        return;
+    }
+
+    const int id = item->text((int)ItemIndex::ID).toInt();
+
+    if(QWidget *w = settingWidgets.value(id))
+    {
+        w->show();
+    }
+}
+
+void PluginListWidget::EditorPluginPage::changePlugin(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles)
 {
     if(roles.count() == 1 && roles.at(0) == (int)Qt::ItemDataRole::BackgroundRole)
         return;
@@ -397,7 +461,7 @@ void PluginSettingWidget::EditorPluginPage::changePlugin(const QModelIndex &topL
     }
 }
 
-void PluginSettingWidget::EditorPluginPage::checkLoadState(QTreeWidgetItem *item)
+void PluginListWidget::EditorPluginPage::checkLoadState(QTreeWidgetItem *item)
 {
     if(!item) return;
 
@@ -422,7 +486,7 @@ void PluginSettingWidget::EditorPluginPage::checkLoadState(QTreeWidgetItem *item
     }
 }
 
-void PluginSettingWidget::EditorPluginPage::checkResolveState(QTreeWidgetItem *item)
+void PluginListWidget::EditorPluginPage::checkResolveState(QTreeWidgetItem *item)
 {
     if(!item) return;
 
@@ -442,10 +506,26 @@ void PluginSettingWidget::EditorPluginPage::checkResolveState(QTreeWidgetItem *i
         p->instance()->info(info);
         item->setText((int)ItemIndex::Name, QString::fromStdString(info.name));
         item->setText((int)ItemIndex::Version, QString::fromStdString(info.version));
+
+        if(!settingWidgets.contains(p->id()))
+        {
+            p->instance()->setup();
+            std::vector<AbstractPlugin::SettingItem> *items = nullptr;
+            p->instance()->settingItems(items);
+            PluginSettingWidget *w = new PluginSettingWidget(this, items);
+            settingWidgets.insert(p->id(), w);
+        }
     }
     else
     {
         item->setBackground((int)ItemIndex::SymbolName, QBrush(Qt::red));
+
+        if(settingWidgets.contains(p->id()))
+        {
+            PluginSettingWidget *w = settingWidgets.value(p->id());
+            settingWidgets.remove(p->id());
+            if(w) w->deleteLater();
+        }
     }
 }
 
@@ -459,11 +539,11 @@ void PluginSettingWidget::EditorPluginPage::checkResolveState(QTreeWidgetItem *i
 #include "boost/lexical_cast.hpp"
 #include "boost/foreach.hpp"
 
-void PluginSettingWidget::EditorPluginPage::loadFromXml()
+void PluginListWidget::EditorPluginPage::loadFromXml()
 {
     using namespace boost::property_tree;
 
-    const QString filePath = PluginSettingWidget::pluginSettingPath();
+    const QString filePath = PluginListWidget::pluginSettingPath();
 
     if(QFile::exists(filePath))
     {
@@ -498,7 +578,7 @@ void PluginSettingWidget::EditorPluginPage::loadFromXml()
     }
 }
 
-void PluginSettingWidget::EditorPluginPage::saveAsXml()
+void PluginListWidget::EditorPluginPage::saveAsXml()
 {
     /*
      * root --- editorplugin --- dllinfo --- dllpath
@@ -551,6 +631,91 @@ void PluginSettingWidget::EditorPluginPage::saveAsXml()
 
 
 
+
+
+
+
+
+
+PluginSettingWidget::PluginSettingWidget(QWidget *parent, std::vector<AbstractPlugin::SettingItem> *&items)
+    : QWidget(parent)
+    , items(items)
+{
+    setWindowFlag(Qt::Dialog);
+
+    if(!items)
+    {
+        __LOGOUT__("setting items are nullptr.", Logger::LogLevel::Error);
+    }
+    else
+    {
+        setupForm();
+    }
+}
+
+void PluginSettingWidget::setupForm()
+{
+    QFormLayout *fLayout = new QFormLayout(this);
+    setLayout(fLayout);
+
+    for(AbstractPlugin::SettingItem& item : *items)
+    {
+        QLabel *label = new QLabel(QString::fromStdString(item.name), this);
+        label->setToolTip(QString::fromStdString(item.detail));
+
+        switch(item.variant.index())
+        {
+        case (size_t)AbstractPlugin::SettingItem::VariantType::Int:
+        {
+            QSpinBox *spinBox = new QSpinBox(this);
+            spinBox->setMinimum(-100000);
+            spinBox->setMaximum(100000);
+            spinBox->setValue(std::get<(size_t)AbstractPlugin::SettingItem::VariantType::Int>(item.variant));
+
+
+            connect(spinBox, &QSpinBox::valueChanged, [&item](const int value){
+                item.variant = value;
+            });
+
+            fLayout->addRow(label, spinBox);
+            continue;
+        }
+        case (size_t)AbstractPlugin::SettingItem::VariantType::Double:
+        {
+            QDoubleSpinBox *spinBox = new QDoubleSpinBox(this);
+            spinBox->setMinimum(-100000);
+            spinBox->setMaximum(100000);
+            spinBox->setValue(std::get<(size_t)AbstractPlugin::SettingItem::VariantType::Double>(item.variant));
+
+            connect(spinBox, &QDoubleSpinBox::valueChanged, [&item](const double& value){
+                item.variant = value;
+            });
+
+            fLayout->addRow(label, spinBox);
+            continue;
+        }
+        case (size_t)AbstractPlugin::SettingItem::VariantType::StdString:
+        {
+            QLineEdit *lineEdit = new QLineEdit(this);
+            lineEdit->setText(QString::fromStdString(std::get<(size_t)AbstractPlugin::SettingItem::VariantType::StdString>(item.variant)));
+
+            connect(lineEdit, &QLineEdit::textChanged, [&item](const QString& text){
+                item.variant = text.toStdString();
+            });
+
+            fLayout->addRow(label, lineEdit);
+            continue;
+        }
+        default:
+        {
+            __LOGOUT__("invalid variant index.", Logger::LogLevel::Warn);
+
+            label->deleteLater();
+            continue;
+        }
+        }
+    }
+}
 
 
 

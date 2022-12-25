@@ -79,6 +79,8 @@ void EditorManager::requestModel(const QString &text)
                 i.value()->completions(text.toStdString(), completions);
             }
         }
+
+        ++i;
     }
 
     QList<QStandardItem*> items;
