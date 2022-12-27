@@ -111,7 +111,7 @@ public slots:
 
     void setLinearStartColor(const QColor& color);
     void setLinearEndColor(const QColor& color);
-    void setBandWidth(const float& band);
+    void setBandHalfWidth(const float& halfWidth);
 
 private:
     void updateStyleSheet();
@@ -126,7 +126,7 @@ private:
 
     QColor startColor;
     QColor endColor;
-    float bandWidth;
+    float bandHalfWidth;
 
     inline static int defaultWidth = 400;
     inline static int d_count = 100;
