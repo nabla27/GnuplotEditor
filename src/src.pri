@@ -16,6 +16,7 @@ HEADERS += \
     $$PWD/gnuplottexteditor.h \
     $$PWD/imagedisplay.h \
     $$PWD/iofile.h \
+    $$PWD/layoutparts.h \
     $$PWD/logger.h \
     $$PWD/menubar.h \
     $$PWD/pdfviewer.h \
@@ -27,6 +28,7 @@ HEADERS += \
 #    $$PWD/updatemanager.h \
     $$PWD/textedit.h \
     $$PWD/texteditor.h \
+    $$PWD/utility.h \
     $$PWD/windowmenubar.h
 #=======
     $$PWD/windowmenubar.h \
@@ -50,6 +52,7 @@ SOURCES += \
     $$PWD/gnuplottexteditor.cpp \
     $$PWD/imagedisplay.cpp \
     $$PWD/iofile.cpp \
+    $$PWD/layoutparts.cpp \
     $$PWD/logger.cpp \
     $$PWD/main.cpp \
     $$PWD/menubar.cpp \

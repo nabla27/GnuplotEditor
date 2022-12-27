@@ -13,6 +13,7 @@
 #include <QSplitter>
 #include <QMimeData>
 #include <QDrag>
+#include <QVBoxLayout>
 
 #include "layoutparts.h"
 #include "standardpixmap.h"

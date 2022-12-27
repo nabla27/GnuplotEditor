@@ -17,6 +17,7 @@
 #include <QScrollBar>
 #include <QTimer>
 #include <QMessageBox>
+#include <QDateTime>
 
 
 
@@ -108,7 +109,7 @@ void Logger::LogWriter::write(const QString &message, const LogLevel &level)
     {
         QTextStream out(&file);
 
-        out << "[" + enumToString(level) + "] " + QDateTime::currentDateTime().toString() + "\n";
+        out << "[" + mutility::enumToString(level) + "] " + QDateTime::currentDateTime().toString() + "\n";
         out << message + "\n";
         out << "\n";
 
@@ -181,7 +182,7 @@ void LogBrowserWidget::appendLog(const QString &message, const Logger::LogLevel 
     const int previousEndPosition = tc.position();
 
     append("");
-    append("[" + enumToString(level) + "] " + QDateTime::currentDateTime().toString());
+    append("[" + mutility::enumToString(level) + "] " + QDateTime::currentDateTime().toString());
     append(message);
 
     tc.setPosition(previousEndPosition);

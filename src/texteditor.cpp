@@ -50,6 +50,11 @@ TextEditor::TextEditor(QWidget *parent)
 {
     instanceCount++;
 
+    /* ランタイムエラーの回避
+     * qt.core.qobject.connect: QObject::connect: Cannot queue arguments of type 'QAbstractItemModel*'
+     * (Make sure 'QAbstractItemModel*' is registered using qRegisterMetaType().) */
+    qRegisterMetaType<QAbstractItemModel*>();
+
     /* lineNumberArea */
     connect(this, &TextEditor::blockCountChanged, this, &TextEditor::updateLineNumberAreaWidth);
     connect(this, &TextEditor::updateRequest, this, &TextEditor::updateLineNumberArea);
@@ -168,6 +173,7 @@ QString TextEditor::textUnderCursor()
 
 void TextEditor::setCompletionModel(QAbstractItemModel *model)
 {
+    model->setParent(completer);
     completer->setModel(model);
     completer->setCompletionPrefix(textUnderCursor());
 
@@ -179,6 +185,9 @@ void TextEditor::setCompletionModel(QAbstractItemModel *model)
 
     QRect cr = cursorRect();
     cr.setWidth(width);
+
+    completer->popup()->setCurrentIndex(completer->completionModel()->index(0, 0));
+    completer->setWidget(this); //widgetをセットしないとランタイムエラー
     completer->complete(cr);
 }
 
@@ -303,11 +312,12 @@ void TextEditor::keyPressEvent(QKeyEvent *e)
     /* 補完候補を変更する場合 */
     {
         static QString separator("|!%{}|:<>?,:\\ ()\"'");
-        if(!e->text().isEmpty() && separator.contains(e->text().front()))
-        {
+        //if(!e->text().isEmpty() && separator.contains(e->text().front()))
+        //{
             const QTextCursor tc = textCursor();
+            //completer->popup()->hide();
             emit changeCompletionModelRequested(document()->findBlockByLineNumber(tc.blockNumber()).text());
-        }
+        //}
     }
 
     QPlainTextEdit::keyPressEvent(e);

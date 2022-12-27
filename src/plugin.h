@@ -224,6 +224,34 @@ private:
 
 
 
+
+class PluginChecker : public QThread
+{
+    Q_OBJECT
+public:
+    explicit PluginChecker(QObject *parent);
+
+public:
+    void setLibrary(const int id, const QString& path, const QString& symbol);
+
+protected:
+    void run() override;
+
+private:
+
+
+signals:
+    void checked(const int code);
+};
+
+
+
+
+
+
+
+
+
 class PluginListWidget::EditorPluginPage : public QWidget
 {
     Q_OBJECT

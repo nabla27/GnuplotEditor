@@ -109,7 +109,7 @@ void GnuplotSettingWidget::initializeLayout()
     preCmdLabel->setToolTip("Command to be executed in advance.\nThis will be removed if you close the app.");
     autoCompileMsecLabel->setToolTip("Auto compile msec time for sheet changes.");
 
-    setGeometry(getRectFromScreenRatio(screen()->size(), 0.3f, 0.3f));
+    setGeometry(mutility::getRectFromScreenRatio(screen()->size(), 0.3f, 0.3f));
     browser->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     connect(autoCompileMsec, &QSpinBox::valueChanged, this, &GnuplotSettingWidget::autoCompileMsecSet);

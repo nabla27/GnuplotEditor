@@ -83,5 +83,6 @@ public:
 
 
 
-extern "C" GNUPLOTEDITOR_DLL void createPluginInstance(GnupltEditorPlugin *&p);
+//extern "C" GNUPLOTEDITOR_DLL void createPluginInstance(GnupltEditorPlugin *&p);
+extern "C" GNUPLOTEDITOR_DLL void createPluginInstance(int&);
 

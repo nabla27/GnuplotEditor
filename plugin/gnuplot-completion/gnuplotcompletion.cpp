@@ -3,9 +3,14 @@
 
 #include <iostream>
 
-extern "C" GNUPLOTEDITOR_DLL void createPluginInstance(GnupltEditorPlugin*& p)
+//extern "C" GNUPLOTEDITOR_DLL void createPluginInstance(GnupltEditorPlugin*& p)
+//{
+//	p = new GnupltEditorPlugin;
+//}
+
+extern "C" GNUPLOTEDITOR_DLL void createPluginInstance(int& a)
 {
-	p = new GnupltEditorPlugin;
+	a = 2;
 }
 
 
@@ -34,5 +39,10 @@ void GnuplotEditorManager::toolTip(const std::string& text, ToolTip& toolTip)
 
 void GnuplotEditorManager::completions(const std::string& text, std::unordered_set<Completion>& completions)
 {
-
+	completions.clear();
+	completions.insert(Completion{ "plot" });
+	completions.insert(Completion{ "replot" });
+	completions.insert(Completion{ "with" });
+	completions.insert(Completion{ "lines" });
+	completions.insert(Completion{ "pause" });
 }
