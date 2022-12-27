@@ -73,6 +73,11 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
         //});
 
         //process->start();
+
+        mlayout::LoopProgressDialog *pd = new mlayout::LoopProgressDialog(this);
+        pd->setBandHalfWidth(0.2);
+        pd->setAutoDisplay(true);
+        pd->start();
     }
 
 

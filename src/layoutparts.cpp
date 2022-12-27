@@ -195,7 +195,7 @@ LoopProgressDialog::LoopProgressDialog(QWidget *parent, Qt::WindowFlags f)
 
     , startColor(Qt::green)
     , endColor(Qt::white)
-    , bandWidth(0.4f)
+    , bandHalfWidth(0.4f)
 {
     QVBoxLayout *vLayout = new QVBoxLayout(this);
     setLayout(vLayout);
@@ -215,10 +215,10 @@ LoopProgressDialog::LoopProgressDialog(QWidget *parent, Qt::WindowFlags f)
 
     progressBar->setTextVisible(false);
 
-    progressBar->setMaximum(100);
+    progressBar->setMaximum(d_count);
     progressBar->setValue(progressBar->maximum());
     updateStyleSheet();
-    timer->setInterval(10);
+    timer->setInterval(1000 / d_count); // period[msec] / dialogMaximum[int]
 
     adjustSize();
 
@@ -269,9 +269,15 @@ void LoopProgressDialog::setLinearEndColor(const QColor &color)
     endColor = color;
 }
 
-void LoopProgressDialog::setBandWidth(const float &band)
+void LoopProgressDialog::setBandHalfWidth(const float &halfWidth)
 {
-    bandWidth = band;
+    if(halfWidth > 0.5f)
+    {
+        __LOGOUT__("invalid band width. it must be less than 0.5.", Logger::LogLevel::Debug);
+        return;
+    }
+
+    bandHalfWidth = halfWidth;
 }
 
 void LoopProgressDialog::updateStyleSheet()
@@ -279,34 +285,49 @@ void LoopProgressDialog::updateStyleSheet()
     static qsizetype i = 0;
 
     /*
-     *
+     *              0                                                                    d_count
      *              0                                                                       1
-     *              |-----------------------------------------------------------------------|               :porgressBar
+     *              |-----------------------------------------------------------------------|               -> porgressBar
      *
-     *      |                    |                    |                                                     :case l_pos < 0
+     *      |                    |                    |                                                     -> case: l_pos < 0
      *    l_pos                m_pos                r_pos
      *          side_color   startColor            endColor              end_color       sideColor
      *
      *
      *
      *
-     *                      |                    |                    |                                     :case r_pos > 1
+     *                      |                    |                    |                                     -> case: r_pos > 1
      *                    l_pos                m_pos                r_pos
      *                   endColor            startColor            endColor
      *
      *
      *
      *
-     *                                                      |                    |                    |     :case other
+     *                                                      |                    |                    |     -> case: other
      *                                                    l_pos                m_pos                r_pos
      *          sideColor              endColor          endColor           startColor   sideColor
      *
      *
+     * --- Linear Gradient Color Point [0 <= real <= 1] ---
+     * m_pos, l_pos, r_pos
+     *
+     * --- Linear Gradient Color [QColor] ---
+     * startColor, endColor
+     *
+     * --- Linear Gradient Band Width [0 <= real <= 1] ---
+     * bandHalfWidth
+     *
+     * --- Both Ends Color Of The Progress Bar [QColor] ---
+     * side_color (always left_side_color == right_side_color)
+     *
+     * --- Position Ratio of the Both Ends [0 <= real <= 1] ---
+     * ratio (zero = l_pos, one = r_pos, when l_pos < 0: ratio of the progress pos = 0
+     *                                   when r_pos > 1: ratio of the progress pos = 1)
      */
 
     const float m_pos = float(i++ % (d_count + 1)) / d_count;
-    const float l_pos = m_pos - bandWidth;
-    const float r_pos = m_pos + bandWidth;
+    const float l_pos = m_pos - bandHalfWidth;
+    const float r_pos = m_pos + bandHalfWidth;
 
     QString style = "QProgressBar::chunk {"
                     "background-color: qlineargradient("
