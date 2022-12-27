@@ -19,6 +19,7 @@
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QMenu>
+#include <QLineEdit>
 #include "layoutparts.h"
 #include "gnuplottable.h"
 #include "standardpixmap.h"

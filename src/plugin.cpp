@@ -193,9 +193,9 @@ PluginListWidget::EditorPluginPage::EditorPluginPage(QWidget *parent)
     hLayout->setSpacing(0);
     hLayout->setContentsMargins(0, 0, 0, 0);
 
-    listWidget->setColumnCount(getEnumCount(ItemIndex(0)));
+    listWidget->setColumnCount(mutility::getEnumCount(ItemIndex(0)));
     listWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    listWidget->setHeaderLabels(enumToStrings(ItemIndex(0)));
+    listWidget->setHeaderLabels(mutility::enumToStrings(ItemIndex(0)));
     settingButton->setEnabled(false);
 
     connect(listWidget, &QTreeWidget::itemSelectionChanged, this, &EditorPluginPage::setButtonEnable);
@@ -239,10 +239,11 @@ void PluginListWidget::EditorPluginPage::addPlugin(const QString &dllPath, const
     QTreeWidgetItem *item = new QTreeWidgetItem(listWidget);
 
     /* 順番に注意
-     * addPlugin()でPlugin::load()が呼ばれるのはdllPathが設定されてからである必要がある
-     * そうでないとQLibrary::libraryPath()が空文字である場合にloadしてエラーが起きる */
+     * addPlugin()でPlugin::load()が呼ばれるのはdllPathが設定されてからである必要がある．
+     * そうでないとQLibrary::libraryPath()が空文字である場合にloadしてエラーが起きる．
+     * ここでテキストを設定するごとにchangePlugin()が呼ばれる．*/
     item->setText((int)ItemIndex::DLLPath, dllPath);
-    item->setText((int)ItemIndex::SymbolName, symbolName);
+    item->setText((int)ItemIndex::SymbolName, "createPluginInstance");
     item->setCheckState((int)ItemIndex::Enable, Qt::CheckState::Checked);
     item->setText((int)ItemIndex::ID, QString::number(plugin->id()));
     item->setText((int)ItemIndex::Name, QFileInfo(dllPath).baseName());

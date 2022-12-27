@@ -1474,7 +1474,7 @@ void FileTreeWidget::newFileFromDialog()
 TreeModelCombo::TreeModelCombo(QWidget *parent)
     : QComboBox(parent)
 {
-    addItems(enumToStrings(FileTreeWidget::FileTreeModel(0)));
+    addItems(mutility::enumToStrings(FileTreeWidget::FileTreeModel(0)));
 }
 
 

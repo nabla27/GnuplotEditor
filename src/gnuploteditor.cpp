@@ -35,6 +35,7 @@
 #include <QPluginLoader>
 #include <QThreadPool>
 #include "texteditor.h"
+#include <QTimer>
 
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
@@ -52,13 +53,26 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     , fileTreeSetting(new FileTreeSettingWidget(nullptr))
 {
     /* ウィンドウをスクリーン画面に対して(0.4,0.5)の比率サイズに設定 */
-    setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
+    setGeometry(mutility::getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
 
     {
-        const QString dllPath = "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/gnuplot-completion/x64/Release/gnuplot-completion.dll";
-        TextEditor *editor = new TextEditor(nullptr);
-        editor->show();
-        connect(this, &GnuplotEditor::destroyed, [=](){ delete editor; });
+        //const QString dllPath = "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/gnuplot-completion/x64/Release/gnuplot-completion.dll";
+        //TextEditor *editor = new TextEditor(nullptr);
+        //editor->show();
+        //connect(this, &GnuplotEditor::destroyed, [=](){ delete editor; });
+
+        //QProcess *process = new QProcess(this);
+        //process->setArguments(QStringList()
+        //                      << "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/gnuplot-completion/x64/Release/gnuplot-completion.dll"
+        //                      << "createPluginInstance");
+        //process->setProgram("E:/repos/qt_project/LabQ/GnuplotEditor/plugin/pluginchecker/bin/release/pluginchecker.exe");
+
+        //connect(process, &QProcess::finished,
+        //        [](const int exitcode, const QProcess::ExitStatus& status){
+        //    qDebug() << exitcode << status;
+        //});
+
+        //process->start();
     }
 
 

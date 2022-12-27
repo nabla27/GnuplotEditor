@@ -18,6 +18,7 @@
 #include <QFormLayout>
 #include <QDialogButtonBox>
 #include <QSplitter>
+#include <QComboBox>
 #include "utility.h"
 #include "iofile.h"
 #include "logger.h"
@@ -37,7 +38,7 @@ TemplateCustomWidget::TemplateCustomWidget(QWidget *parent)
     , editor(new TextEdit(this))
 {
     setWindowFlag(Qt::WindowType::Window, true);
-    setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.4f));
+    setGeometry(mutility::getRectFromScreenRatio(screen()->size(), 0.4f, 0.4f));
     setWindowTitle("GnuplotEditor  Script-Template");
 
     setupLayout();

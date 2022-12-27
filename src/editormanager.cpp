@@ -97,7 +97,7 @@ void EditorManager::requestModel(const QString &text)
         QStandardItemModel *model = new QStandardItemModel(nullptr);
         model->appendRow(items);
         model->moveToThread(QThreadPool::globalInstance()->thread());
-        qDebug() << __LINE__;
+
         emit modelSet(model);
     }
 }

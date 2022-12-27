@@ -12,15 +12,15 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    ../LabQHome/layoutparts.cpp \
+    #../LabQHome/layoutparts.cpp \
     ../LabQHome/tablewidget.cpp \
-    ../LabQHome/utility.cpp \
+    #../LabQHome/utility.cpp \
 
 HEADERS += \
     ../LabQHome/iofile.h \
-    ../LabQHome/layoutparts.h \
+    #../LabQHome/layoutparts.h \
     ../LabQHome/tablewidget.h \
-    ../LabQHome/utility.h \
+    #../LabQHome/utility.h \
 
 INCLUDEPATH += E:/boost_1_76_0/boost_1_76_0 \        #boostLib for xml parser
                E:/repos/qt_project/LabQ/LabQHome \   #utility tool for Qt project

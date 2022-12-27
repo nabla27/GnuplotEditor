@@ -26,6 +26,8 @@ struct PluginInfo
 
 
 
+
+
 class AbstractPlugin
 {
 public:

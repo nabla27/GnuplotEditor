@@ -25,7 +25,7 @@
 FileTreeSettingWidget::FileTreeSettingWidget(QWidget *parent)
     : QWidget{parent}
 {
-    setGeometry(getRectFromScreenRatio(screen()->size(), 0.2f, 0.2f));
+    setGeometry(mutility::getRectFromScreenRatio(screen()->size(), 0.2f, 0.2f));
 
     setupLayout();
 
@@ -89,7 +89,7 @@ void FileTreeSettingWidget::addScriptExt(const QString& ext, const int index)
 {
     QTreeWidgetItem *item = new QTreeWidgetItem(scriptExtensionList,
                                                 QStringList() << ext
-                                                              << enumToString(TreeScriptItem::ReadType(index))
+                                                              << mutility::enumToString(TreeScriptItem::ReadType(index))
                                                               << QString::number(index));
     item->setIcon(0, QIcon(":/icon/file_code"));
     scriptExtensionList->addTopLevelItem(item);
@@ -101,7 +101,7 @@ void FileTreeSettingWidget::addSheetExt(const QString& ext, const int index)
 {
     QTreeWidgetItem *item = new QTreeWidgetItem(sheetExtensionList,
                                                 QStringList() << ext
-                                                              << enumToString(TreeSheetItem::ReadType(index))
+                                                              << mutility::enumToString(TreeSheetItem::ReadType(index))
                                                               << QString::number(index));
     item->setIcon(0, QIcon(":/icon/file_doc"));
     sheetExtensionList->addTopLevelItem(item);
@@ -124,7 +124,7 @@ void FileTreeSettingWidget::addItem()
     else if(currentPage == scriptExtensionList)
     {
         InputDialog dialog(this, "Extension", "ReadType");
-        dialog.addComboItems(enumToStrings(TreeScriptItem::ReadType(0)));
+        dialog.addComboItems(mutility::enumToStrings(TreeScriptItem::ReadType(0)));
 
         if(dialog.exec() == 0) return;
 
@@ -133,7 +133,7 @@ void FileTreeSettingWidget::addItem()
     else if(currentPage == sheetExtensionList)
     {
         InputDialog dialog(this, "Extension", "ReadType");
-        dialog.addComboItems(enumToStrings(TreeSheetItem::ReadType(0)));
+        dialog.addComboItems(mutility::enumToStrings(TreeSheetItem::ReadType(0)));
 
         if(dialog.exec() == 0) return;
 
@@ -206,14 +206,14 @@ void FileTreeSettingWidget::editItem()
 
         InputDialog dialog(this, "Extension", "ReadType");
         dialog.setData(item->text(0), item->text(2).toInt());
-        dialog.addComboItems(enumToStrings(TreeScriptItem::ReadType(0)));
+        dialog.addComboItems(mutility::enumToStrings(TreeScriptItem::ReadType(0)));
 
         if(dialog.exec() == 0) return;
 
         TreeScriptItem::suffix.remove(item->text(0));
 
         item->setText(0, dialog.lineEditText());
-        item->setText(1, enumToString(TreeScriptItem::ReadType(dialog.comboIndex())));
+        item->setText(1, mutility::enumToString(TreeScriptItem::ReadType(dialog.comboIndex())));
         item->setText(2, QString::number(dialog.comboIndex()));
 
         TreeScriptItem::suffix.insert(item->text(0), TreeScriptItem::ReadType(item->text(2).toInt()));
@@ -226,14 +226,14 @@ void FileTreeSettingWidget::editItem()
 
         InputDialog dialog(this, "Extension", "ReadType");
         dialog.setData(item->text(0), item->text(2).toInt());
-        dialog.addComboItems(enumToStrings(TreeSheetItem::ReadType(0)));
+        dialog.addComboItems(mutility::enumToStrings(TreeSheetItem::ReadType(0)));
 
         if(dialog.exec() == 0) return;
 
         TreeSheetItem::suffix.remove(item->text(0));
 
         item->setText(0, dialog.lineEditText());
-        item->setText(1, enumToString(TreeSheetItem::ReadType(dialog.comboIndex())));
+        item->setText(1, mutility::enumToString(TreeSheetItem::ReadType(dialog.comboIndex())));
         item->setText(2, QString::number(dialog.comboIndex()));
 
         TreeSheetItem::suffix.insert(item->text(0), TreeSheetItem::ReadType(item->text(2).toInt()));
