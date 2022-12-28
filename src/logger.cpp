@@ -34,6 +34,8 @@ Logger::Logger(QObject *parent)
 
     connect(this, &Logger::logPushed, writer, &Logger::LogWriter::write);
     connect(this, &Logger::logPathChanged, writer, &Logger::LogWriter::setLogFilePath);
+    connect(this, &Logger::outputRequested,
+            this, QOverload<const QString&, const int, const QString&, const QString&, const LogLevel&>::of(&Logger::output));
 }
 
 Logger *logger = new Logger(nullptr);
@@ -42,7 +44,7 @@ void Logger::output(const QString &message, const LogLevel &level)
 {
     emit logPushed(message, level);
 }
-#include <QStyle>
+
 void Logger::output(const QString &file, const int line, const QString& func, const QString &message, const LogLevel &level)
 {
     output("FILE(" + file + ") LINE(" + QString::number(line) + ") FUNC(" + func + ")\n" + message, level);

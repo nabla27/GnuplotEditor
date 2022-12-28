@@ -20,14 +20,14 @@
 EditorManager::EditorManager(QObject *parent)
     : QObject(parent)
 {
-    for(Plugin<editorplugin::EditorPlugin> *&plugin : PluginCollection::editorPlugins.values())
-    {
-        if(!plugin) continue;
-        if(!plugin->isLoaded()) continue;
-        if(!plugin->instance()) continue;
+    //for(Plugin<editorplugin::EditorPlugin> *&plugin : PluginCollection::editorPlugins.values())
+    //{
+    //    if(!plugin) continue;
+    //    if(!plugin->isLoaded()) continue;
+    //    if(!plugin->instance()) continue;
 
-        managers.insert(plugin->id(), plugin->instance()->createInstance());
-    }
+    //    managers.insert(plugin->id(), plugin->instance()->createInstance());
+    //}
 }
 
 EditorManager::~EditorManager()
@@ -41,63 +41,63 @@ EditorManager::~EditorManager()
 
 void EditorManager::requestToolTip(const QString &text)
 {
-    auto i = managers.constBegin();
-    auto e = managers.constEnd();
+    //auto i = managers.constBegin();
+    //auto e = managers.constEnd();
 
-    editorplugin::ToolTip toolTip;
+    //editorplugin::ToolTip toolTip;
 
-    while(i != e)
-    {
-        if(const Plugin<editorplugin::EditorPlugin> *const plugin = PluginCollection::editorPlugins.value(i.key()))
-        {
-            if(plugin->isEnable())
-            {
-                i.value()->toolTip(text.toStdString(), toolTip);
-            }
-        }
+    //while(i != e)
+    //{
+    //    if(const Plugin<editorplugin::EditorPlugin> *const plugin = PluginCollection::editorPlugins.value(i.key()))
+    //    {
+    //        if(plugin->isEnable())
+    //        {
+    //            i.value()->toolTip(text.toStdString(), toolTip);
+    //        }
+    //    }
 
-        ++i;
-    }
+    //    ++i;
+    //}
 
-    if(toolTip.text.size() != 0)
-        emit toolTipSet(QString::fromStdString(toolTip.text));
+    //if(toolTip.text.size() != 0)
+    //    emit toolTipSet(QString::fromStdString(toolTip.text));
 }
 
 void EditorManager::requestModel(const QString &text)
 {
-    auto i = managers.constBegin();
-    auto e = managers.constEnd();
+    //auto i = managers.constBegin();
+    //auto e = managers.constEnd();
 
-    std::unordered_set<editorplugin::Completion> completions;
+    //std::unordered_set<editorplugin::Completion> completions;
 
-    while(i != e)
-    {
-        if(const Plugin<editorplugin::EditorPlugin> *const plugin = PluginCollection::editorPlugins.value(i.key()))
-        {
-            if(plugin->isEnable())
-            {
-                i.value()->completions(text.toStdString(), completions);
-            }
-        }
+    //while(i != e)
+    //{
+    //    if(const Plugin<editorplugin::EditorPlugin> *const plugin = PluginCollection::editorPlugins.value(i.key()))
+    //    {
+    //        if(plugin->isEnable())
+    //        {
+    //            i.value()->completions(text.toStdString(), completions);
+    //        }
+    //    }
 
-        ++i;
-    }
+    //    ++i;
+    //}
 
-    QList<QStandardItem*> items;
-    items.reserve(completions.size());
+    //QList<QStandardItem*> items;
+    //items.reserve(completions.size());
 
-    for(const editorplugin::Completion& c : completions)
-    {
-        if(c.text.size() != 0)
-            items.append(new QStandardItem(QString::fromStdString(c.text)));
-    }
+    //for(const editorplugin::Completion& c : completions)
+    //{
+    //    if(c.text.size() != 0)
+    //        items.append(new QStandardItem(QString::fromStdString(c.text)));
+    //}
 
-    if(items.size() != 0)
-    {
-        QStandardItemModel *model = new QStandardItemModel(nullptr);
-        model->appendRow(items);
-        model->moveToThread(QThreadPool::globalInstance()->thread());
+    //if(items.size() != 0)
+    //{
+    //    QStandardItemModel *model = new QStandardItemModel(nullptr);
+    //    model->appendRow(items);
+    //    model->moveToThread(QThreadPool::globalInstance()->thread());
 
-        emit modelSet(model);
-    }
+    //    emit modelSet(model);
+    //}
 }

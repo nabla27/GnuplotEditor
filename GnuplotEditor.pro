@@ -21,6 +21,7 @@ HEADERS += \
     #../LabQHome/layoutparts.h \
     ../LabQHome/tablewidget.h \
     #../LabQHome/utility.h \
+    plugin/pluginchecker/checker.h
 
 INCLUDEPATH += E:/boost_1_76_0/boost_1_76_0 \        #boostLib for xml parser
                E:/repos/qt_project/LabQ/LabQHome \   #utility tool for Qt project

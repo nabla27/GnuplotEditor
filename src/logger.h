@@ -50,10 +50,16 @@ signals:
     void logPushed(const QString& message, const Logger::LogLevel& level);
     /* private signal */
     void logPathChanged(const QString& path);
+    /* request output */
+    void outputRequested(const QString& file, const int line, const QString& func, const QString& message, const Logger::LogLevel& level);
 };
 extern Logger *logger;
 
-#define __LOGOUT__(comment, type) logger->output(__FILE__, __LINE__, __FUNCTION__, comment, type)
+/* cannot output the message with below macro from other thread which is not main gui thread.
+ * It's because that the Logger::output() function call the QMessageBox widget. */
+//#define __LOGOUT__(comment, type) logger->output(__FILE__, __LINE__, __FUNCTION__, comment, type)
+/* output message from a below signal to call other thread. */
+#define __LOGOUT__(comment, type) Q_EMIT logger->outputRequested(__FILE__, __LINE__, __FUNCTION__, comment, type)
 
 
 

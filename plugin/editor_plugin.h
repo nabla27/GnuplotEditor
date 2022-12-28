@@ -40,22 +40,13 @@ struct Completion
 
 
 
-class EditorManager
+class EditorManager : public Manager
 {
 public:
     virtual void toolTip(const std::string& text, ToolTip& toolTip) = 0;
     virtual void completions(const std::string& text, std::unordered_set<Completion>& completions) = 0;
 };
 
-
-
-
-
-class EditorPlugin : public AbstractPlugin
-{
-public:
-    virtual EditorManager* createInstance() const = 0;
-};
 
 
 

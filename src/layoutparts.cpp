@@ -225,6 +225,11 @@ LoopProgressDialog::LoopProgressDialog(QWidget *parent, Qt::WindowFlags f)
     connect(timer, &QTimer::timeout, this, &LoopProgressDialog::updateStyleSheet);
 }
 
+bool LoopProgressDialog::isProgress() const
+{
+    return timer->isActive();
+}
+
 void LoopProgressDialog::start()
 {
     if(_autoDisplayFlag) show();
