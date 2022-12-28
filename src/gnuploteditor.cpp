@@ -56,28 +56,21 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     setGeometry(mutility::getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
 
     {
-        //const QString dllPath = "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/gnuplot-completion/x64/Release/gnuplot-completion.dll";
+        const QString dllPath = "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/gnuplot-completion/x64/Release/gnuplot-completion.dll";
         //TextEditor *editor = new TextEditor(nullptr);
         //editor->show();
         //connect(this, &GnuplotEditor::destroyed, [=](){ delete editor; });
 
-        //QProcess *process = new QProcess(this);
-        //process->setArguments(QStringList()
-        //                      << "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/gnuplot-completion/x64/Release/gnuplot-completion.dll"
-        //                      << "createPluginInstance");
-        //process->setProgram("E:/repos/qt_project/LabQ/GnuplotEditor/plugin/pluginchecker/bin/release/pluginchecker.exe");
+        const QString checkerPath = "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/pluginchecker/bin/release/pluginchecker.exe";
+        const QString symbolName = "createPluginInstance";
 
-        //connect(process, &QProcess::finished,
-        //        [](const int exitcode, const QProcess::ExitStatus& status){
-        //    qDebug() << exitcode << status;
+        //PluginLoader *ploader = new PluginLoader(nullptr);
+        //ploader->setLibraryPath(dllPath);
+        //ploader->setSymbolName(symbolName);
+        //connect(ploader, &PluginLoader::checked, [](int code){
+        //    qDebug() << code;
         //});
-
-        //process->start();
-
-        mlayout::LoopProgressDialog *pd = new mlayout::LoopProgressDialog(this);
-        pd->setBandHalfWidth(0.2);
-        pd->setAutoDisplay(true);
-        pd->start();
+        //ploader->start();
     }
 
 

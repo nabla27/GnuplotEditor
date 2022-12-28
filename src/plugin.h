@@ -13,53 +13,80 @@
 #include <QLibrary>
 #include <QWidget>
 #include <QDialog>
+#include <QTreeWidgetItem>
 #include "logger.h"
 #include "../plugin/plugin_base.h"
 
 
 
 namespace editorplugin { class EditorPlugin; }
+namespace mlayout { class LoopProgressDialog; }
 class QTreeWidget;
 class QTabWidget;
 class QLineEdit;
 class QFileDialog;
-class QTreeWidgetItem;
 class PluginSettingWidget;
+class QProcess;
+class AbstractPlugin;
+class QHBoxLayout;
 
 
 
 
-template <typename InstanceType>
-class Plugin
+
+
+
+
+
+
+class PluginLoader : public QThread
 {
+    Q_OBJECT
 public:
-    Plugin();
-
-    using InstanceGeneratorType = void(*)(InstanceType*&);
+    explicit PluginLoader(QObject *parent);
+    ~PluginLoader();
 
 public:
-    void setDllPath(const QString& path);
-    void setSymbol(const QString& symbol);
-    void setEnable(const bool enable) { enableFlag = enable; }
-    bool isEnable() const { return enableFlag; }
-    bool load();
-    bool unload();
-    bool resolve();
+    int id() const noexcept { return _id; }
+    AbstractPlugin *const plugin() { return _plugin; }
+    bool isEnable() const { return _isEnable; }
+    int libState() const { return _libState; }
+    QString libraryPath() const { return libPath; }
 
-    bool isLoaded() { return lib.isLoaded(); }
-    int id() const { return _id; }
-    InstanceType *const instance() const { return _instance; }
+public:
+    void setLibraryPath(const QString& path);
+    void setSymbolName(const QString& symbolName);
+    void setEnable(bool enable);
+
+    static QSet<PluginLoader*> pluginLoaders;
+
+protected:
+    void run() override;
+
+private slots:
+    static void startLoopProgress();
+    static void stopLoopProgress();
 
 private:
     inline static int count = 0;
-    const int _id;
 
-    QString dllPath;
-    QString symbol;
+    QString static pluginCheckerPath();
+
     QLibrary lib;
-    bool enableFlag = true;
+    AbstractPlugin *_plugin;
+    int _libState;
 
-    InstanceType* _instance;
+    QString libPath;
+    QString symbolName;
+    const int _id;
+    bool _isEnable = true;
+
+    inline static mlayout::LoopProgressDialog *lpDialog = nullptr;
+    inline static int lpCount = 0;
+
+signals:
+    void checked(int code);
+    void loaded(const PluginInfo& info);
 };
 
 
@@ -67,128 +94,93 @@ private:
 
 
 
-template <typename T>
-Plugin<T>::Plugin()
-    : _id(count++)
-    , _instance(nullptr)
-{
-}
-
-template <typename T>
-void Plugin<T>::setDllPath(const QString &path)
-{
-    dllPath = path;
-}
-
-template <typename T>
-void Plugin<T>::setSymbol(const QString &symbol)
-{
-    this->symbol = symbol;
-}
-
-template <typename T>
-bool Plugin<T>::load()
-{
-    lib.setFileName(dllPath);
-
-    if(lib.load())
-    {
-        __LOGOUT__("load the dll \"" + dllPath + "\".", Logger::LogLevel::Info);
-
-        return true;
-    }
-    else
-    {
-        __LOGOUT__("failed to load the dll \"" + dllPath + "\".", Logger::LogLevel::Error);
-
-        return false;
-    }
-}
-
-template <typename T>
-bool Plugin<T>::unload()
-{
-    if(lib.unload())
-    {
-        __LOGOUT__("unload the dll \"" + dllPath + "\".", Logger::LogLevel::Info);
-
-        return true;
-    }
-    else
-    {
-        __LOGOUT__("failed to unload the dll \"" + dllPath + "\".", Logger::LogLevel::Error);
-
-        return false;
-    }
-}
-
-template <typename T>
-bool Plugin<T>::resolve()
-{
-    __LOGOUT__("resolve the symbol ... \"" + symbol + "\".", Logger::LogLevel::Info);
-
-    if(InstanceGeneratorType generate = (InstanceGeneratorType)lib.resolve(symbol.toUtf8().constData()))
-    {
-
-        __LOGOUT__("resolve the symbol name \"" + symbol + "\". and call the symbol ...", Logger::LogLevel::Info);
-
-        generate(_instance);
-
-        __LOGOUT__("the symbol name \"" + symbol + "\" is called.", Logger::LogLevel::Info);
-
-        if(_instance)
-        {
-            return true;
-        }
-        else
-        {
-            __LOGOUT__("the symbol \"" + symbol + "\" was resolved. but that symbol has an invalid argument.", Logger::LogLevel::Error);
-
-            return false;
-        }
-    }
-
-    __LOGOUT__("failed to resolve the symbol \"" + symbol + "\".", Logger::LogLevel::Error);
-
-    return false;
-}
 
 
 
 
 
-
-struct PluginCollection
-{
-    static QHash<int, Plugin<editorplugin::EditorPlugin>*> editorPlugins;
-};
-
-
-
-
-
-
+class PluginListWidgetItem;
 class PluginListWidget : public QWidget
 {
     Q_OBJECT
 public:
     PluginListWidget(QWidget *parent);
+    ~PluginListWidget();
 
-    enum class ItemIndex { Enable, ID, Name, Version, DLLPath, SymbolName };
-    Q_ENUM(ItemIndex)
+    QSize sizeHint() const override { return QSize(qMax(700, QWidget::sizeHint().width()), QWidget::sizeHint().height()); }
 
-    QSize sizeHint() const { return QSize(700, QWidget::sizeHint().height()); }
-
-    static QString pluginSettingPath();
+private slots:
+    void addPluginFromDialog();
+    void removePlugin();
+    void editPlugin();
+    void openSettingWidget();
+    void setButtonEnable();
+    void changePluginState(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QList<int>& roles);
 
 private:
-    QTabWidget *tabWidget;
+    static QString pluginListFilePath();
+
+    PluginListWidgetItem* checkSelectedItem() const;
+
+    void addPlugin(const QString& dllPath, const QString& symbolName);
+
+    void loadPluginListFromXml();
+    void loadDefaultPlugin();
+    void savePluginListAsXml();
+
+private:
+    QTreeWidget *treeWidget;
+    QPushButton *addButton;
+    QPushButton *removeButton;
+    QPushButton *editButton;
+    QPushButton *optionButton;
 
     class PluginOptionDialog;
-
-    class EditorPluginPage;
-    EditorPluginPage *editorPluginPage;
 };
+
+
+
+
+
+
+
+
+
+
+class PluginListWidgetItem : public QObject, public QTreeWidgetItem
+{
+    Q_OBJECT
+
+public:
+    explicit PluginListWidgetItem(QTreeWidget *parent, PluginLoader *p);
+
+    enum class ItemIndex { Enable, ID, Type, Name, Version, LibraryPath, SymbolName };
+    Q_ENUM(ItemIndex)
+
+public:
+    void setLibNameText(const QString& name);
+    void setLibPathText(const QString& path);
+    void setSymbolNameText(const QString& symbol);
+
+    PluginLoader *const pluginLoader() { return _pluginLoader; }
+    PluginSettingWidget *const settingWidget() { return _settingWidget; }
+
+    QString libNameText() const;
+    QString libPathText() const;
+    QString symbolNameText() const;
+
+private slots:
+    void reflectDllState(const int code);
+    void setDllInfo(const PluginInfo& info);
+
+private:
+    PluginLoader *const _pluginLoader;
+    PluginSettingWidget *const _settingWidget;
+};
+
+
+
+
 
 
 
@@ -225,68 +217,6 @@ private:
 
 
 
-class PluginChecker : public QThread
-{
-    Q_OBJECT
-public:
-    explicit PluginChecker(QObject *parent);
-
-public:
-    void setLibrary(const int id, const QString& path, const QString& symbol);
-
-protected:
-    void run() override;
-
-private:
-
-
-signals:
-    void checked(const int code);
-};
-
-
-
-
-
-
-
-
-
-class PluginListWidget::EditorPluginPage : public QWidget
-{
-    Q_OBJECT
-
-public:
-    EditorPluginPage(QWidget *parent);
-    ~EditorPluginPage();
-
-private slots:
-    void addPluginFromDialog();
-    void removePlugin();
-    void editPlugin();
-    void changePlugin(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QList<int>& roles);
-    void setButtonEnable();
-    void openSettingWidget();
-
-private:
-    void addPlugin(const QString& dllPath, const QString& symbolName);
-    void checkLoadState(QTreeWidgetItem *item);
-    void checkResolveState(QTreeWidgetItem *item);
-
-    void loadFromXml();
-    void saveAsXml();
-
-private:
-    QTreeWidget *listWidget;
-    QPushButton *settingButton;
-
-    QHash<int, PluginSettingWidget*> settingWidgets;
-};
-
-
-
-
-
 
 
 
@@ -294,13 +224,15 @@ class PluginSettingWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit PluginSettingWidget(QWidget *parent, std::vector<AbstractPlugin::SettingItem>*& items);
+    explicit PluginSettingWidget(QWidget *parent);
+
+public:
+    void setupForm(std::vector<AbstractPlugin::SettingItem> *items);
 
 private:
-    void setupForm();
-
-private:
-    std::vector<AbstractPlugin::SettingItem> *const items;
+    QHBoxLayout *contentsLayout;
+    QWidget *contentsWidget;
+    std::vector<AbstractPlugin::SettingItem> *items;
 };
 
 

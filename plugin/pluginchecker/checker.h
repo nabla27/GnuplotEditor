@@ -24,7 +24,7 @@ public:
                           FailedToCreateInstance,
                           InvalidLibrary };
 
-    typedef void(*FuncPtr)(AbstractPlugin*&);
+    Q_ENUM(ExitCode)
 
 public slots:
     void check()
@@ -58,7 +58,7 @@ public slots:
             return;
         }
 
-        FuncPtr func = (FuncPtr)(lib.resolve(symbolName.toUtf8().constData()));
+        CreatePluginInstanceFuncType func = (CreatePluginInstanceFuncType)(lib.resolve(symbolName.toUtf8().constData()));
 
         if(!func)
         {
@@ -68,7 +68,7 @@ public slots:
         }
 
         AbstractPlugin *p = nullptr;
-        func(p);
+        p = func();
 
         if(!p)
         {
@@ -77,16 +77,8 @@ public slots:
             return;
         }
 
-        PluginInfo info;
 
-        try
-        {
-            p->info(info);
-        }
-        catch(...)
-        {
-
-        }
+        std::cout << "plugin(" + p->info.name + ", " + p->info.version + ") checked" << std::endl;
 
         std::cout << "finished to check the library." << std::endl;
         QCoreApplication::exit((int)ExitCode::ValidLibrary);

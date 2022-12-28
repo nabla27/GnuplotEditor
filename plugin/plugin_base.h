@@ -19,11 +19,21 @@
 
 struct PluginInfo
 {
-    std::string name;
-    std::string version;
+    enum class PluginType { EditorManager };
+
+    const std::string name;
+    const std::string version;
+    const std::string description;
+    const PluginType type;
 };
 
 
+
+
+class Manager
+{
+    virtual void setEnable(bool enable) = 0;
+};
 
 
 
@@ -45,16 +55,28 @@ public:
 
         enum class VariantType { Int, Double, StdString };
 
-        const int id;
         const std::string name;
         const std::string detail;
         std::variant<int, double, std::string> variant;
     };
 
-    virtual void info(PluginInfo& info) = 0;
+    AbstractPlugin(const PluginInfo& info,
+                   const std::vector<SettingItem>& items)
+        : info(info)
+        , items(items) {}
+
+    //virtual void info(PluginInfo& info) = 0;
     virtual void setup() = 0;
-    virtual void settingItems(std::vector<SettingItem>*& items) = 0;
+    //virtual void settingItems(std::vector<SettingItem>*& items) = 0;
+    virtual Manager* createInstance() const = 0;
+
+    const PluginInfo info;
+    std::vector<SettingItem> items;
 };
+
+
+
+typedef AbstractPlugin*(*CreatePluginInstanceFuncType)(void);
 
 
 
