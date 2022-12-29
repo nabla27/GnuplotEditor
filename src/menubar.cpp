@@ -11,6 +11,7 @@
 
 #include <QAction>
 #include <QFileDialog>
+#include <QClipboard>
 #include "filetreewidget.h"
 #include "textedit.h"
 #include "standardpixmap.h"
@@ -25,8 +26,15 @@ FileMenu::FileMenu(const QString &title, QWidget *parent)
     , aSaveFolder(new QAction("Save As New Folder", this))
     , aUpdateFolder(new QAction("Update File Tree", this))
     , aReloadFolder(new QAction("Reload File Tree", this))
+
     , aOpenFile(new QAction("Open File", this))
     , aNewFile(new QAction("New File", this))
+
+    , aReloadFile(new QAction("Reload File", this))
+    , aSaveFile(new QAction("Save File", this))
+    , aSaveAllFiles(new QAction("Save All Files", this))
+    , aSaveFileAs(new QAction("Save File As", this))
+
     , aOpenTreeSetting(new QAction("File Tree Setting", this))
 {
     addAction(aOpenFolder);
@@ -38,6 +46,11 @@ FileMenu::FileMenu(const QString &title, QWidget *parent)
     addAction(aOpenFile);
     addAction(aNewFile);
     addSeparator();
+    addAction(aReloadFile);
+    addAction(aSaveFile);
+    addAction(aSaveAllFiles);
+    addAction(aSaveFileAs);
+    addSeparator();
     addAction(aOpenTreeSetting);
 
     aOpenFolder->setIcon(QIcon(StandardPixmap::File::folderOpen()));
@@ -45,9 +58,14 @@ FileMenu::FileMenu(const QString &title, QWidget *parent)
     aReloadFolder->setIcon(QIcon(StandardPixmap::Icon::reload()));
     aOpenFile->setIcon(QIcon(StandardPixmap::File::fileAdd()));
     aNewFile->setIcon(QIcon(StandardPixmap::File::normal()));
+    aReloadFile->setIcon(QIcon(StandardPixmap::File::fileReload()));
+    aSaveFile->setIcon(QIcon(StandardPixmap::File::fileSave()));
+    aSaveFileAs->setIcon(QIcon(StandardPixmap::File::fileSaves()));
 
     aOpenFile->setShortcut(QKeySequence("Ctrl+O"));
     aNewFile->setShortcut(QKeySequence("Ctrl+N"));
+    aSaveFile->setShortcut(QKeySequence("Ctrl+S"));
+    aSaveAllFiles->setShortcut(QKeySequence("Ctrl+Shift+S"));
 
     connect(aOpenFolder, &QAction::triggered, this, &FileMenu::openFolderRequested);
     connect(aAddFolder, &QAction::triggered, this, &FileMenu::addFolderRequested);
@@ -56,8 +74,91 @@ FileMenu::FileMenu(const QString &title, QWidget *parent)
     connect(aReloadFolder, &QAction::triggered, this, &FileMenu::reloadFolderRequested);
     connect(aOpenFile, &QAction::triggered, this, &FileMenu::openFileRequested);
     connect(aNewFile, &QAction::triggered, this, &FileMenu::newFileRequested);
+    connect(aReloadFile, &QAction::triggered, this, &FileMenu::reloadFile);
+    connect(aSaveFile, &QAction::triggered, this, &FileMenu::saveFile);
+    connect(aSaveAllFiles, &QAction::triggered, this, &FileMenu::saveAllFilesRequested);
+    connect(aSaveFileAs, &QAction::triggered, this, &FileMenu::saveFileAs);
     connect(aOpenTreeSetting, &QAction::triggered, this, &FileMenu::openTreeSettingRequested);
+
+    setActionEnable(false);
 }
+
+void FileMenu::setActionEnable(bool enable)
+{
+    aReloadFile->setEnabled(enable);
+    aSaveFile->setEnabled(enable);
+    aSaveFileAs->setEnabled(enable);
+}
+
+void FileMenu::resetCurrentItem()
+{
+    currentItem = nullptr;
+}
+
+void FileMenu::setCurrentItem(TreeFileItem *item)
+{
+    if(currentItem)
+        disconnect(currentItem, &TreeFileItem::destroyed, this, &FileMenu::resetCurrentItem);
+
+    currentItem = item;
+
+    if(currentItem)
+        connect(currentItem, &TreeFileItem::destroyed, this, &FileMenu::resetCurrentItem);
+
+    if(item)
+    {
+        setActionEnable(true);
+        const QString fileName = item->fileInfo().fileName();
+
+        aReloadFile->setText("Reload File \"" + fileName + "\"");
+        aSaveFile->setText("Save File \"" + fileName + "\"");
+        aSaveFileAs->setText("Save File \"" + fileName + "\" As ...");
+    }
+    else
+    {
+        setActionEnable(false);
+
+        aReloadFile->setText("Reload File");
+        aSaveFile->setText("Save File");
+        aSaveFileAs->setText("Save File As ...");
+    }
+}
+
+void FileMenu::reloadFile()
+{
+    if(currentItem)
+    {
+        currentItem->load();
+    }
+}
+
+void FileMenu::saveFile()
+{
+    if(currentItem)
+    {
+        currentItem->save();
+    }
+}
+
+void FileMenu::saveFileAs()
+{
+    if(!currentItem) return;
+
+    const QString pathForSave = QFileDialog::getSaveFileName(this);
+
+    if(pathForSave.isEmpty()) return;
+
+    if(!QFile::copy(currentItem->fileInfo().absoluteFilePath(), pathForSave))
+    {
+        __LOGOUT__("failed to copy the file \"" +
+                   currentItem->fileInfo().absoluteFilePath() +
+                   "\" to \"" + pathForSave, Logger::LogLevel::Error);
+    }
+}
+
+
+
+
 
 
 
@@ -67,206 +168,212 @@ FileMenu::FileMenu(const QString &title, QWidget *parent)
 
 EditorMenu::EditorMenu(const QString &title, QWidget *parent)
     : QMenu(title, parent)
-    , aReloadFile(new QAction("Reload File", this))
-    , aSaveFile(new QAction("Save File", this))
-    , aSaveAllFiles(new QAction("Save All Files", this))
-    , aSaveFileAs(new QAction("Save File as", this))
-    , aAutoRun(new QAction("Autorun", this))
+
+    , aUndo(new QAction("Undo", this))
+    , aRedo(new QAction("Redo", this))
+    , aCut(new QAction("Cut", this))
+    , aCopy(new QAction("Copy", this))
+    , aPaste(new QAction("Paste", this))
+    , aDelete(new QAction("Delete", this))
+    , aSelectAll(new QAction("Select All", this))
+
     , aFind(new QAction("Find", this))
     , aOpenInNewWindow(new QAction("Open In New Window", this))
-    , aRun(new QAction("Run", this))
-    , aCloseProcess(new QAction("Close Process", this))
-    , aCommentOutScript(new QAction("Comment Out", this))
-    , aShowCmdHelpScript(new QAction("Help For Command Under Cursor", this))
-    , aSaveAsTemplate(new QAction("Save As Template", this))
 {
-    addAction(aReloadFile);
-    addAction(aSaveFile);
-    addAction(aSaveAllFiles);
-    addAction(aSaveFileAs);
-    addAction(aAutoRun);
+    addAction(aUndo);
+    addAction(aRedo);
+
+    addSeparator();
+
+    addAction(aCut);
+    addAction(aCopy);
+    addAction(aPaste);
+    addAction(aDelete);
+
+    addSeparator();
+
+    addAction(aSelectAll);
+
+    addSeparator();
+
     addAction(aFind);
     addAction(aOpenInNewWindow);
-    addSeparator();
-    addAction(aRun);
-    addAction(aCloseProcess);
-    addAction(aCommentOutScript);
-    addAction(aShowCmdHelpScript);
-    addAction(aSaveAsTemplate);
 
-    aReloadFile->setIcon(QIcon(StandardPixmap::File::fileReload()));
-    aSaveFile->setIcon(QIcon(StandardPixmap::File::fileSave()));
-    aSaveFileAs->setIcon(QIcon(StandardPixmap::File::fileSaves()));
     aFind->setIcon(QIcon(StandardPixmap::Icon::find()));
     aOpenInNewWindow->setIcon(QIcon(StandardPixmap::Icon::openInWindow()));
-    aRun->setIcon(QIcon(StandardPixmap::Icon::execute()));
 
-    aSaveFile->setShortcut(QKeySequence("Ctrl+S"));
-    aSaveAllFiles->setShortcut(QKeySequence("Ctrl+Shift+S"));
+    aUndo->setShortcut(QKeySequence("Ctrl+Z"));
+    aRedo->setShortcut(QKeySequence("Ctrl+Y"));
+    aCut->setShortcut(QKeySequence("Ctrl+X"));
+    aCopy->setShortcut(QKeySequence("Ctrl+C"));
+    aPaste->setShortcut(QKeySequence("Ctrl+V"));
+    aSelectAll->setShortcut(QKeySequence("Ctrl+A"));
+
     aFind->setShortcut(QKeySequence("Ctrl+F"));
     aOpenInNewWindow->setShortcut(QKeySequence("Ctrl+W"));
-    aRun->setShortcut(QKeySequence("Ctrl+R"));
-    aCommentOutScript->setShortcut(QKeySequence("Ctrl+Shift+D"));
-    aShowCmdHelpScript->setShortcut(QKeySequence("F1"));
-    aSaveAsTemplate->setShortcut(QKeySequence("Ctrl+Shift+T"));
 
-    aOpenInNewWindow->setEnabled(true);
+    setActionDisable();
 
-    connect(aReloadFile, &QAction::triggered, this, &EditorMenu::reloadFile);
-    connect(aSaveFile, &QAction::triggered, this, &EditorMenu::saveFile);
-    connect(aSaveAllFiles, &QAction::triggered, this, &EditorMenu::saveAllFileRequested);
-    connect(aSaveFileAs, &QAction::triggered, this, &EditorMenu::saveFileAs);
-    connect(aAutoRun, &QAction::triggered, this, &EditorMenu::setAutoRun);
+    connect(aUndo, &QAction::triggered, this, &EditorMenu::undo);
+    connect(aRedo, &QAction::triggered, this, &EditorMenu::redo);
+    connect(aCut, &QAction::triggered, this, &EditorMenu::cut);
+    connect(aCopy, &QAction::triggered, this, &EditorMenu::copy);
+    connect(aPaste, &QAction::triggered, this, &EditorMenu::paste);
+    connect(aDelete, &QAction::triggered, this, &EditorMenu::deleteText);
+    connect(aSelectAll, &QAction::triggered, this, &EditorMenu::selectAll);
     connect(aFind, &QAction::triggered, this, &EditorMenu::findRequested);
     connect(aOpenInNewWindow, &QAction::triggered, this, &EditorMenu::openInNewWindow);
-    connect(aRun, &QAction::triggered, [this](){ emit runRequested(currentItem); });
-    connect(aCloseProcess, &QAction::triggered, this, &EditorMenu::closeProcess);
-    connect(aCommentOutScript, &QAction::triggered, this, &EditorMenu::commentOutScript);
-    connect(aShowCmdHelpScript, &QAction::triggered, this, &EditorMenu::showCmdHelpRequested);
-    connect(aSaveAsTemplate, &QAction::triggered, this, &EditorMenu::emitSaveAsTemplate);
+}
+
+void EditorMenu::setActionDisable()
+{
+    aUndo->setEnabled(false);
+    aRedo->setEnabled(false);
+    aCut->setEnabled(false);
+    aCopy->setEnabled(false);
+    aPaste->setEnabled(false);
+    aDelete->setEnabled(false);
+    aSelectAll->setEnabled(false);
+    aFind->setEnabled(false);
 }
 
 void EditorMenu::resetCurrentItem()
 {
     currentItem = nullptr;
-    standardContextMenu = nullptr;
 }
 
 void EditorMenu::setCurrentItem(TreeFileItem *item)
 {
-    __LOGOUT__("item is set to " + QString(EditorMenu::staticMetaObject.className()), Logger::LogLevel::Info);
-
     if(currentItem)
-        disconnect(currentItem, &TreeFileItem::destroyed, this, &EditorMenu::resetCurrentItem);
+        currentItem->disconnect(this);
 
     currentItem = item;
 
     if(currentItem)
-        connect(currentItem, &TreeFileItem::destroyed, this, &EditorMenu::resetCurrentItem);
-
-    if(standardContextMenu)
     {
-        standardContextMenu->deleteLater();
-        standardContextMenu = nullptr;
-        standardContextAction->deleteLater();
-        standardContextAction = nullptr;
-    }
-
-    bool itemExists = false;
-    bool isScript = false;
-    QString fileName = "";
-
-    if(item)
-    {
-        itemExists = true;
-        isScript = item->type() == (int)FileTreeWidget::TreeItemType::Script;
-        fileName = item->fileInfo().fileName();
-
-        if(item->isEnableUpdateTimer())
-            aAutoRun->setText("Disable Autorun");
-        else
-            aAutoRun->setText("Enable Autorun");
-
-        if(isScript)
-        {
-            standardContextMenu = static_cast<TreeScriptItem*>(item)->editor->createStandardContextMenu();
-            standardContextMenu->setTitle("Edit");
-            standardContextAction = insertMenu(aRun, standardContextMenu);
-        }
+        aOpenInNewWindow->setEnabled(true);
+        connect(item, &TreeFileItem::destroyed, this, &EditorMenu::resetCurrentItem);
     }
     else
     {
-        __LOGOUT__("nullptr item is set to " + QString(EditorMenu::staticMetaObject.className()), Logger::LogLevel::Info);
+        aOpenInNewWindow->setEnabled(false);
     }
 
-    aReloadFile->setEnabled(itemExists);
-    aSaveFile->setEnabled(itemExists);
-    aSaveFileAs->setEnabled(itemExists);
-    aAutoRun->setEnabled(itemExists);
-    aFind->setEnabled(itemExists);
-    aOpenInNewWindow->setEnabled(itemExists);
-
-    aReloadFile->setText("Reload File \"" + fileName + "\"");
-    aSaveFile->setText("Save File \"" + fileName + "\"");
-    aSaveFileAs->setText("Save File \"" + fileName + "\" As ...");
-
-    aRun->setEnabled(isScript);
-    aCloseProcess->setEnabled(isScript);
-    aCommentOutScript->setEnabled(isScript);
-    aShowCmdHelpScript->setEnabled(isScript);
-    aSaveAsTemplate->setEnabled(isScript);
-}
-
-void EditorMenu::reloadFile()
-{
-    if(currentItem)
+    if(!item || item->type() != (int)FileTreeWidget::TreeItemType::Script)
     {
-        currentItem->load();
+        setActionDisable();
+        return;
     }
-}
 
-void EditorMenu::saveFile()
-{
-    if(currentItem)
+    TextEdit *editor = static_cast<TreeScriptItem*>(item)->editor;
+
+    if(editor)
     {
-        currentItem->save();
+        aFind->setEnabled(true);
+        aUndo->setEnabled(editor->document()->availableUndoSteps() > 0);
+        aRedo->setEnabled(editor->document()->availableRedoSteps() > 0);
+        const bool hasSelection = editor->textCursor().hasSelection();
+        aCut->setEnabled(hasSelection);
+        aCopy->setEnabled(hasSelection);
+        aPaste->setEnabled(!QApplication::clipboard()->text().isEmpty());
+        aDelete->setEnabled(hasSelection);
+        aSelectAll->setEnabled(true);
+    }
+    else
+    {
+        setActionDisable();
     }
 }
 
-void EditorMenu::saveFileAs()
-{
-    if(!currentItem) return;
-
-    const QString pathForSave = QFileDialog::getSaveFileName(this);
-
-    if(pathForSave.isEmpty()) return;
-
-    QFile::copy(currentItem->fileInfo().absoluteFilePath(), pathForSave);
-}
-
-void EditorMenu::setAutoRun()
+void EditorMenu::undo()
 {
     if(currentItem)
     {
-        currentItem->setUpdateTimer(!currentItem->isEnableUpdateTimer());
+        if(TextEdit *editor = static_cast<TreeScriptItem*>(currentItem)->editor)
+        {
+            editor->undo();
+        }
+    }
+}
+
+void EditorMenu::redo()
+{
+    if(currentItem)
+    {
+        if(TextEdit *editor = static_cast<TreeScriptItem*>(currentItem)->editor)
+        {
+            editor->redo();
+        }
+    }
+}
+
+void EditorMenu::cut()
+{
+    if(currentItem)
+    {
+        if(TextEdit *editor = static_cast<TreeScriptItem*>(currentItem)->editor)
+        {
+            editor->cut();
+        }
+    }
+}
+
+void EditorMenu::copy()
+{
+    if(currentItem)
+    {
+        if(TextEdit *editor = static_cast<TreeScriptItem*>(currentItem)->editor)
+        {
+            editor->copy();
+        }
+    }
+}
+
+void EditorMenu::paste()
+{
+    if(currentItem)
+    {
+        if(TextEdit *editor = static_cast<TreeScriptItem*>(currentItem)->editor)
+        {
+            editor->paste();
+        }
+    }
+}
+
+void EditorMenu::deleteText()
+{
+    if(currentItem)
+    {
+        if(TextEdit *editor = static_cast<TreeScriptItem*>(currentItem)->editor)
+        {
+            editor->textCursor().removeSelectedText();
+        }
+    }
+}
+
+void EditorMenu::selectAll()
+{
+    if(currentItem)
+    {
+        if(TextEdit *editor = static_cast<TreeScriptItem*>(currentItem)->editor)
+        {
+            editor->selectAll();
+        }
     }
 }
 
 void EditorMenu::openInNewWindow()
 {
-    if(!currentItem) return;
-    if(QWidget *w = currentItem->widget())
+    if(currentItem)
     {
-        w->setParent(nullptr);
-        w->show();
+        if(QWidget *w = currentItem->widget())
+        {
+            w->setParent(nullptr);
+            w->show();
+        }
     }
 }
 
-void EditorMenu::closeProcess()
-{
-    if(TreeScriptItem *item = static_cast<TreeScriptItem*>(currentItem))
-    {
-        item->requestCloseProcess();
-    }
-}
-
-void EditorMenu::commentOutScript()
-{
-    if(TreeScriptItem *item = static_cast<TreeScriptItem*>(currentItem))
-    {
-        if(!item->editor) return;
-        item->editor->reverseSelectedCommentState();
-    }
-}
-
-void EditorMenu::emitSaveAsTemplate()
-{
-    if(TreeScriptItem *item = static_cast<TreeScriptItem*>(currentItem))
-    {
-        if(!item->editor) return;
-        emit saveAsTemplateRequested(item->editor->toPlainText());
-    }
-}
 
 
 
@@ -277,22 +384,148 @@ void EditorMenu::emitSaveAsTemplate()
 
 GnuplotMenu::GnuplotMenu(const QString &title, QWidget *parent)
     : QMenu(title, parent)
+    , aRun(new QAction("Run", this))
+    , aCloseProcess(new QAction("Close Process", this))
+    , aAutoRun(new QAction("Autorun", this))
+    , aRunDetached(new QAction("Run Detached With Gnuplot", this))
+    , aCommentOut(new QAction("Comment Out", this))
+    , aShowCmdHelp(new QAction("Help For Cmd Under Cursor", this))
+    , aHelpDocument(new QAction("Help Document", this))
+    , aSaveAsTemplate(new QAction("Save As Template", this))
     , aScriptTemplate(new QAction("Script Template", this))
     , aGnuplotSetting(new QAction("Gnuplot Setting", this))
-    , aHelpDocument(new QAction("Help Document", this))
 {
+    addAction(aRun);
+    addAction(aCloseProcess);
+    addAction(aAutoRun);
+    addAction(aRunDetached);
+    addSeparator();
+    addAction(aCommentOut);
+    addAction(aShowCmdHelp);
+    addAction(aHelpDocument);
+    addAction(aSaveAsTemplate);
     addAction(aScriptTemplate);
     addAction(aGnuplotSetting);
-    addAction(aHelpDocument);
 
+    aRun->setIcon(QIcon(StandardPixmap::Icon::execute()));
+
+    aRun->setShortcut(QKeySequence("Ctrl+R"));
+    aCommentOut->setShortcut(QKeySequence("Ctrl+Shift+D"));
+    aShowCmdHelp->setShortcut(QKeySequence("F1"));
+    aHelpDocument->setShortcut(QKeySequence("F2"));
+    aSaveAsTemplate->setShortcut(QKeySequence("Ctrl+Shift+T"));
     aScriptTemplate->setShortcut(QKeySequence("Ctrl+T"));
     aGnuplotSetting->setShortcut(QKeySequence("Ctrl+G"));
-    aHelpDocument->setShortcut(QKeySequence("F2"));
 
+    connect(aRun, &QAction::triggered, [this](){ emit runRequested(currentItem); });
+    connect(aCloseProcess, &QAction::triggered, this, &GnuplotMenu::closeProcess);
+    connect(aAutoRun, &QAction::triggered, this, &GnuplotMenu::setAutoRun);
+    connect(aRunDetached, &QAction::triggered, this, &GnuplotMenu::runDetached);
+    connect(aCommentOut, &QAction::triggered, this, &GnuplotMenu::commentOut);
+    connect(aShowCmdHelp, &QAction::triggered, this, &GnuplotMenu::showCmdHelpRequested);
+    connect(aHelpDocument, &QAction::triggered, this, &GnuplotMenu::showGnuplotHelpRequested);
+    connect(aSaveAsTemplate, &QAction::triggered, this, &GnuplotMenu::emitSaveAsTemplate);
     connect(aScriptTemplate, &QAction::triggered, this, &GnuplotMenu::showScriptTemplateRequested);
     connect(aGnuplotSetting, &QAction::triggered, this, &GnuplotMenu::showGnuplotSettingRequested);
-    connect(aHelpDocument, &QAction::triggered, this, &GnuplotMenu::showGnuplotHelpRequested);
+
+    aAutoRun->setCheckable(true);
+
+    setupActionEnable(false);
 }
+
+void GnuplotMenu::resetCurrentItem()
+{
+    currentItem = nullptr;
+}
+
+void GnuplotMenu::setupActionEnable(bool enable)
+{
+    aRun->setEnabled(enable);
+    aCloseProcess->setEnabled(enable);
+    aAutoRun->setEnabled(enable);
+    aRunDetached->setEnabled(enable);
+    aCommentOut->setEnabled(enable);
+    aShowCmdHelp->setEnabled(enable);
+    aSaveAsTemplate->setEnabled(enable);
+}
+
+void GnuplotMenu::setCurrentItem(TreeFileItem *item)
+{
+    if(currentItem)
+        currentItem->disconnect(this);
+
+    currentItem = item;
+
+    if(currentItem)
+        connect(currentItem, &TreeFileItem::destroyed, this, &GnuplotMenu::resetCurrentItem);
+
+
+    const bool isScript = (item) && (item->type() == (int)FileTreeWidget::TreeItemType::Script);
+
+    setupActionEnable(isScript);
+
+    if(currentItem)
+    {
+        if(item->isEnableUpdateTimer())
+            aAutoRun->setChecked(true);
+        else
+            aAutoRun->setChecked(false);
+    }
+}
+
+void GnuplotMenu::setAutoRun()
+{
+    if(currentItem)
+    {
+        currentItem->setUpdateTimer(!currentItem->isEnableUpdateTimer());
+    }
+}
+
+void GnuplotMenu::closeProcess()
+{
+    if(TreeScriptItem *item = static_cast<TreeScriptItem*>(currentItem))
+    {
+        item->requestCloseProcess();
+    }
+}
+
+void GnuplotMenu::runDetached()
+{
+    __LOGOUT__("no supported.", Logger::LogLevel::Debug);
+}
+
+void GnuplotMenu::commentOut()
+{
+    if(TreeScriptItem *item = static_cast<TreeScriptItem*>(currentItem))
+    {
+        if(!item->editor)
+        {
+            __LOGOUT__("the editor of the scirpt\"" + item->text(0) + "\" is nullptr.", Logger::LogLevel::Warn);
+            return;
+        }
+
+        item->editor->reverseSelectedCommentState();
+    }
+}
+
+void GnuplotMenu::emitSaveAsTemplate()
+{
+    if(TreeScriptItem *item = static_cast<TreeScriptItem*>(currentItem))
+    {
+        if(!item->editor)
+        {
+            __LOGOUT__("the editor of the scirpt\"" + item->text(0) + "\" is nullptr.", Logger::LogLevel::Warn);
+            return;
+        }
+
+        emit saveAsTemplateRequested(item->editor->toPlainText());
+    }
+}
+
+
+
+
+
 
 
 

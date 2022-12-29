@@ -167,6 +167,7 @@ void GnuplotEditor::initializeMenuBar()
     menuBar->addMenu(viewMenu);
     menuBar->addMenu(helpMenu);
 
+    connect(fileMenu, &FileMenu::aboutToShow, [this](){ fileMenu->setCurrentItem(editorArea->currentTreeFileItem()); });
     connect(fileMenu, &FileMenu::openFolderRequested, fileTree, &FileTreeWidget::openFolder);
     connect(fileMenu, &FileMenu::addFolderRequested, fileTree, &FileTreeWidget::addFolder);
     connect(fileMenu, &FileMenu::saveFolderRequested, fileTree, &FileTreeWidget::saveFolder);
@@ -174,18 +175,19 @@ void GnuplotEditor::initializeMenuBar()
     connect(fileMenu, &FileMenu::reloadFolderRequested, fileTree, &FileTreeWidget::saveAndLoad);
     connect(fileMenu, &FileMenu::openFileRequested, fileTree, &FileTreeWidget::addFileFromDialog);
     connect(fileMenu, &FileMenu::newFileRequested, fileTree, &FileTreeWidget::newFileFromDialog);
+    connect(fileMenu, &FileMenu::saveAllFilesRequested, fileTree, &FileTreeWidget::saveAllFile);
     connect(fileMenu, &FileMenu::openTreeSettingRequested, fileTreeSetting, &FileTreeSettingWidget::show);
 
-    connect(editorMenu, &EditorMenu::aboutToShow, this, &GnuplotEditor::setCurrentItem);
-    connect(editorMenu, &EditorMenu::saveAllFileRequested, fileTree, &FileTreeWidget::saveAllFile);
+    connect(editorMenu, &EditorMenu::aboutToShow, [this](){ editorMenu->setCurrentItem(editorArea->currentTreeFileItem()); });
     connect(editorMenu, &EditorMenu::findRequested, this, &GnuplotEditor::findKeyword);
-    connect(editorMenu, &EditorMenu::runRequested, this, &GnuplotEditor::executeItem);
-    connect(editorMenu, &EditorMenu::showCmdHelpRequested, this, &GnuplotEditor::showGnuplotCmdHelp);
-    connect(editorMenu, &EditorMenu::saveAsTemplateRequested, templateCustom, &TemplateCustomWidget::addTemplate);
 
+    connect(gnuplotMenu, &GnuplotMenu::aboutToShow, [this](){ gnuplotMenu->setCurrentItem(editorArea->currentTreeFileItem()); });
+    connect(gnuplotMenu, &GnuplotMenu::runRequested, this, &GnuplotEditor::executeItem);
+    connect(gnuplotMenu, &GnuplotMenu::showCmdHelpRequested, this, &GnuplotEditor::showGnuplotCmdHelp);
+    connect(gnuplotMenu, &GnuplotMenu::showGnuplotHelpRequested, this, &GnuplotEditor::showGnuplotHelpWindow);
+    connect(gnuplotMenu, &GnuplotMenu::saveAsTemplateRequested, templateCustom, &TemplateCustomWidget::addTemplate);
     connect(gnuplotMenu, &GnuplotMenu::showScriptTemplateRequested, templateCustom, &TemplateCustomWidget::show);
     connect(gnuplotMenu, &GnuplotMenu::showGnuplotSettingRequested, gnuplotSetting, &GnuplotSettingWidget::show);
-    connect(gnuplotMenu, &GnuplotMenu::showGnuplotHelpRequested, this, &GnuplotEditor::showGnuplotHelpWindow);
 
     connect(viewMenu, &ViewMenu::splitVerticallyRequested, editorArea, &EditorArea::splitFocusedWidgetVertically);
     connect(viewMenu, &ViewMenu::splitHorizontallyRequested, editorArea, &EditorArea::splitFocusedWidgetHorizontally);
@@ -274,7 +276,10 @@ void GnuplotEditor::initializeLayout()
 
 void GnuplotEditor::setCurrentItem()
 {
-    editorMenu->setCurrentItem(editorArea->currentTreeFileItem());
+    TreeFileItem *item = editorArea->currentTreeFileItem();
+    fileMenu->setCurrentItem(item);
+    editorMenu->setCurrentItem(item);
+    gnuplotMenu->setCurrentItem(item);
 }
 
 void GnuplotEditor::receiveTreeItem(QTreeWidgetItem *_item, const int column)
@@ -313,7 +318,10 @@ void GnuplotEditor::receiveTreeItem(QTreeWidgetItem *_item, const int column)
     }
 
     editorArea->setItem(item);
+
+    fileMenu->setCurrentItem(item);
     editorMenu->setCurrentItem(item);
+    gnuplotMenu->setCurrentItem(item);
 }
 
 //void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
@@ -380,7 +388,7 @@ void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
 
 void GnuplotEditor::findKeyword()
 {
-
+    __LOGOUT__("not surpported.", Logger::LogLevel::Debug);
 }
 
 void GnuplotEditor::showGnuplotCmdHelp()
