@@ -15,6 +15,7 @@
 class TreeFileItem;
 class LogBrowserWidget;
 class PluginListWidget;
+class TextEdit;
 
 
 class FileMenu : public QMenu
@@ -23,15 +24,36 @@ class FileMenu : public QMenu
 public:
     explicit FileMenu(const QString& title, QWidget *parent);
 
+public slots:
+    void setCurrentItem(TreeFileItem *item);
+
+private slots:
+    void reloadFile();
+    void saveFile();
+    void saveFileAs();
+
+private:
+    void setActionEnable(bool enable);
+    void resetCurrentItem();
+
 private:
     QAction *aOpenFolder;
     QAction *aAddFolder;
     QAction *aSaveFolder;
     QAction *aUpdateFolder;
     QAction *aReloadFolder;
+
     QAction *aOpenFile;
     QAction *aNewFile;
+
+    QAction *aReloadFile;
+    QAction *aSaveFile;
+    QAction *aSaveAllFiles;
+    QAction *aSaveFileAs;
+
     QAction *aOpenTreeSetting;
+
+    TreeFileItem *currentItem = nullptr;
 
 signals:
     void openFolderRequested();
@@ -41,6 +63,7 @@ signals:
     void reloadFolderRequested();
     void openFileRequested();
     void newFileRequested();
+    void saveAllFilesRequested();
     void openTreeSettingRequested();
 };
 
@@ -60,42 +83,36 @@ public:
     void setCurrentItem(TreeFileItem *item);
 
 private slots:
-    void reloadFile();
-    void saveFile();
-    void saveFileAs();
-    void setAutoRun();
+    void undo();
+    void redo();
+    void cut();
+    void copy();
+    void paste();
+    void deleteText();
+    void selectAll();
     void openInNewWindow();
-    void closeProcess();
-    void commentOutScript();
-    void emitSaveAsTemplate();
 
 private:
+    void setActionDisable();
     void resetCurrentItem();
 
 private:
-    QAction *aReloadFile;
-    QAction *aSaveFile;
-    QAction *aSaveAllFiles;
-    QAction *aSaveFileAs;
-    QAction *aAutoRun;
+
+    QAction *aUndo;
+    QAction *aRedo;
+    QAction *aCut;
+    QAction *aCopy;
+    QAction *aPaste;
+    QAction *aDelete;
+    QAction *aSelectAll;
+
     QAction *aFind;
     QAction *aOpenInNewWindow;
-    QAction *aRun;
-    QAction *aCloseProcess;
-    QAction *aCommentOutScript;
-    QAction *aShowCmdHelpScript;
-    QAction *aSaveAsTemplate;
 
-    QAction *standardContextAction = nullptr;
-    QMenu *standardContextMenu = nullptr;
     TreeFileItem *currentItem = nullptr;
 
 signals:
-    void saveAllFileRequested();
     void findRequested();
-    void runRequested(TreeFileItem*);
-    void showCmdHelpRequested();
-    void saveAsTemplateRequested(const QString&);
 };
 
 
@@ -111,15 +128,42 @@ class GnuplotMenu : public QMenu
 public:
     explicit GnuplotMenu(const QString& title, QWidget *parent);
 
+public:
+    void setCurrentItem(TreeFileItem *item);
+
+private slots:
+    void setAutoRun();
+    void closeProcess();
+    void runDetached();
+    void commentOut();
+    void emitSaveAsTemplate();
+
 private:
+    void resetCurrentItem();
+    void setupActionEnable(bool enable);
+
+private:
+    QAction *aRun;
+    QAction *aCloseProcess;
+    QAction *aAutoRun;
+    QAction *aRunDetached;
+
+    QAction *aCommentOut;
+    QAction *aShowCmdHelp;
+    QAction *aHelpDocument;
+    QAction *aSaveAsTemplate;
     QAction *aScriptTemplate;
     QAction *aGnuplotSetting;
-    QAction *aHelpDocument;
+
+    TreeFileItem *currentItem = nullptr;
 
 signals:
+    void runRequested(TreeFileItem *item);
+    void showCmdHelpRequested();
+    void showGnuplotHelpRequested();
+    void saveAsTemplateRequested(const QString&);
     void showScriptTemplateRequested();
     void showGnuplotSettingRequested();
-    void showGnuplotHelpRequested();
 };
 
 
