@@ -51,5 +51,8 @@
         <file alias="file_pdf">bin/release/icon/file_pdf.png</file>
         <file alias="file_category">bin/release/icon/file_category.png</file>
         <file alias="icon_caution">bin/release/icon/icon_caution.png</file>
+        <file alias="icon_adjustsize">bin/release/icon/icon_adjustsize.png</file>
+        <file alias="icon_plus">bin/release/icon/icon_plus.png</file>
+        <file alias="icon_editimage">bin/release/icon/icon_editimage.png</file>
     </qresource>
 </RCC>

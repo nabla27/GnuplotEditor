@@ -9,8 +9,16 @@
 
 #ifndef IMAGEDISPLAY_H
 #define IMAGEDISPLAY_H
+
 #include <QGraphicsView>
-#include <QLineEdit>
+
+class QFileSystemWatcher;
+class QLineEdit;
+class QHBoxLayout;
+class ImageViewWidget;
+
+
+
 
 class PaintImage : public QGraphicsView
 {
@@ -36,7 +44,7 @@ signals:
 
 
 
-class QFileSystemWatcher;
+
 class ImageDisplay : public QWidget
 {
     Q_OBJECT
@@ -55,15 +63,19 @@ private slots:
     void setCurrentSizeText(const QSize& size);
     void setImageWidth();
     void setImageHeight();
+    void openImageEditor();
 
 private:
     QFileSystemWatcher *fileWatcher;
     QTimer *timer;
     QString imagePath;
     PaintImage *painter;
-    QLineEdit *originalSize;
-    QLineEdit *currentHeight;
-    QLineEdit *currentWidth;
+    ImageViewWidget *imageEditor;
+
+    QHBoxLayout *hLayout;
+    QLineEdit *originalSizeEdit;
+    QLineEdit *currentHeightEdit;
+    QLineEdit *currentWidthEdit;
 
 signals:
     void changeImageRequested(const QSize& size);

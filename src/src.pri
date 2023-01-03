@@ -14,7 +14,10 @@ HEADERS += \
     $$PWD/gnuplotsettingwidget.h \
     $$PWD/gnuplottable.h \
     $$PWD/gnuplottexteditor.h \
+    $$PWD/graphicitems.h \
+    $$PWD/graphicitemwidget.h \
     $$PWD/imagedisplay.h \
+    $$PWD/imageviewer.h \
     $$PWD/iofile.h \
     $$PWD/layoutparts.h \
     $$PWD/logger.h \
@@ -50,7 +53,10 @@ SOURCES += \
     $$PWD/gnuplotsettingwidget.cpp \
     $$PWD/gnuplottable.cpp \
     $$PWD/gnuplottexteditor.cpp \
+    $$PWD/graphicitems.cpp \
+    $$PWD/graphicitemwidget.cpp \
     $$PWD/imagedisplay.cpp \
+    $$PWD/imageviewer.cpp \
     $$PWD/iofile.cpp \
     $$PWD/layoutparts.cpp \
     $$PWD/logger.cpp \

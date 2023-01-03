@@ -124,6 +124,9 @@ public:
         static QPixmap openInWindow() { return QPixmap(":/icon/icon_openinwindow"); }
         static QPixmap page() { return QPixmap(":/icon/icon_page"); }
         static QPixmap caution() { return QPixmap(":/icon/icon_caution"); }
+        static QPixmap adjustSize() { return QPixmap(":/icon/icon_adjustsize"); }
+        static QPixmap plus() { return QPixmap(":/icon/icon_plus"); }
+        static QPixmap editImage() { return QPixmap(":/icon/icon_editimage"); }
     };
     struct Graph
     {
