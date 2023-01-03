@@ -36,6 +36,8 @@
 #include <QThreadPool>
 #include "texteditor.h"
 #include <QTimer>
+#include "imageviewer.h"
+#include "layoutparts.h"
 
 
 GnuplotEditor::GnuplotEditor(QWidget *parent)
@@ -64,13 +66,10 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
         const QString checkerPath = "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/pluginchecker/bin/release/pluginchecker.exe";
         const QString symbolName = "createPluginInstance";
 
-        //PluginLoader *ploader = new PluginLoader(nullptr);
-        //ploader->setLibraryPath(dllPath);
-        //ploader->setSymbolName(symbolName);
-        //connect(ploader, &PluginLoader::checked, [](int code){
-        //    qDebug() << code;
-        //});
-        //ploader->start();
+        ImageViewWidget *w = new ImageViewWidget(nullptr);
+        w->show();
+        w->setImagePath("F:/repos/test.jpeg");
+
     }
 
 

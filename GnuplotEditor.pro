@@ -1,7 +1,8 @@
 QT       += core gui \
             xml \
             pdf \
-            pdfwidgets
+            pdfwidgets \
+            svgwidgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
