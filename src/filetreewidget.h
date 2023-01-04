@@ -37,7 +37,7 @@ public:
     virtual void save() = 0;
     virtual void load() { isLoadedFlag = true; }
     virtual void remove() = 0;
-    virtual QWidget* widget() { return nullptr; }
+    virtual QWidget* widget() const = 0;
 
     void setFilePath(const QString& path);
     void setData(int column, int role, const QVariant& variant) override;
@@ -86,6 +86,7 @@ public:
     void save() override;
     void load() override;
     void remove() override;
+    QWidget* widget() const override;
 };
 
 
@@ -104,6 +105,7 @@ public:
     void save() override;
     void load() override;
     void remove() override;
+    QWidget* widget() const override;
 };
 
 
@@ -121,6 +123,7 @@ public:
     void save() override;
     void load() override;
     void remove() override;
+    QWidget* widget() const override;
 
     int category();
 
@@ -147,7 +150,7 @@ public:
     void save() override;
     void load() override;
     void remove() override;
-    QWidget* widget() override;
+    QWidget* widget() const override;
 
 public:
     void requestCloseProcess();
@@ -185,7 +188,7 @@ public:
     void save() override;
     void load() override;
     void remove() override;
-    QWidget *widget() override;
+    QWidget *widget() const override;
 
 private slots:
     void receiveSavedResult(const bool& ok);
@@ -215,7 +218,7 @@ public:
     void save() override;
     void load() override;
     void remove() override;
-    QWidget* widget() override;
+    QWidget* widget() const override;
 
 private:
     ImageDisplay *imageDisplay;
@@ -238,7 +241,7 @@ public:
     void save() override;
     void load() override;
     void remove() override;
-    QWidget *widget() override;
+    QWidget *widget() const override;
 
 private:
     PdfViewer *viewer;

@@ -149,6 +149,11 @@ void TreeNoCategorizedItem::remove()
     emit removed(file.remove());
 }
 
+QWidget* TreeNoCategorizedItem::widget() const
+{
+    return nullptr;
+}
+
 
 
 
@@ -187,6 +192,11 @@ void TreeFolderItem::remove()
     emit removed(dir.removeRecursively());
 }
 
+QWidget* TreeFolderItem::widget() const
+{
+    return nullptr;
+}
+
 
 
 
@@ -218,6 +228,11 @@ void TreeCategoryItem::remove()
 {
     __LOGOUT__("no supported to remove.", Logger::LogLevel::Warn);
     emit removed(false);
+}
+
+QWidget* TreeCategoryItem::widget() const
+{
+    return nullptr;
 }
 
 int TreeCategoryItem::category()
@@ -320,7 +335,7 @@ void TreeScriptItem::remove()
     emit removed(file.remove());
 }
 
-QWidget* TreeScriptItem::widget()
+QWidget* TreeScriptItem::widget() const
 {
     return editor;
 }
@@ -461,7 +476,7 @@ void TreeSheetItem::remove()
     emit removed(file.remove());
 }
 
-QWidget *TreeSheetItem::widget()
+QWidget *TreeSheetItem::widget() const
 {
     return table;
 }
@@ -535,7 +550,7 @@ TreeImageItem::~TreeImageItem()
     }
 }
 
-QWidget *TreeImageItem::widget()
+QWidget *TreeImageItem::widget() const
 {
     return imageDisplay;
 }
@@ -609,7 +624,7 @@ TreePdfItem::~TreePdfItem()
     }
 }
 
-QWidget *TreePdfItem::widget()
+QWidget *TreePdfItem::widget() const
 {
     return viewer;
 }
