@@ -35,7 +35,8 @@ GraphicsArrowItem::GraphicsArrowItem(QGraphicsItem *parent, QObject *obj)
 
 QRectF GraphicsArrowItem::boundingRect() const
 {
-    const double halfHeight = qMax(_headLength * qSin(_headAngle / 180.0 * 3.1415), 5.0);
+    double halfHeight = qMax(_headLength * qSin(_headAngle / 180.0 * 3.1415), _pen.width() / 2.0);
+    halfHeight = qMax(5.0, halfHeight);
 
     return QRectF(0.0, - halfHeight, _length, halfHeight * 2);
 }

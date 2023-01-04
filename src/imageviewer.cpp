@@ -53,17 +53,19 @@ void ImageScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     dragRectItem->hide();
 
-    dragStartPos = event->scenePos();
-
-    QGraphicsItem *item = itemAt(event->scenePos(), QTransform());
-
-    if(item == pixmapItem)
-    {
-        dragRectItem->setRect(dragStartPos.x(), dragStartPos.y(), 0, 0);
-        dragRectItem->show();
-    }
-
+    //ここでアイテムの選択状態が決定される
     QGraphicsScene::mousePressEvent(event);
+
+    if(event->button() == Qt::LeftButton)
+    {
+        if(selectedItems().count() == 0)
+        {
+            const QPointF dragStartPos = event->buttonDownScenePos(Qt::LeftButton);
+
+            dragRectItem->setRect(dragStartPos.x(), dragStartPos.y(), 0, 0);
+            dragRectItem->show();
+        }
+    }
 }
 
 void ImageScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -84,7 +86,9 @@ void ImageScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if(dragRectItem->isVisible())
     {
-        QPointF size = event->scenePos() - dragStartPos;
+        const QPointF dragStartPos = event->buttonDownScenePos(Qt::LeftButton);
+
+        const QPointF size = event->scenePos() - dragStartPos;
 
         dragRectItem->setRect(dragStartPos.x(), dragStartPos.y(), size.x(), size.y());
     }
@@ -103,7 +107,6 @@ void ImageScene::emitSelectedItems()
 {
     emit currentItemChanged(selectedItems());
 }
-
 
 
 
@@ -191,6 +194,7 @@ ImageViewWidget::ImageViewWidget(QWidget *parent)
 
     connect(imageScene, &ImageScene::currentItemChanged, settingWidget, &GraphicsItemSettingWidget::setCurrentItems);
     connect(controlPanel, &ImageViewControlPanel::scaleChanged, imageView, &ImageView::setAbsoluteScale);
+    connect(controlPanel, &ImageViewControlPanel::adjustSizeRequested, this, &ImageViewWidget::adjustSize);
     connect(controlPanel, &ImageViewControlPanel::saveRequested, this, &ImageViewWidget::saveImage);
     connect(settingWidget, &GraphicsItemSettingWidget::graphicsItemCreated, imageScene, &ImageScene::addGraphicsItem);
 }
@@ -202,7 +206,11 @@ ImageViewWidget::~ImageViewWidget()
 
 QSize ImageViewWidget::sizeHint() const
 {
-    return QSize(pixmapItem->pixmap().size() + QSize(settingWidget->sizeHint().width(), 0));
+    const int frameWidth = imageView->frameWidth();
+
+    return imageView->sizeHint()
+            + QSize(settingWidget->sizeHint().width() + frameWidth * 2,
+                    controlPanel->sizeHint().height() + frameWidth * 2);
 }
 
 void ImageViewWidget::setImagePath(const QString &path)
@@ -222,6 +230,11 @@ void ImageViewWidget::updateImage()
 {
     QPixmap pixmap(imgPath);
     pixmapItem->setPixmap(pixmap);
+
+    /* sceneRect()が拡張されないようにする．
+     * QGraphicsScene::sceneRect()は拡張されるが，QGraphicsView::sceneRect()
+     * は拡張されない */
+    imageView->setSceneRect(0, 0, pixmap.size().width(), pixmap.size().height());
 }
 
 void ImageViewWidget::saveImage()
@@ -249,18 +262,26 @@ ImageViewWidget::ImageViewControlPanel::ImageViewControlPanel(QWidget *parent)
 {
     QHBoxLayout *hLayout = new QHBoxLayout(this);
     QDoubleSpinBox *scaleSpinBox = new QDoubleSpinBox(this);
+    mlayout::IconLabel *adjustSizeLabel = new mlayout::IconLabel(this);
     mlayout::IconLabel *saveAsLabel = new mlayout::IconLabel(this);
 
     setLayout(hLayout);
     hLayout->addWidget(new QLabel("Scale"));
     hLayout->addWidget(scaleSpinBox);
+    hLayout->addWidget(adjustSizeLabel);
     hLayout->addWidget(saveAsLabel);
     hLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Preferred));
 
     static constexpr int iconSize = 20;
+    adjustSizeLabel->setAutoFillBackground(true);
     saveAsLabel->setAutoFillBackground(true);
+    adjustSizeLabel->setPixmap(StandardPixmap::Icon::adjustSize().scaled(iconSize, iconSize));
     saveAsLabel->setPixmap(StandardPixmap::File::fileSaves().scaled(iconSize, iconSize));
+    adjustSizeLabel->setHoveredPalette(QPalette(adjustSizeLabel->backgroundRole(), Qt::lightGray));
     saveAsLabel->setHoveredPalette(QPalette(saveAsLabel->backgroundRole(), Qt::lightGray));
+
+    adjustSizeLabel->setToolTip("Adjust scene size");
+    saveAsLabel->setToolTip("save scene");
 
     scaleSpinBox->setValue(1.0);
     scaleSpinBox->setSingleStep(0.1);
@@ -273,6 +294,7 @@ ImageViewWidget::ImageViewControlPanel::ImageViewControlPanel(QWidget *parent)
     hLayout->setContentsMargins(space, 0, 0, 0);
 
     connect(scaleSpinBox, &QDoubleSpinBox::valueChanged, this, &ImageViewControlPanel::scaleChanged);
+    connect(adjustSizeLabel, &mlayout::IconLabel::released, this, &ImageViewControlPanel::adjustSizeRequested);
     connect(saveAsLabel, &mlayout::IconLabel::released, this, &ImageViewControlPanel::saveRequested);
 }
 

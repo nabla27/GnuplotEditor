@@ -65,11 +65,6 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
 
         const QString checkerPath = "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/pluginchecker/bin/release/pluginchecker.exe";
         const QString symbolName = "createPluginInstance";
-
-        ImageViewWidget *w = new ImageViewWidget(nullptr);
-        w->show();
-        w->setImagePath("F:/repos/test.jpeg");
-
     }
 
 
@@ -150,6 +145,8 @@ void GnuplotEditor::closeEvent(QCloseEvent *event)
     delete editorSetting;
     delete gnuplotSetting;
     delete fileTreeSetting;
+
+    QApplication::exit(0);
 }
 
 void GnuplotEditor::initializeMenuBar()
@@ -301,6 +298,9 @@ void GnuplotEditor::receiveTreeItem(QTreeWidgetItem *_item, const int column)
 
     logger->output(__FILE__, __LINE__, __FUNCTION__,
                    "received a item " + item->text(0), Logger::LogLevel::Info);
+
+    if(!item->isLoaded())
+        item->load();
 
     switch((FileTreeWidget::TreeItemType)item->type())
     {

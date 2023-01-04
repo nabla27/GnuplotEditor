@@ -27,6 +27,7 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QProcess>
+#include <QTimer>
 
 
 #include "utility.h"
@@ -67,6 +68,8 @@ PluginLoader::PluginLoader(QObject *parent)
 
 PluginLoader::~PluginLoader()
 {
+    quit();
+
     if(lib.isLoaded()) lib.unload();
 
     pluginLoaders.remove(this);
@@ -147,9 +150,21 @@ void PluginLoader::run()
         __LOGOUT__("plugin checker does not exists. \"" + pluginCheckerPath() + "\".", Logger::LogLevel::Warn);
     }
 
-    checkProcess->start(pluginCheckerPath(), QStringList() << libPath << symbolName);
-    checkProcess->waitForFinished(30 * 1000);
+    {
+        QElapsedTimer timer;
+        timer.start();
+        static constexpr int waitTime = 30 * 1000;
+        checkProcess->start(pluginCheckerPath(), QStringList() << libPath << symbolName);
+        checkProcess->waitForFinished(waitTime);
+        if(timer.elapsed() > waitTime - 1000)
+        {
+            __LOGOUT__("plugin checker time out.", Logger::LogLevel::Info);
 
+            _libState = (int)PluginChecker::ExitCode::InvalidLibrary;
+            emit checked((int)PluginChecker::ExitCode::InvalidLibrary);
+            return;
+        }
+    }
 
 
     _libState = checkProcess->exitCode();
