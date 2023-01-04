@@ -98,5 +98,3 @@ icon_editimage:
 <a target="_blank" href="https://icons8.com/icon/68819/%E7%94%BB%E5%83%8F%E3%82%92%E7%B7%A8%E9%9B%86%E3%81%97%E3%81%BE%E3%81%99">画像を編集します</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 
 
-
-

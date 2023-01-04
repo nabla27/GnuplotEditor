@@ -35,7 +35,7 @@ public:
 
 public:
     virtual void save() = 0;
-    virtual void load() = 0;
+    virtual void load() { isLoadedFlag = true; }
     virtual void remove() = 0;
     virtual QWidget* widget() { return nullptr; }
 
@@ -44,6 +44,7 @@ public:
     void setUpdateTimer(bool enable) { enableUpdateTimer = enable; }
 
     bool isSaved() const { return isSavedFlag; }
+    bool isLoaded() const { return isLoadedFlag; }
     bool isEnableUpdateTimer() const { return enableUpdateTimer; }
     const QFileInfo& fileInfo() const { return info; }
 
@@ -59,6 +60,7 @@ protected:
 
 private:
     bool isSavedFlag = true;
+    bool isLoadedFlag = false;
     QTimer *updateTimer;
     bool enableUpdateTimer = false;
     inline static int updateTime = 1000;

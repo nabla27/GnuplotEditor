@@ -138,6 +138,8 @@ void TreeNoCategorizedItem::save()
 void TreeNoCategorizedItem::load()
 {
     __LOGOUT__("no supported to load.", Logger::LogLevel::Warn);
+
+    TreeFileItem::load();
 }
 
 void TreeNoCategorizedItem::remove()
@@ -174,6 +176,8 @@ void TreeFolderItem::save()
 void TreeFolderItem::load()
 {
     __LOGOUT__("no supported to load.", Logger::LogLevel::Warn);
+
+    TreeFileItem::load();
 }
 
 void TreeFolderItem::remove()
@@ -206,6 +210,8 @@ void TreeCategoryItem::save()
 void TreeCategoryItem::load()
 {
     __LOGOUT__("no supported to load.", Logger::LogLevel::Warn);
+
+    TreeFileItem::load();
 }
 
 void TreeCategoryItem::remove()
@@ -233,8 +239,6 @@ TreeScriptItem::TreeScriptItem(QTreeWidgetItem *parent, const QFileInfo& info)
     , editor(new TextEdit)
     , process(new GnuplotProcess(nullptr))
 {
-    TreeScriptItem::load();
-
     connect(editor, &TextEdit::textChanged, this, &TreeScriptItem::setEdited);
     connect(process, &GnuplotProcess::standardOutputRead, logger, QOverload<const QString&, const Logger::LogLevel&>::of(&Logger::output));
     connect(process, &GnuplotProcess::aboutToExecute, editor, &TextEdit::resetErrorLineNumber);
@@ -305,6 +309,8 @@ void TreeScriptItem::load()
     }
 
     emit loadRequested(info.absoluteFilePath());
+
+    TreeFileItem::load();
 }
 
 void TreeScriptItem::remove()
@@ -374,8 +380,6 @@ TreeSheetItem::TreeSheetItem(QTreeWidgetItem *parent, const QFileInfo &info)
     : TreeFileItem(parent, (int)FileTreeWidget::TreeItemType::Sheet, info)
     , table(new TableArea(nullptr))
 {
-    TreeSheetItem::load();
-
     setIcon(0, StandardPixmap::File::document());
 
     connect(table->tableWidget(), &GnuplotTable::cellChanged, this, &TreeSheetItem::setEdited);
@@ -446,6 +450,8 @@ void TreeSheetItem::load()
     }
 
     emit loadRequested(info.absoluteFilePath());
+
+    TreeFileItem::load();
 }
 
 void TreeSheetItem::remove()
@@ -493,8 +499,6 @@ TreeImageItem::TreeImageItem(QTreeWidgetItem *parent, const QFileInfo &info)
     : TreeFileItem(parent, (int)FileTreeWidget::TreeItemType::Image, info)
     , imageDisplay(new ImageDisplay(nullptr))
 {
-    imageDisplay->setImagePath(info.absoluteFilePath());
-
     setIcon(0, StandardPixmap::File::image());
 
     connect(this, &TreeImageItem::pathChanged, imageDisplay, &ImageDisplay::setImagePath);
@@ -507,7 +511,12 @@ void TreeImageItem::save()
 
 void TreeImageItem::load()
 {
-    imageDisplay->updateImage();
+    if(!isLoaded())
+        imageDisplay->setImagePath(info.absoluteFilePath());
+    else
+        imageDisplay->updateImage();
+
+    TreeFileItem::load();
 }
 
 void TreeImageItem::remove()
@@ -544,8 +553,6 @@ TreePdfItem::TreePdfItem(QTreeWidgetItem *parent, const QFileInfo &info)
     : TreeFileItem(parent, (int)FileTreeWidget::TreeItemType::Pdf, info)
     , viewer(new PdfViewer(nullptr))
 {
-    viewer->setFilePath(info.absoluteFilePath());
-
     setIcon(0, StandardPixmap::File::pdf());
 
     connect(this, &TreePdfItem::pathChanged, viewer, &PdfViewer::setFilePath);
@@ -558,7 +565,12 @@ void TreePdfItem::save()
 
 void TreePdfItem::load()
 {
-    viewer->reload();
+    if(!isLoaded())
+        viewer->setFilePath(info.absoluteFilePath());
+    else
+        viewer->reload();
+
+    TreeFileItem::load();
 }
 
 void TreePdfItem::remove()

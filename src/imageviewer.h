@@ -36,11 +36,9 @@ private slots:
     void emitSelectedItems();
 
 private:
-    const QGraphicsItem *const pixmapItem;
-    QGraphicsItemGroup *baseGroup;
+    const QGraphicsItem *const pixmapItem; //ownership: ImageViewWidget
 
-    QPointF dragStartPos;
-    QGraphicsRectItem *const dragRectItem;
+    QGraphicsRectItem *const dragRectItem; //ownership: this
 
 signals:
     void currentItemChanged(const QList<QGraphicsItem*>& items);
@@ -88,7 +86,7 @@ private slots:
 
 private:
     QWidget *contents;
-    QGraphicsPixmapItem *pixmapItem;
+    QGraphicsPixmapItem *pixmapItem; //ownership: this
     ImageView *imageView;
     ImageScene *imageScene;
 
@@ -118,6 +116,7 @@ public:
 signals:
     void scaleChanged(double scale);
     void saveRequested();
+    void adjustSizeRequested();
 };
 
 
@@ -133,8 +132,6 @@ class ImageSaveDialog : public QDialog
     Q_OBJECT
 public:
     explicit ImageSaveDialog(const QString& defaultSavePath);
-
-    enum class ExitCode { SaveAs, Overwrite, Cancel };
 
 public:
     void setPixmap(const QPixmap& pixmap);
