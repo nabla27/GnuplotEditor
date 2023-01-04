@@ -46,7 +46,18 @@ QStringList FileTreeWidget::fileFilter = QStringList();
 
 /* TreeFileItemより先にTreeFileItem::widget()が削除されるようにする．
  * widget()の親はnullptrであるから，各デストラクタでdeleteLator()ではなく，
- * deleteを用いて，先に削除されるようにする．*/
+ * deleteを用いて，先に削除されるようにする．
+ */
+/* TreeFileItemのテキストはすべてTreeFileItem::setFilePath()から行う．
+ * QTreeWidgetItem::setText()やQTreeWidgetItem::setToolTip()を直接使わない．
+ * TreeFileItem::setFilePath()からTreeFileItem::pathChanged()が呼ばれ，各派生クラスで
+ * パスの変更に伴う設定を行う．
+ */
+/* TreeFileItemのすべての派生クラスのload()関数内で，ロードが行われた時には親クラスのTreeFileItem::load()を呼び出す．
+ * TreeFileItem::load()関数内でisLoadedFlagが有効になる．
+ * TreeFileItemのすべての派生クラスのコンストラクタでload()関数を呼ばないようにし，実際にそのアイテムが表示される時に
+ * isLoaded()でフラグを確認し，load()を行う(遅延処理)．
+ */
 TreeFileItem::TreeFileItem(QTreeWidgetItem *parent, int type, const QFileInfo &info)
     : QTreeWidgetItem(parent, type)
     , info(info)
