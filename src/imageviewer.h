@@ -82,6 +82,7 @@ public slots:
     void updateImage();
 
 private slots:
+    void adjustViewSize();
     void saveImage();
 
 private:
@@ -131,18 +132,26 @@ class ImageSaveDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit ImageSaveDialog(const QString& defaultSavePath);
+    explicit ImageSaveDialog(const QString& defaultSavePath = QString());
 
 public:
-    void setPixmap(const QPixmap& pixmap);
+    void setGrabWidget(QWidget *w);
 
 private slots:
+    void setBackgroundColorFromDialog();
     void setPathFromDialog();
     void changePathFromSuffix(const QString& suffix);
     void save();
+    void setViewWidth(const int width);
+    void setViewHeight(const int height);
 
 private:
+    QWidget *viewWidget;
     QLabel *imageLabel;
+    QWidget *grabWidget;
+
+    QSpinBox *viewWidthSpinBox;
+    QSpinBox *viewHeightSpinBox;
 
     QLineEdit *pathEdit;
     QComboBox *formatCombo;
