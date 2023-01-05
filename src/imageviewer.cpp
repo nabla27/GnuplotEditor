@@ -17,6 +17,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QCheckBox>
+#include <QColorDialog>
 //ImageScene::setSceneRect()
 
 #include "graphicitemwidget.h"
@@ -147,7 +148,7 @@ void ImageView::setAbsoluteScale(const double &scale)
 
 
 
-
+#include <QScrollBar>
 ImageViewWidget::ImageViewWidget(QWidget *parent)
     : QScrollArea(parent)
     , contents(new QWidget(this))
@@ -194,7 +195,7 @@ ImageViewWidget::ImageViewWidget(QWidget *parent)
 
     connect(imageScene, &ImageScene::currentItemChanged, settingWidget, &GraphicsItemSettingWidget::setCurrentItems);
     connect(controlPanel, &ImageViewControlPanel::scaleChanged, imageView, &ImageView::setAbsoluteScale);
-    connect(controlPanel, &ImageViewControlPanel::adjustSizeRequested, this, &ImageViewWidget::adjustSize);
+    connect(controlPanel, &ImageViewControlPanel::adjustSizeRequested, this, &ImageViewWidget::adjustViewSize);
     connect(controlPanel, &ImageViewControlPanel::saveRequested, this, &ImageViewWidget::saveImage);
     connect(settingWidget, &GraphicsItemSettingWidget::graphicsItemCreated, imageScene, &ImageScene::addGraphicsItem);
 }
@@ -237,13 +238,23 @@ void ImageViewWidget::updateImage()
     imageView->setSceneRect(0, 0, pixmap.size().width(), pixmap.size().height());
 }
 
+void ImageViewWidget::adjustViewSize()
+{
+    adjustSize();
+    if(imageView->horizontalScrollBar()->isVisible())
+    {
+        resize(sizeHint() + QSize(1, 1));
+    }
+}
+
 void ImageViewWidget::saveImage()
 {
     imageView->viewport()->update();
     imageScene->clearSelection();
 
     ImageSaveDialog dialog(imgPath);
-    dialog.setPixmap(imageView->viewport()->grab());
+    //dialog.setPixmap(imageView->viewport()->grab());
+    dialog.setGrabWidget(imageView->viewport());
     dialog.exec();
 }
 
@@ -310,8 +321,12 @@ ImageViewWidget::ImageViewControlPanel::ImageViewControlPanel(QWidget *parent)
 
 ImageSaveDialog::ImageSaveDialog(const QString& defaultSavePath)
     : QDialog()
-    , imageLabel(new QLabel(this))
+    , viewWidget(new QWidget(this))
+    , imageLabel(new QLabel(viewWidget))
+    , grabWidget(nullptr)
 
+    , viewWidthSpinBox(new QSpinBox(this))
+    , viewHeightSpinBox(new QSpinBox(this))
     , pathEdit(new QLineEdit(defaultSavePath, this))
     , formatCombo(new QComboBox(this))
     , qualitySpinBox(new QSpinBox(this))
@@ -321,19 +336,35 @@ ImageSaveDialog::ImageSaveDialog(const QString& defaultSavePath)
 {
     QVBoxLayout *vLayout = new QVBoxLayout(this);
     QHBoxLayout *upperLayout = new QHBoxLayout;
+    QVBoxLayout *viewLayout = new QVBoxLayout;
+    QHBoxLayout *viewOptionLayout = new QHBoxLayout;
+    mlayout::IconLabel *backgroundColorLabel = new mlayout::IconLabel(this);
     QVBoxLayout *optionLayout = new QVBoxLayout;
     QHBoxLayout *buttonLayout = new QHBoxLayout;
     QPushButton *saveButton = new QPushButton("Save", this);
     QPushButton *cancelButton = new QPushButton("Cancel", this);
 
+    viewWidget->setAutoFillBackground(true);
+
     setLayout(vLayout);
     vLayout->addLayout(upperLayout);
     vLayout->addLayout(buttonLayout);
-    upperLayout->addWidget(imageLabel);
+    upperLayout->addWidget(viewWidget);
     upperLayout->addLayout(optionLayout);
+    viewWidget->setLayout(viewLayout);
+    viewLayout->addLayout(viewOptionLayout);
+    viewLayout->addWidget(imageLabel);
+    viewLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Preferred, QSizePolicy::Expanding));
+    viewOptionLayout->addWidget(backgroundColorLabel);
+    viewOptionLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Preferred));
     buttonLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Preferred));
     buttonLayout->addWidget(saveButton);
     buttonLayout->addWidget(cancelButton);
+
+    static constexpr int iconSize = 20;
+    backgroundColorLabel->setAutoFillBackground(true);
+    backgroundColorLabel->setHoveredPalette(QPalette(backgroundColorLabel->backgroundRole(), Qt::lightGray));
+    backgroundColorLabel->setPixmap(StandardPixmap::Edit::backgroundColor().scaled(iconSize, iconSize));
 
     pathEdit->setReadOnly(true);
     pathEdit->setMinimumWidth(150);
@@ -342,18 +373,23 @@ ImageSaveDialog::ImageSaveDialog(const QString& defaultSavePath)
     vLayout->setContentsMargins(0, 0, 0, 0);
     upperLayout->setSpacing(0);
     upperLayout->setContentsMargins(0, 0, 0, 0);
+    viewOptionLayout->setSpacing(2);
+    viewOptionLayout->setContentsMargins(0, 0, 0, 0);
     optionLayout->setSpacing(5);
     optionLayout->setContentsMargins(5, 0, 0, 5);
     buttonLayout->setSpacing(0);
     buttonLayout->setContentsMargins(0, 0, 0, 0);
 
+    QHBoxLayout *sizeLayout = new QHBoxLayout;
     QHBoxLayout *pathLayout = new QHBoxLayout;
     mlayout::IconLabel *openDialogLabel = new mlayout::IconLabel("...", this);
+    QLabel *sizeLabel = new QLabel("Size", this);
     QLabel *pathLabel = new QLabel("Path", this);
     QLabel *formatLabel = new QLabel("Format", this);
     QLabel *qualityLabel = new QLabel("Quality", this);
     QLabel *compressionLabel = new QLabel("Compression", this);
 
+    sizeLabel->setToolTip("image size");
     pathLabel->setToolTip("path for save.");
     pathEdit->setToolTip(defaultSavePath);
     openDialogLabel->setToolTip("open file dialog");
@@ -371,6 +407,10 @@ ImageSaveDialog::ImageSaveDialog(const QString& defaultSavePath)
     progressiveScanWrteCheck->setToolTip("This is an image format-specific function which turns on progressive scanning when writing images. \n"
                                          "For image formats that do not support setting a progressive scan flag, this value is ignored.");
 
+    optionLayout->addWidget(sizeLabel);
+    optionLayout->addLayout(sizeLayout);
+    sizeLayout->addWidget(viewWidthSpinBox);
+    sizeLayout->addWidget(viewHeightSpinBox);
     optionLayout->addWidget(pathLabel);
     optionLayout->addLayout(pathLayout);
     pathLayout->addWidget(pathEdit);
@@ -384,6 +424,10 @@ ImageSaveDialog::ImageSaveDialog(const QString& defaultSavePath)
     optionLayout->addWidget(optimizedWriteCheck);
     optionLayout->addWidget(progressiveScanWrteCheck);
     optionLayout->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Preferred, QSizePolicy::Expanding));
+
+    QPalette p = backgroundColorLabel->palette();
+    p.setColor(backgroundColorLabel->backgroundRole(), palette().color(backgroundRole()));
+    backgroundColorLabel->setPalette(p);
 
     pathLayout->setSpacing(0);
     openDialogLabel->setAutoFillBackground(true);
@@ -401,16 +445,49 @@ ImageSaveDialog::ImageSaveDialog(const QString& defaultSavePath)
     qualitySpinBox->setValue(-1);
     compressionSpinBox->setMinimum(-1);
     compressionSpinBox->setValue(-1);
+    viewWidthSpinBox->setMaximum(10000);
+    viewHeightSpinBox->setMaximum(10000);
 
+    connect(backgroundColorLabel, &mlayout::IconLabel::released, this, &ImageSaveDialog::setBackgroundColorFromDialog);
+    connect(viewWidthSpinBox, &QSpinBox::valueChanged, this, &ImageSaveDialog::setViewWidth);
+    connect(viewHeightSpinBox, &QSpinBox::valueChanged, this, &ImageSaveDialog::setViewHeight);
     connect(openDialogLabel, &mlayout::IconLabel::released, this, &ImageSaveDialog::setPathFromDialog);
     connect(formatCombo, &QComboBox::currentTextChanged, this, &ImageSaveDialog::changePathFromSuffix);
     connect(saveButton, &QPushButton::released, this, &ImageSaveDialog::save);
     connect(cancelButton, &QPushButton::released, this, &ImageSaveDialog::close);
 }
 
-void ImageSaveDialog::setPixmap(const QPixmap &pixmap)
+void ImageSaveDialog::setGrabWidget(QWidget *w)
 {
-    imageLabel->setPixmap(pixmap);
+    if(!w) return;
+
+    grabWidget = w;
+
+    //シグナルによって画像がセットされる
+    viewWidthSpinBox->setValue(w->width());
+    viewHeightSpinBox->setValue(w->height());
+}
+
+void ImageSaveDialog::setViewWidth(const int width)
+{
+    if(grabWidget)
+        imageLabel->setPixmap(grabWidget->grab(QRect(0, 0, width, viewHeightSpinBox->value())));
+}
+
+void ImageSaveDialog::setViewHeight(const int height)
+{
+    if(grabWidget)
+        imageLabel->setPixmap(grabWidget->grab(QRect(0, 0, viewWidthSpinBox->value(), height)));
+}
+
+void ImageSaveDialog::setBackgroundColorFromDialog()
+{
+    QColorDialog dialog(palette().color(backgroundRole()), this);
+    connect(&dialog, &QColorDialog::currentColorChanged, [this](const QColor& color)
+    {
+        viewWidget->setPalette(QPalette(backgroundRole(), color));
+    });
+    dialog.exec();
 }
 
 void ImageSaveDialog::setPathFromDialog()
@@ -421,6 +498,8 @@ void ImageSaveDialog::setPathFromDialog()
 
     pathEdit->setText(savePath);
     pathEdit->setToolTip(savePath);
+
+    formatCombo->setCurrentText(QFileInfo(savePath).suffix());
 }
 
 void ImageSaveDialog::changePathFromSuffix(const QString &suffix)
