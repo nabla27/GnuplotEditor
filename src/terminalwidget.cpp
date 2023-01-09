@@ -840,7 +840,7 @@ TerminalTabWidget::TerminalSettingDialog::TerminalSettingDialog(QWidget *parent)
     fLayout->addRow("Program Name", programNameEdit);
     fLayout->addRow("Program Arguments", argumentsEdit);
     fLayout->addRow("Char Code", charCodeCombo);
-    fLayout->addRow(buttonLayout);
+    fLayout->addRow("", buttonLayout);
     buttonLayout->addWidget(okButton);
     buttonLayout->addWidget(cancelButton);
 

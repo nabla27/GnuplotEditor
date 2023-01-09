@@ -262,6 +262,7 @@ class TerminalTabWidget::TerminalSettingDialog : public QDialog
     Q_OBJECT
 public:
     explicit TerminalSettingDialog(QWidget *parent);
+    QSize sizeHint() const { return QSize(QDialog::sizeHint().width() * 1.5, QDialog::sizeHint().height()); }
 
 public:
     void setProgramPath(const QString& path);
