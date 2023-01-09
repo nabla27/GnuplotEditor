@@ -2,7 +2,9 @@ QT       += core gui \
             xml \
             pdf \
             pdfwidgets \
-            svgwidgets
+            svgwidgets \
+            webenginewidgets \
+            core5compat \ #QTextCodec
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

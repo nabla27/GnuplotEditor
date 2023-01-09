@@ -93,6 +93,7 @@ class LogBrowserWidget : public QTextBrowser
     Q_OBJECT
 public:
     explicit LogBrowserWidget(QWidget *parent);
+    QSize sizeHint() const override { return QSize(0, 0); }
 
 public:
     void addFilter(const Logger::LogLevel& level);

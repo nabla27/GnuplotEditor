@@ -58,6 +58,7 @@
 #include <QObject>
 #include <QProcess>
 #include "logger.h"
+#include "textcodec.h"
 
 
 class Gnuplot;
@@ -81,10 +82,11 @@ public:
     void setWorkingFolderPath(const QString& path);
 
     QThread* gnuplotThread() const { return _gnuplotThread; }
+    GnuplotProcess *const defaultProcess() const { return _defaultProcess; }
 
 private:
     QThread *_gnuplotThread;
-    GnuplotProcess *defaultProcess;
+    GnuplotProcess *_defaultProcess;
 
     class Gnuplot;
     Gnuplot *gnuplot;
@@ -135,14 +137,27 @@ class GnuplotProcess : public QProcess
 public:
     explicit GnuplotProcess(QObject *parent);
 
+public:
+    QString stdOut() const { return _stdOut; }
+    QString stdErr() const { return _stdErr; }
+
+    static void setCharCode(const TextCodec::CharCode& code);
+
 private:
     void readStdOut();
     void readStdErr();
+
+private:
+    inline static TextCodec::CharCode charCode = TextCodec::CharCode::Shift_JIS;
+    QString _stdOut;
+    QString _stdErr;
 
 signals:
     void standardOutputRead(const QString& out, const Logger::LogLevel& level);
     void errorCaused(const int errorLine);
     void aboutToExecute();
+    void readyReadStdOut();
+    void readyReadStdErr();
 };
 
 

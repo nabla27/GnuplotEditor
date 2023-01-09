@@ -34,8 +34,7 @@ class HelpMenu;
 
 class TreeModelCombo;
 class FileTreeWidget;
-class ConsoleWidget;
-class LogBrowserWidget;
+class TerminalTabWidget;
 
 
 
@@ -104,11 +103,12 @@ private:
 
     TreeModelCombo *treeModelCombo;
     FileTreeWidget *fileTree;
-    TabWidget *displayTab;
+    //TabWidget *displayTab;
     EditorArea *editorArea;
 
-    ConsoleWidget *consoleWidget;
-    LogBrowserWidget *outputWidget;
+    //ConsoleWidget *consoleWidget;
+    //LogBrowserWidget *outputWidget;
+    TerminalTabWidget *terminalTab;
 };
 
 

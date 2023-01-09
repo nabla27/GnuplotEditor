@@ -13,7 +13,7 @@
 
 #include <QGraphicsSvgItem>
 #include <QGraphicsTextItem>
-#include <QGraphicsWidget>
+#include <QGraphicsProxyWidget>
 //sin
 //table
 //らせん
@@ -37,8 +37,10 @@ public:
     enum class GraphicsItem { SimpleText = 0, PlainText,
                               Arrow = 100, Ellipse, Polygon, Rect, Path,
                               Image = 200, Svg,
-                              Table = 300,
+                              MathJax = 300, Table,
                             };
+
+    inline static constexpr int GraphicsItemEnumSpan = 100;
 
     Q_ENUM(ItemType)
     Q_ENUM(GraphicsItem)
@@ -177,6 +179,74 @@ class GraphicsTextItem : public GraphicsItemInfo, public QGraphicsTextItem
     Q_OBJECT
 public:
     explicit GraphicsTextItem(QGraphicsItem *parent, QObject *obj);
+};
+
+#include <QWidget>
+class GraphicsWidgetItem : public QWidget
+{
+    Q_OBJECT
+public:
+    explicit GraphicsWidgetItem(QWidget *parent);
+    virtual ~GraphicsWidgetItem();
+
+public:
+    void setProxyWidget(QGraphicsProxyWidget *w);
+
+    QGraphicsProxyWidget *const proxyWidget() const { return _proxyWidget; }
+
+private:
+    /* QGraphicsProxyWidget shares ownership with QWidget(this item), so if either of
+     * the two widgets are destroyed, the other widget will be automatically destroyed as well.*/
+    QGraphicsProxyWidget *_proxyWidget;
+};
+
+class QWebEngineView;
+class GraphicsMathJaxItem : public GraphicsWidgetItem
+{
+    Q_OBJECT
+public:
+    explicit GraphicsMathJaxItem(QWidget *parent);
+    ~GraphicsMathJaxItem();
+
+public:
+    bool isAutoCompile() const { return _isAutoCompile; }
+    QString mathString() const { return _mathString; }
+    int viewWidth() const;
+    int viewHeight() const;
+    double fontSize() const { return _fontSize; }
+    QColor color() const { return _color; }
+
+public slots:
+    void setSource();
+    void setAutoCompile(const bool enable);
+    void setMathString(const QString& text);
+    void setViewWidth(const int width);
+    void setViewHeight(const int height);
+    void setFontSize(const double em);
+    void setColor(const QColor& color);
+
+private:
+    QString styleSource();
+    static QString fontSizeSource(const double& em);
+    static QString colorSource(const QColor& color);
+
+private:
+    QWebEngineView *webView;
+
+    bool _isAutoCompile = false;
+    QString _mathString;
+    double _fontSize = 1.0;
+    QColor _color = Qt::black;
+
+    inline static const QString headSource =
+            "<html><head>"
+            "<script type=\"text/javascript\" "
+            "src = \"https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">"
+            "</script></head>"
+            "<body><p>";
+    inline static const QString tailSource =
+            "</mathjax>"
+            "</p></body></html>";
 };
 
 

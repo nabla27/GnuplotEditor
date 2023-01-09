@@ -54,5 +54,8 @@
         <file alias="icon_adjustsize">bin/release/icon/icon_adjustsize.png</file>
         <file alias="icon_plus">bin/release/icon/icon_plus.png</file>
         <file alias="icon_editimage">bin/release/icon/icon_editimage.png</file>
+        <file alias="icon_trashcan">bin/release/icon/icon_trashcan.png</file>
+        <file alias="icon_gear">bin/release/icon/icon_gear.png</file>
+        <file alias="icon_broom">bin/release/icon/icon_broom.png</file>
     </qresource>
 </RCC>

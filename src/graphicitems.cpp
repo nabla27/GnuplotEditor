@@ -1,6 +1,9 @@
 #include "graphicitems.h"
 
 #include <QPainter>
+#include <QWebEngineView>
+#include <QWebEngineSettings>
+#include <QVBoxLayout>
 #include "logger.h"
 \
 
@@ -334,4 +337,132 @@ GraphicsTextItem::GraphicsTextItem(QGraphicsItem *parent, QObject *obj)
     , QGraphicsTextItem(parent)
 {
     QGraphicsTextItem::setParent(obj);
+}
+
+GraphicsWidgetItem::GraphicsWidgetItem(QWidget *parent)
+    : QWidget(parent)
+    , _proxyWidget(nullptr)
+{
+
+}
+#include <QGraphicsScene>
+GraphicsWidgetItem::~GraphicsWidgetItem()
+{
+    if(_proxyWidget)
+    {
+        //take a ownership of this proxyWidget from the scene
+        _proxyWidget->scene()->removeItem(proxyWidget());
+    }
+}
+
+void GraphicsWidgetItem::setProxyWidget(QGraphicsProxyWidget *w)
+{
+    if(_proxyWidget)
+        __LOGOUT__("already proxy widget exists.", Logger::LogLevel::Warn);
+
+    _proxyWidget = w;
+}
+
+GraphicsMathJaxItem::GraphicsMathJaxItem(QWidget *parent)
+    : GraphicsWidgetItem(parent)
+    , webView(new QWebEngineView(this))
+{
+    QVBoxLayout *vLayout = new QVBoxLayout(this);
+    setLayout(vLayout);
+    vLayout->addWidget(webView);
+
+    vLayout->setSpacing(0);
+    vLayout->setContentsMargins(0, 0, 0, 0);
+
+    webView->resize(100, 50);
+    setMathString("$$\\alpha\\times\\beta$$");
+    setSource();
+
+    webView->settings()->setAttribute(QWebEngineSettings::ShowScrollBars, false);
+
+    // Source Template
+    //"<html><head>"
+    //"<script type=\"text/javascript\" "
+    //"src = \"https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">"
+    //"</script></head>"
+    //"<body><p>"
+    //"<mathjax style=\"font-size:1.0em\">"
+    //"$$\\sum_{n=1}^{\\infty}\\frac{\\alpha}{n}$$"
+    //"</mathjax>"
+    //"</p></body></html>";
+}
+
+GraphicsMathJaxItem::~GraphicsMathJaxItem()
+{
+}
+
+int GraphicsMathJaxItem::viewWidth() const
+{
+    return webView->width();
+}
+
+int GraphicsMathJaxItem::viewHeight() const
+{
+    return webView->height();
+}
+
+void GraphicsMathJaxItem::setSource()
+{
+    webView->setHtml(headSource + styleSource() + _mathString + tailSource);
+}
+
+void GraphicsMathJaxItem::setAutoCompile(const bool enable)
+{
+    _isAutoCompile = enable;
+    if(enable) setSource();
+}
+
+void GraphicsMathJaxItem::setMathString(const QString &text)
+{
+    _mathString = text;
+    if(_isAutoCompile) setSource();
+}
+
+void GraphicsMathJaxItem::setViewWidth(const int width)
+{
+    webView->resize(width, webView->height());
+    if(proxyWidget()) proxyWidget()->resize(width, webView->height());
+}
+
+void GraphicsMathJaxItem::setViewHeight(const int height)
+{
+    webView->resize(webView->width(), height);
+    if(proxyWidget()) proxyWidget()->resize(webView->width(), height);
+}
+
+void GraphicsMathJaxItem::setFontSize(const double em)
+{
+    _fontSize = em;
+    if(_isAutoCompile) setSource();
+}
+
+void GraphicsMathJaxItem::setColor(const QColor &color)
+{
+    _color = color;
+    if(_isAutoCompile) setSource();
+}
+
+QString GraphicsMathJaxItem::styleSource()
+{
+    QString styleSource = "<mathjax style=\"";
+
+    styleSource += fontSizeSource(_fontSize);
+    styleSource += colorSource(_color);
+
+    return styleSource + "\">";
+}
+
+QString GraphicsMathJaxItem::fontSizeSource(const double &em)
+{
+    return "font-size:" + QString::number(em) + "em;";
+}
+
+QString GraphicsMathJaxItem::colorSource(const QColor &color)
+{
+    return "color:" + color.name() + ";";
 }

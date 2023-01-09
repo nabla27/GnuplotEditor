@@ -96,5 +96,10 @@ icon_plus:
 <a target="_blank" href="https://icons8.com/icon/62888/%E3%83%97%E3%83%A9%E3%82%B9%E8%A8%98%E5%8F%B7">プラス記号</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 icon_editimage:
 <a target="_blank" href="https://icons8.com/icon/68819/%E7%94%BB%E5%83%8F%E3%82%92%E7%B7%A8%E9%9B%86%E3%81%97%E3%81%BE%E3%81%99">画像を編集します</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
-
+icon_trashcan:
+<a target="_blank" href="https://icons8.com/icon/11705/%E5%89%8A%E9%99%A4">削除</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_gear:
+<a target="_blank" href="https://icons8.com/icon/364/%E8%A8%AD%E5%AE%9A">設定</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_broom:
+<a target="_blank" href="https://icons8.com/icon/48368/%E3%81%BB%E3%81%86%E3%81%8D">ほうき</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 

@@ -8,6 +8,7 @@
 class QStackedWidget;
 //class QGraphicsItem;
 class GraphicsItemWidget;
+class GraphicsWidgetItem;
 #include <QGraphicsItem>
 
 
@@ -22,6 +23,7 @@ public slots:
 
 private slots:
     void createGraphicsItem(int type);
+    void createGraphicsWidget(int type);
 
 private:
     class GraphicsItemPanel;
@@ -37,6 +39,7 @@ private:
 
 signals:
     void graphicsItemCreated(QGraphicsItem *item);
+    void graphicsWidgetCreated(GraphicsWidgetItem *widget);
 };
 
 
@@ -182,7 +185,7 @@ protected:
     QFormLayout *const fLayout;
 
 private:
-    QGraphicsItem *const item;
+    QGraphicsItem *const item; //ownership: QGraphicsScene
 
     QCheckBox *visibleCheckBox;
     QDoubleSpinBox *posXSpinBox;
@@ -296,6 +299,37 @@ private:
     QDoubleSpinBox *lengthSpinBox;
     QDoubleSpinBox *headAngleSpinBox;
     QDoubleSpinBox *headLengthSpinBox;
+};
+
+
+
+
+
+
+
+
+
+class GraphicsMathJaxItem;
+class GraphicsMathJaxWidget : public GraphicsItemWidget
+{
+    Q_OBJECT
+public:
+    explicit GraphicsMathJaxWidget(QWidget *widget,                     //parentWidget
+                                   GraphicsMathJaxItem *item,           //setting target item(QWidget). shared ownership with proxyWidget
+                                   QGraphicsProxyWidget *proxyWidget);  //graphics item. scene has this ownership
+
+public:
+    void setupValue() override;
+
+private:
+    GraphicsMathJaxItem *item;
+
+    QCheckBox *autoCompileCheck;
+    QLineEdit *mathStringEdit;
+    QSpinBox *widthSpin;
+    QSpinBox *heightSpin;
+    QDoubleSpinBox *fontSizeSpin;
+    mlayout::ColorButton *colorButton;
 };
 
 

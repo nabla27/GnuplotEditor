@@ -16,10 +16,12 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QSpinBox>
+#include <QScrollBar>
 #include <QCheckBox>
 #include <QColorDialog>
 //ImageScene::setSceneRect()
 
+#include "graphicitems.h"
 #include "graphicitemwidget.h"
 #include "layoutparts.h"
 #include "standardpixmap.h"
@@ -99,9 +101,20 @@ void ImageScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void ImageScene::addGraphicsItem(QGraphicsItem *item)
 {
+    //this scene take ownership of the item
     item->setFlag(QGraphicsItem::ItemIsMovable, true);
     item->setFlag(QGraphicsItem::ItemIsSelectable, true);
     addItem(item);
+}
+
+void ImageScene::addGraphicsWidget(GraphicsWidgetItem *item)
+{
+    //this scene take ownership of the item
+    QGraphicsProxyWidget *proxyWidget = addWidget(item);
+    item->setProxyWidget(proxyWidget);
+
+    proxyWidget->setFlag(QGraphicsItem::ItemIsMovable);
+    proxyWidget->setFlag(QGraphicsItem::ItemIsSelectable);
 }
 
 void ImageScene::emitSelectedItems()
@@ -148,7 +161,7 @@ void ImageView::setAbsoluteScale(const double &scale)
 
 
 
-#include <QScrollBar>
+
 ImageViewWidget::ImageViewWidget(QWidget *parent)
     : QScrollArea(parent)
     , contents(new QWidget(this))
@@ -163,6 +176,21 @@ ImageViewWidget::ImageViewWidget(QWidget *parent)
     , settingWidget(new GraphicsItemSettingWidget(contents))
 {
     setWindowFlag(Qt::Window);
+
+    //DEBUG
+    //GraphicsMathJaxItem *m = new GraphicsMathJaxItem(nullptr, nullptr);
+    //imageScene->addGraphicsItem(m);
+    //imageScene->addWidget(m->widget());
+    //QGraphicsProxyWidget *w = m->createProxyForChildWidget(new QTreeWidget);
+    //imageScene->addGraphicsItem(w);
+    //QGraphicsProxyWidget *pw = imageScene->addWidget(new QTableWidget);
+    //pw->setFlag(QGraphicsItem::ItemIsMovable);
+    //pw->setFlag(QGraphicsItem::ItemIsSelectable);
+    //pw->setFlag(QGraphicsItem::ItemIsFocusable);
+    //connect(imageScene, &ImageScene::currentItemChanged, [=](const QList<QGraphicsItem*>& items)
+    //{
+    //    qDebug() << items;
+    //});
 
     imageView->setScene(imageScene);
 
@@ -183,7 +211,6 @@ ImageViewWidget::ImageViewWidget(QWidget *parent)
 
     imageView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     settingWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
-    //settingWidget->hide();
 
     vLayout->setSpacing(0);
     vLayout->setContentsMargins(0, 0, 0, 0);
@@ -198,11 +225,26 @@ ImageViewWidget::ImageViewWidget(QWidget *parent)
     connect(controlPanel, &ImageViewControlPanel::adjustSizeRequested, this, &ImageViewWidget::adjustViewSize);
     connect(controlPanel, &ImageViewControlPanel::saveRequested, this, &ImageViewWidget::saveImage);
     connect(settingWidget, &GraphicsItemSettingWidget::graphicsItemCreated, imageScene, &ImageScene::addGraphicsItem);
+    connect(settingWidget, &GraphicsItemSettingWidget::graphicsWidgetCreated, imageScene, &ImageScene::addGraphicsWidget);
 }
 
 ImageViewWidget::~ImageViewWidget()
 {
-    if(pixmapItem) delete pixmapItem;
+    if(pixmapItem)
+    {
+        imageScene->removeItem(pixmapItem);
+        delete pixmapItem;
+    }
+
+    /* to avoid the runtime error
+     * ""
+     * ASSERT failure in ImageScene: "Called object is not of the correct type (class destructor may have already run)",
+     * file C:\Qt\6.4.1\msvc2019_64\include\QtCore/qobjectdefs_impl.h, line 120
+     * ""
+     * ImageScene::currentItemChanged() -> GraphicsItemSettingWidget::setCurrentItem()
+     */
+    imageScene->blockSignals(true);
+    imageScene->clearSelection();
 }
 
 QSize ImageViewWidget::sizeHint() const
@@ -253,7 +295,6 @@ void ImageViewWidget::saveImage()
     imageScene->clearSelection();
 
     ImageSaveDialog dialog(imgPath);
-    //dialog.setPixmap(imageView->viewport()->grab());
     dialog.setGrabWidget(imageView->viewport());
     dialog.exec();
 }

@@ -1,5 +1,4 @@
 HEADERS += \
-    $$PWD/consolewidget.h \
     $$PWD/cursorwatcher.h \
     $$PWD/editormanager.h \
     $$PWD/editorsettingwidget.h \
@@ -29,6 +28,8 @@ HEADERS += \
     $$PWD/templatecustomwidget.h \
 #<<<<<<< HEAD
 #    $$PWD/updatemanager.h \
+    $$PWD/terminalwidget.h \
+    $$PWD/textcodec.h \
     $$PWD/textedit.h \
     $$PWD/texteditor.h \
     $$PWD/utility.h \
@@ -39,7 +40,6 @@ HEADERS += \
 #>>>>>>> d2f7655fc2dea0117945d23b8e5e25ce22252c9f
 
 SOURCES += \
-    $$PWD/consolewidget.cpp \
     $$PWD/editormanager.cpp \
     $$PWD/editorsettingwidget.cpp \
     $$PWD/editorsyntaxhighlighter.cpp \
@@ -69,6 +69,7 @@ SOURCES += \
     $$PWD/templatecustomwidget.cpp \
 #<<<<<<< HEAD
 #    $$PWD/updatemanager.cpp \
+    $$PWD/terminalwidget.cpp \
     $$PWD/textedit.cpp \
     $$PWD/texteditor.cpp \
     $$PWD/windowmenubar.cpp

@@ -153,10 +153,10 @@ void PluginLoader::run()
     {
         QElapsedTimer timer;
         timer.start();
-        static constexpr int waitTime = 30 * 1000;
+        static constexpr int waitTime = 2 * 1000;
         checkProcess->start(pluginCheckerPath(), QStringList() << libPath << symbolName);
         checkProcess->waitForFinished(waitTime);
-        if(timer.elapsed() > waitTime - 1000)
+        if(timer.elapsed() > waitTime - 500)
         {
             __LOGOUT__("plugin checker time out.", Logger::LogLevel::Info);
 
