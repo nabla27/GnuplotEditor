@@ -24,7 +24,7 @@
 #include "filetreesettingwidget.h"
 
 #include "menubar.h"
-#include "consolewidget.h"
+#include "terminalwidget.h"
 #include "logger.h"
 #include "gnuplot.h"
 #include "utility.h"
@@ -89,7 +89,7 @@ GnuplotEditor::GnuplotEditor(QWidget *parent)
     //connect(fileTree, &FileTreeWidget::errorCaused, browserWidget, &BrowserWidget::outputText);
     connect(fileTree, &FileTreeWidget::folderPathChanged, fileTreeSetting, &FileTreeSettingWidget::setPreviousFolderPath);
     //connect(browserWidget, &BrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
-    connect(outputWidget, &LogBrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
+    //connect(outputWidget, &LogBrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
     connect(fileTreeSetting, &FileTreeSettingWidget::reloadRequested, fileTree, &FileTreeWidget::saveAndLoad);
 
     /* gnuplotとそのプロセスは別スレッドで非同期処理 */
@@ -190,7 +190,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(viewMenu, &ViewMenu::unsplitRequested, editorArea, &EditorArea::closeFocusedWidget);
     connect(viewMenu, &ViewMenu::removeAllStackedEditorRequested, editorArea, &EditorArea::removeAllStackedWidget);
     //connect(viewMenu, &ViewMenu::clearOutputWidgetRequested, browserWidget, &BrowserWidget::clear);
-    connect(viewMenu, &ViewMenu::clearConsoleWidgetRequested, consoleWidget, &ConsoleWidget::clear);
+    //connect(viewMenu, &ViewMenu::clearConsoleWidgetRequested, consoleWidget, &ConsoleWidget::clear);
     connect(viewMenu, &ViewMenu::showEditorSettingRequested, editorSetting, &EditorSetting::show);
 
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
@@ -217,7 +217,8 @@ void GnuplotEditor::initializeLayout()
     QVBoxLayout *vLayout = new QVBoxLayout;
     //editorTab = new TabWidget(editorSplitter);
     editorArea = new EditorArea(editorSplitter);
-    displayTab = new TabWidget(editorSplitter);
+    //displayTab = new TabWidget(editorSplitter);
+    terminalTab = new TerminalTabWidget(editorSplitter);
 
     /* 配置 */
     centralWidget()->setLayout(hLayout);
@@ -232,7 +233,8 @@ void GnuplotEditor::initializeLayout()
 
     //右側のエディタ
     editorSplitter->addWidget(editorArea);
-    editorSplitter->addWidget(displayTab);
+    //editorSplitter->addWidget(displayTab);
+    editorSplitter->addWidget(terminalTab);
 
     hLayout->setSpacing(0);
     vLayout->setSpacing(0);
@@ -252,22 +254,20 @@ void GnuplotEditor::initializeLayout()
 
 
     /* 各ウィジェット内のアイテムの初期化 */
-    consoleWidget = new ConsoleWidget(displayTab);
-    //browserWidget = new BrowserWidget(displayTab);
-    outputWidget = new LogBrowserWidget(displayTab);
+    ////consoleWidget = new ConsoleWidget(displayTab);
+    //outputWidget = new LogBrowserWidget(displayTab);
 
-    displayTab->addTab(consoleWidget, "&Console");
-    //displayTab->addTab(browserWidget, "&Output");
-    displayTab->addTab(outputWidget, "&Output");
+    ////displayTab->addTab(consoleWidget, "&Console");
+    //displayTab->addTab(outputWidget, "&Output");
 
-    displayTab->setTabPosition(QTabWidget::TabPosition::South);
-    outputWidget->addFilter(Logger::LogLevel::GnuplotStdOut);
-    outputWidget->addFilter(Logger::LogLevel::GnuplotStdErr);
-    outputWidget->setAutoScroll(true);
+    //displayTab->setTabPosition(QTabWidget::TabPosition::South);
+    //outputWidget->addFilter(Logger::LogLevel::GnuplotStdOut);
+    //outputWidget->addFilter(Logger::LogLevel::GnuplotStdErr);
+    //outputWidget->setAutoScroll(true);
 
     connect(treeModelCombo, &QComboBox::currentIndexChanged, fileTree, &FileTreeWidget::setTreeModel);
     connect(editorArea, &EditorArea::executeRequested, this, &GnuplotEditor::executeItem);
-    connect(logger, &Logger::logPushed, outputWidget, &LogBrowserWidget::appendLog);
+    //connect(logger, &Logger::logPushed, outputWidget, &LogBrowserWidget::appendLog);
 }
 
 void GnuplotEditor::setCurrentItem()
@@ -355,7 +355,8 @@ void GnuplotEditor::executeItem(TreeFileItem *item)
 {
     if(!item) return;
 
-    outputWidget->grayOutAll();
+    //outputWidget->grayOutAll();
+    terminalTab->logBrowser()->grayOutAll();
 
     switch(FileTreeWidget::TreeItemType(item->type()))
     {

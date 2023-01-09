@@ -14,6 +14,7 @@ class QLineEdit;
 class QComboBox;
 class QSpinBox;
 class QCheckBox;
+class GraphicsWidgetItem;
 
 
 
@@ -26,6 +27,7 @@ public:
 
 public slots:
     void addGraphicsItem(QGraphicsItem *item);
+    void addGraphicsWidget(GraphicsWidgetItem *item);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;

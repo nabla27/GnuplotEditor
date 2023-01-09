@@ -119,6 +119,7 @@
 
 #include <QThread>
 #include <QDebug>
+#include <QRegularExpressionMatchIterator>
 #include "logger.h"
 
 
@@ -126,10 +127,10 @@
 GnuplotExecutor::GnuplotExecutor(QObject *parent)
     : QObject(parent)
     , _gnuplotThread(new QThread(this))
-    , defaultProcess(new GnuplotProcess(nullptr))
+    , _defaultProcess(new GnuplotProcess(nullptr))
     , gnuplot(new Gnuplot(nullptr))
 {
-    defaultProcess->moveToThread(_gnuplotThread);
+    _defaultProcess->moveToThread(_gnuplotThread);
     gnuplot->moveToThread(_gnuplotThread);
     _gnuplotThread->start();
 
@@ -159,7 +160,7 @@ void GnuplotExecutor::execGnuplot(GnuplotProcess *process, const QList<QString>&
 
 void GnuplotExecutor::execGnuplot(const QList<QString>& cmd, bool enablePreCmd)
 {
-    execGnuplot(defaultProcess, cmd, enablePreCmd);
+    execGnuplot(_defaultProcess, cmd, enablePreCmd);
 }
 
 void GnuplotExecutor::setExePath(const QString &path)
@@ -224,6 +225,7 @@ void GnuplotExecutor::Gnuplot::execute(GnuplotProcess *process, const QList<QStr
     }
 
     /* workingFolderPath に移動 */
+    if(!workingPath.isEmpty())
     {
         const QString moveDirCmd = "cd '" + workingPath + "'";
         process->write((moveDirCmd + "\n").toUtf8().constData());
@@ -260,7 +262,7 @@ void GnuplotExecutor::Gnuplot::execute(GnuplotProcess *process, const QList<QStr
 
 
 
-#include <QRegularExpressionMatchIterator>
+
 
 GnuplotProcess::GnuplotProcess(QObject *parent)
     : QProcess(parent)
@@ -269,19 +271,29 @@ GnuplotProcess::GnuplotProcess(QObject *parent)
     connect(this, &GnuplotProcess::readyReadStandardError, this, &GnuplotProcess::readStdErr);;
 }
 
+void GnuplotProcess::setCharCode(const TextCodec::CharCode &code)
+{
+    GnuplotProcess::charCode = code;
+}
+
 void GnuplotProcess::readStdOut()
 {
-    const QString out(readAllStandardOutput());
+    _stdOut = TextCodec::QStringFrom(readAllStandardOutput(), charCode);
 
-    if(!out.isEmpty())
-        emit standardOutputRead(out, Logger::LogLevel::GnuplotStdOut);
+    if(!_stdOut.isEmpty())
+    {
+        emit standardOutputRead(_stdOut, Logger::LogLevel::GnuplotStdOut);
+        emit readyReadStdOut();
+    }
 }
 
 void GnuplotProcess::readStdErr()
 {
     QList<int> list;
 
-    const QString err = readAllStandardError();
+    _stdErr = "";
+
+    const QString err = TextCodec::QStringFrom(readAllStandardError(), charCode);
 
     QRegularExpressionMatchIterator iter(QRegularExpression("line \\d+:").globalMatch(err));
     while(iter.hasNext())
@@ -293,14 +305,22 @@ void GnuplotProcess::readStdErr()
     const int errorLine = (list.size() < 1) ? -1 : list.at(0);
 
     if(errorLine == -1)
-    {
+    {   //gnuplotからは標準出力も標準エラー出力として出される場合が多々ある
         if(!err.isEmpty())
+        {
             emit standardOutputRead(err, Logger::LogLevel::GnuplotStdOut);
+            emit readyReadStdOut();
+
+            _stdOut = err;
+        }
     }
     else
     {
         emit standardOutputRead(err, Logger::LogLevel::GnuplotStdErr);
         emit errorCaused(errorLine);
+        emit readyReadStdErr();
+
+        _stdErr = err;
     }
 }
 

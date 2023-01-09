@@ -127,6 +127,9 @@ public:
         static QPixmap adjustSize() { return QPixmap(":/icon/icon_adjustsize"); }
         static QPixmap plus() { return QPixmap(":/icon/icon_plus"); }
         static QPixmap editImage() { return QPixmap(":/icon/icon_editimage"); }
+        static QPixmap trashCan() { return QPixmap(":/icon/icon_trashcan"); }
+        static QPixmap gear() { return QPixmap(":/icon/icon_gear"); }
+        static QPixmap broom() { return QPixmap(":/icon/icon_broom"); }
     };
     struct Graph
     {

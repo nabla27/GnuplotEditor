@@ -115,7 +115,13 @@ void GraphicsItemSettingWidget::createGraphicsItem(int type)
     case GraphicsItemInfo::GraphicsItem::Path:
     case GraphicsItemInfo::GraphicsItem::Image:
     case GraphicsItemInfo::GraphicsItem::Svg:
+        break;
+    case GraphicsItemInfo::GraphicsItem::MathJax:
     case GraphicsItemInfo::GraphicsItem::Table:
+    {
+        createGraphicsWidget(type);
+        break;
+    }
     default:
     {
         /* plugin */
@@ -129,9 +135,10 @@ void GraphicsItemSettingWidget::createGraphicsItem(int type)
 
         graphicsItem->setPos(graphicsItem->scene()->width() / 2, graphicsItem->scene()->height() / 2);
 
-        scrollArea->setCurrentWidget(items.value(graphicsItem));
-
         items.insert(graphicsItem, widget);
+
+        scrollArea->setCurrentWidget(widget);
+
         widget->setupValue();
 
         if(treeItem)
@@ -139,6 +146,72 @@ void GraphicsItemSettingWidget::createGraphicsItem(int type)
             treeItem->setText(0, mutility::enumToString(itemEnumType));
             tree->addTopLevelItem(treeItem);
         }
+        else
+            __LOGOUT__("created tree item is nullptr.", Logger::LogLevel::Debug);
+    }
+}
+
+void GraphicsItemSettingWidget::createGraphicsWidget(int type)
+{
+    const GraphicsItemInfo::GraphicsItem itemEnumType = GraphicsItemInfo::GraphicsItem(type);
+
+    GraphicsWidgetItem *widgetItem = nullptr;
+    GraphicsItemWidget *settingWidget = nullptr;
+
+    switch(itemEnumType)
+    {
+    case GraphicsItemInfo::GraphicsItem::MathJax:
+    {
+        GraphicsMathJaxItem *i = new GraphicsMathJaxItem(nullptr);
+        emit graphicsWidgetCreated(i);
+        settingWidget = new GraphicsMathJaxWidget(scrollArea, i, i->proxyWidget());
+
+        widgetItem = i;
+        break;
+    }
+    case GraphicsItemInfo::GraphicsItem::Table:
+    default:
+    {
+        __LOGOUT__("inavlid GraphicsItemInfo::GraphicsItem enum index.", Logger::LogLevel::Debug);
+        return;
+    }
+    }
+
+    if(!settingWidget)
+    {
+        __LOGOUT__("setting widget of the graphics widget item is nullptr", Logger::LogLevel::Debug);
+    }
+
+    if(!widgetItem)
+    {
+        __LOGOUT__("widget item is nullptr", Logger::LogLevel::Debug);
+        return;
+    }
+
+    QGraphicsProxyWidget *proxyWidget = widgetItem->proxyWidget();
+
+    if(!proxyWidget)
+    {
+        __LOGOUT__("that widget's graphics proxy widget is nullptr", Logger::LogLevel::Debug);
+        return;
+    }
+
+    items.insert(proxyWidget, settingWidget);
+
+    scrollArea->setCurrentWidget(settingWidget);
+
+    settingWidget->setupValue();
+
+    GraphicsTreeItem *treeItem = new GraphicsTreeItem(tree, proxyWidget);
+
+    if(treeItem)
+    {
+        treeItem->setText(0, mutility::enumToString(itemEnumType));
+        tree->addTopLevelItem(treeItem);
+    }
+    else
+    {
+        __LOGOUT__("created tree item is nullptr.", Logger::LogLevel::Debug);
     }
 }
 
@@ -190,7 +263,7 @@ void GraphicsItemSettingWidget::GraphicsItemPanel::setupItemMenu()
 
         for(int j = 0;; ++j)
         {
-            const int itemIndex = 100 * i + j;
+            const int itemIndex = GraphicsItemInfo::GraphicsItemEnumSpan * i + j;
 
             const QString itemName(QMetaEnum::fromType<GraphicsItemInfo::GraphicsItem>().valueToKey(itemIndex));
 
@@ -298,6 +371,7 @@ void GraphicsItemSettingWidget::GraphicsItemTree::removeCurrentItem()
     settingWidget->items.remove(graphicsItem);
 
     graphicsItem->scene()->removeItem(graphicsItem);
+    //scene loses ownership of the item, when removed the item.
     delete graphicsItem;
 
     if(settingWidget->scrollArea->widget() == widget)
@@ -412,8 +486,10 @@ GraphicsItemWidget::GraphicsItemWidget(QWidget *parent, QGraphicsItem *item)
 
     posXSpinBox->setMinimum(-10000);
     posXSpinBox->setMaximum(10000);
+    posXSpinBox->setSingleStep(2);
     posYSpinBox->setMinimum(-10000);
     posYSpinBox->setMaximum(10000);
+    posYSpinBox->setSingleStep(2);
     posZSpinBox->setMinimum(0);
     posZSpinBox->setMaximum(99);
     scaleSpinBox->setMinimum(0.01);
@@ -683,6 +759,72 @@ void GraphicsArrowWidget::setupValue()
 
     GraphicsItemWidget::setupValue();
 }
+
+
+
+
+
+
+
+
+
+
+
+GraphicsMathJaxWidget::GraphicsMathJaxWidget(QWidget *parent,
+                                             GraphicsMathJaxItem *item,
+                                             QGraphicsProxyWidget *proxyWidget)
+    : GraphicsItemWidget(parent, proxyWidget)
+    , item(item)
+    , autoCompileCheck(new QCheckBox(this))
+    , mathStringEdit(new QLineEdit(this))
+    , widthSpin(new QSpinBox(this))
+    , heightSpin(new QSpinBox(this))
+    , fontSizeSpin(new QDoubleSpinBox(this))
+    , colorButton(new mlayout::ColorButton("Sample", QPalette::ButtonText, item->color(), this))
+{
+    QPushButton *compileButton = new QPushButton("Compile", this);
+    QHBoxLayout *sizeHLayout = new QHBoxLayout;
+
+    sizeHLayout->addWidget(widthSpin);
+    sizeHLayout->addWidget(heightSpin);
+
+    fLayout->addRow("Auto Compile", autoCompileCheck);
+    fLayout->addRow("", compileButton);
+    fLayout->addRow("Math String", mathStringEdit);
+    fLayout->addRow("Size", sizeHLayout);
+    fLayout->addRow("Font Size[em]", fontSizeSpin);
+    fLayout->addRow("Font Color", colorButton);
+
+    widthSpin->setMaximum(100000);
+    widthSpin->setSingleStep(2);
+    heightSpin->setMaximum(100000);
+    heightSpin->setSingleStep(2);
+    fontSizeSpin->setMaximum(10000);
+    fontSizeSpin->setSingleStep(0.1);
+
+    connect(autoCompileCheck, &QCheckBox::clicked, compileButton, &QPushButton::setHidden);
+    connect(autoCompileCheck, &QCheckBox::clicked, item, &GraphicsMathJaxItem::setAutoCompile);
+    connect(compileButton, &QPushButton::released, item, &GraphicsMathJaxItem::setSource);
+    connect(mathStringEdit, &QLineEdit::textChanged, item, &GraphicsMathJaxItem::setMathString);
+    connect(widthSpin, &QSpinBox::valueChanged, item, &GraphicsMathJaxItem::setViewWidth);
+    connect(heightSpin, &QSpinBox::valueChanged, item, &GraphicsMathJaxItem::setViewHeight);
+    connect(fontSizeSpin, &QDoubleSpinBox::valueChanged, item, &GraphicsMathJaxItem::setFontSize);
+    connect(colorButton, &mlayout::ColorButton::colorChanged, item, &GraphicsMathJaxItem::setColor);
+}
+
+void GraphicsMathJaxWidget::setupValue()
+{
+    autoCompileCheck->setChecked(item->isAutoCompile());
+    mathStringEdit->setText(item->mathString());
+    widthSpin->setValue(item->viewWidth());
+    heightSpin->setValue(item->viewHeight());
+    fontSizeSpin->setValue(item->fontSize());
+    colorButton->setDialogColor(item->color());
+
+    GraphicsItemWidget::setupValue();
+}
+
+
 
 
 
