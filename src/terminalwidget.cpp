@@ -78,10 +78,6 @@ void TerminalWidget::setProcess(QProcess *process)
 
     connect(process, &QProcess::readyReadStandardOutput, this, &TerminalWidget::readProcessStdOut);
     connect(process, &QProcess::readyReadStandardError, this, &TerminalWidget::readProcessStdErr);
-    /* エラーなどが起こったとき，閉じられることがあるため.
-     * 例えば，bash.exeで"plot sin(x) with lines"と入力すれば，QIODevice::finished()となってしまい，その後出力を読めない．
-     * exitを呼び出した場合，process先のアプリによって正しく動作しない．*/
-    connect(process, &QProcess::finished, [process](){ process->start(); });
 
     if(_process->state() != QProcess::Running)
     {
@@ -92,6 +88,12 @@ void TerminalWidget::setProcess(QProcess *process)
             __LOGOUT__("failed to start the process.", Logger::LogLevel::Warn);
         }
     }
+
+    /* エラーなどが起こったとき，閉じられることがあるため.
+     * 例えば，bash.exeで"plot sin(x) with lines"と入力すれば，QIODevice::finished()となってしまい，その後出力を読めない．
+     * exitを呼び出した場合，process先のアプリによって正しく動作しない．
+     * close()でも再び開始される事に注意(つまりcloseできない) */
+    connect(process, &QProcess::finished, [process](){ process->start(); });
 }
 
 QString TerminalWidget::programPath() const
@@ -110,9 +112,11 @@ void TerminalWidget::setProgramPath(const QString &path)
 
     if(_process->program() != path)
     {
+        _process->blockSignals(true); //QProcess::close() -> QProcess::start() を防ぐ
         _process->close();
         _process->setProgram(path);
         _process->start();
+        _process->blockSignals(false);
     }
 }
 
@@ -122,9 +126,11 @@ void TerminalWidget::setStartArguments(const QStringList& arguments)
 
     if(_process->arguments() != arguments)
     {
+        _process->blockSignals(true); //QProcess::close() -> QProcess::start() を防ぐ
         _process->close();
         _process->setArguments(arguments);
         _process->start();
+        _process->blockSignals(false);
     }
 }
 
