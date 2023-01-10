@@ -6,6 +6,8 @@
 #include <QScrollArea>
 #include <QGraphicsItem>
 #include <QDialog>
+
+
 class QGraphicsPixmapItem;
 class QFileSystemWatcher;
 class GraphicsItemSettingWidget;
@@ -15,8 +17,9 @@ class QComboBox;
 class QSpinBox;
 class QCheckBox;
 class GraphicsWidgetItem;
+class QSplitter;
 
-
+#include <QWidget>
 
 class ImageScene : public QGraphicsScene
 {
@@ -89,6 +92,8 @@ private slots:
 
 private:
     QWidget *contents;
+    QSplitter *hSplitter;
+
     QGraphicsPixmapItem *pixmapItem; //ownership: this
     ImageView *imageView;
     ImageScene *imageScene;

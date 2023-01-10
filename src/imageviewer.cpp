@@ -160,11 +160,13 @@ void ImageView::setAbsoluteScale(const double &scale)
 
 
 
-
+#include <QSplitter>
 
 ImageViewWidget::ImageViewWidget(QWidget *parent)
     : QScrollArea(parent)
     , contents(new QWidget(this))
+    , hSplitter(new QSplitter(Qt::Horizontal, this))
+
     , pixmapItem(new QGraphicsPixmapItem)
     , imageView(new ImageView(contents))
     , imageScene(new ImageScene(imageView, pixmapItem))
@@ -198,24 +200,29 @@ ImageViewWidget::ImageViewWidget(QWidget *parent)
     timer->setSingleShot(true);
 
     QVBoxLayout *vLayout = new QVBoxLayout(contents);
-    QHBoxLayout *hLayout = new QHBoxLayout;
+    //QHBoxLayout *hLayout = new QHBoxLayout;
 
     setWidget(contents);
     contents->setLayout(vLayout);
     vLayout->addWidget(controlPanel);
-    vLayout->addLayout(hLayout);
-    hLayout->addWidget(imageView);
-    hLayout->addWidget(settingWidget);
+    //vLayout->addLayout(hLayout);
+    //hLayout->addWidget(imageView);
+    //hLayout->addWidget(settingWidget);
+    vLayout->addWidget(hSplitter);
+    hSplitter->addWidget(imageView);
+    hSplitter->addWidget(settingWidget);
 
     setWidgetResizable(true);
 
+    controlPanel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
     imageView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    settingWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+    settingWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
     vLayout->setSpacing(0);
     vLayout->setContentsMargins(0, 0, 0, 0);
-    hLayout->setSpacing(0);
-    hLayout->setContentsMargins(0, 0, 0, 0);
+    //hLayout->setSpacing(0);
+    //hLayout->setContentsMargins(0, 0, 0, 0);
+    hSplitter->setContentsMargins(0, 0, 0, 0);
 
     connect(watcher, &QFileSystemWatcher::fileChanged, timer, QOverload<void>::of(&QTimer::start));
     connect(timer, &QTimer::timeout, this, &ImageViewWidget::updateImage);
@@ -252,7 +259,7 @@ QSize ImageViewWidget::sizeHint() const
     const int frameWidth = imageView->frameWidth();
 
     return imageView->sizeHint()
-            + QSize(settingWidget->sizeHint().width() + frameWidth * 2,
+            + QSize(settingWidget->sizeHint().width() + frameWidth * 2 + hSplitter->handleWidth(),
                     controlPanel->sizeHint().height() + frameWidth * 2);
 }
 
@@ -282,10 +289,35 @@ void ImageViewWidget::updateImage()
 
 void ImageViewWidget::adjustViewSize()
 {
-    adjustSize();
-    if(imageView->horizontalScrollBar()->isVisible())
+    /* this->width() = imageView->width()
+     *               + settingWidget->width()
+     *               + hSplitter->handleWidget()
+     *               + frameWidth * 2               //left and right frame line width
+     */
+
+    for(int i = 0; i < 30/*max adjust count*/; ++i)
     {
-        resize(sizeHint() + QSize(1, 1));
+
+        const int widthHint = imageView->sizeHint().width()
+                            + settingWidget->width()
+                            + hSplitter->handleWidth()
+                            + imageView->frameWidth() * 2;
+        const int heightHint = imageView->sizeHint().height()
+                             + controlPanel->sizeHint().height()
+                             + imageView->frameWidth() * 2;
+
+        resize(widthHint, heightHint);
+        hSplitter->setSizes(QList<int>() << imageView->sizeHint().width() - 1 << settingWidget->width() - 1);
+
+        qDebug() << __FILE__ << __LINE__ << "adjust size count:" << i + 1;
+
+        if(imageView->sizeHint() == imageView->size())
+        {
+            if(imageView->horizontalScrollBar()->isVisible())
+                imageView->resize(imageView->sizeHint() + QSize(1, 1));
+            else
+                break;
+        }
     }
 }
 
