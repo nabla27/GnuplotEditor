@@ -240,10 +240,6 @@ void TerminalWidget::keyPressEvent(QKeyEvent *e)
                 const QString cmd = document()->lastBlock().text();
                 write();
                 histories.append(cmd);
-
-                //to do cmd
-                //if(cmd == "history"); //show history
-                //if(cmd == "clear"); //clear terminal
             }
             else
             {
@@ -513,6 +509,10 @@ void GnuplotTermimal::readProcessStdErr()
 
 void GnuplotTermimal::write()
 {
+    /* commands to add
+     * histroy {count}
+     * ls {directory}
+     */
     gnuplotExecutor->execGnuplot(static_cast<GnuplotProcess*>(_process), QList<QString>() << document()->lastBlock().text(), false);
 }
 

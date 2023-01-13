@@ -104,7 +104,7 @@ class LoopProgressDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit LoopProgressDialog(QWidget *parent, Qt::WindowFlags f = Qt::WindowFlags());
+    explicit LoopProgressDialog(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 
 public:
     bool isProgress() const;

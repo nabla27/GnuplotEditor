@@ -19,7 +19,7 @@ class QCheckBox;
 class GraphicsWidgetItem;
 class QSplitter;
 
-#include <QWidget>
+
 
 class ImageScene : public QGraphicsScene
 {
