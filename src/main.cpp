@@ -10,21 +10,37 @@
 #include "gnuploteditor.h"
 #include <QApplication>
 #include <QObject>
-#include "logger.h"
+#include <QThread>
+#include <QThreadPool>
+#include "settings.h"
+#include "layoutparts.h"
 
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
+    QApplication app(argc, argv);
 
-    logger->setLogFilePath(QApplication::applicationDirPath() + "/setting/gnuplot-editor.log");
+    GnuplotEditor window;
 
-    GnuplotEditor w;
-    w.show();
+    SettingController sController;
+    QThread thread;
+    sController.moveToThread(&thread);
+    thread.start();
 
-    QObject::connect(&a, &QApplication::focusChanged, &w, &GnuplotEditor::setCurrentItem);
+    mlayout::LoopProgressDialog loopDialog;
+    loopDialog.setAutoDisplay(true);
+    loopDialog.setMessage("loading settings ...");;
 
-    return a.exec();
+    QObject::connect(&app, &QApplication::focusChanged, &window, &GnuplotEditor::setCurrentItem);
+    QObject::connect(&sController, &SettingController::settingsLoaded, &window, &GnuplotEditor::show);
+    QObject::connect(&sController, &SettingController::settingsLoaded, &sController, &SettingController::moveToGlobalThread);
+    QObject::connect(&sController, &SettingController::settingsLoaded, &loopDialog, &mlayout::LoopProgressDialog::stop);
+    QObject::connect(&sController, &SettingController::settingsLoaded, &thread, &QThread::quit);
+    QObject::connect(&app, &QApplication::aboutToQuit, &sController, &SettingController::saveSettings);
 
-    return 0;
+
+    loopDialog.start();
+    emit sController.loadRequested(); //thread safe
+
+    return app.exec();
 }

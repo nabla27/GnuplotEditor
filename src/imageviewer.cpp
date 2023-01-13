@@ -369,7 +369,8 @@ ImageViewWidget::ImageViewControlPanel::ImageViewControlPanel(QWidget *parent)
 
     scaleSpinBox->setValue(1.0);
     scaleSpinBox->setSingleStep(0.1);
-    scaleSpinBox->setMinimum(0.01);
+    scaleSpinBox->setMinimum(0.0001);
+    scaleSpinBox->setDecimals(4);
     scaleSpinBox->setMaximum(99);
 
     static constexpr int space = 4;
@@ -501,6 +502,8 @@ ImageSaveDialog::ImageSaveDialog(const QString& defaultSavePath)
     QPalette p = backgroundColorLabel->palette();
     p.setColor(backgroundColorLabel->backgroundRole(), palette().color(backgroundRole()));
     backgroundColorLabel->setPalette(p);
+
+    viewWidget->setPalette(QPalette(viewWidget->backgroundRole(), Qt::black));
 
     pathLayout->setSpacing(0);
     openDialogLabel->setAutoFillBackground(true);
