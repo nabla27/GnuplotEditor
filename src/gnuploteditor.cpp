@@ -360,12 +360,17 @@ void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
         textEdit->highlightLine();
     }
 
+    /* FileTreeWidget::allSaved()が発せられたら，GnuplotEditor::sendGnuplotCmd()を実行
+     * すべてセーブしてからでないと，gnuplot実行時にセーブされていないファイルを読み込んで実行してしまう */
     requestedItem = item;
     fileTree->saveAllFile();
 }
 
 void GnuplotEditor::sendGnuplotCmd()
 {
+    /* FileTreeWidget::allSaved() が発せられたら呼ばれるが，これが他のクラスから発せられたものである可能性があるため，
+     * requestedItemを確認することで，これが実行時にFileTreeWidget::saveAllFile()を呼ぶことによって発せられたことが
+     * 確認できる． */
     if(requestedItem)
     {
         __LOGOUT__("execute gnuplot \"" + requestedItem->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Info);
