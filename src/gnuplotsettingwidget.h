@@ -52,7 +52,7 @@ private:
     const QString settingFileName;
 
 signals:
-    void autoCompileMsecSet(const int msec);
+    //void autoCompileMsecSet(const int msec);
     void exePathSet(const QString& path);
     void initCmdSet(const QString& initCmd);
     void preCmdSet(const QString& preCmd);
