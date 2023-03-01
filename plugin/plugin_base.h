@@ -19,12 +19,14 @@
 
 struct PluginInfo
 {
+    PluginInfo() {}
+
     enum class PluginType { EditorManager };
 
-    const std::string name;
-    const std::string version;
-    const std::string description;
-    const PluginType type;
+    std::string name;
+    std::string version;
+    std::string description;
+    PluginType type;
 };
 
 

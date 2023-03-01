@@ -41,6 +41,9 @@ public:
     void addItem(TreeFileItem *item);
     TreeFileItem* currentTreeFileItem() const;
 
+    void setStateToLoading();
+    void setStateToLoaded();
+
     void separateAreaH();
     void separateAreaV();
     void closeThisArea();
@@ -48,6 +51,7 @@ public:
 
 private:
     void setupLayout();
+    void connectFileItem(TreeFileItem*);
 
 private slots:
     void separateArea(const Qt::Orientation& orient);
@@ -61,6 +65,9 @@ protected:
     class FileComboBox;
 
 private:
+    inline static constexpr int iconSize = 20;
+    QMovie *loadingMovie;
+
     EditorArea *editorArea;
     QList<TreeFileItem*> items;
     QSplitter *parentSplitter;

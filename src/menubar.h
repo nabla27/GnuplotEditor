@@ -134,6 +134,7 @@ public:
 private slots:
     void setAutoRun();
     void closeProcess();
+    void reStart();
     void runDetached();
     void commentOut();
     void emitSaveAsTemplate();
@@ -145,6 +146,7 @@ private:
 private:
     QAction *aRun;
     QAction *aCloseProcess;
+    QAction *aReStart;
     QAction *aAutoRun;
     QAction *aRunDetached;
 

@@ -386,6 +386,7 @@ GnuplotMenu::GnuplotMenu(const QString &title, QWidget *parent)
     : QMenu(title, parent)
     , aRun(new QAction("Run", this))
     , aCloseProcess(new QAction("Close Process", this))
+    , aReStart(new QAction("Restart", this))
     , aAutoRun(new QAction("Autorun", this))
     , aRunDetached(new QAction("Run Detached With Gnuplot", this))
     , aCommentOut(new QAction("Comment Out", this))
@@ -397,6 +398,7 @@ GnuplotMenu::GnuplotMenu(const QString &title, QWidget *parent)
 {
     addAction(aRun);
     addAction(aCloseProcess);
+    addAction(aReStart);
     addAction(aAutoRun);
     addAction(aRunDetached);
     addSeparator();
@@ -419,6 +421,7 @@ GnuplotMenu::GnuplotMenu(const QString &title, QWidget *parent)
 
     connect(aRun, &QAction::triggered, [this](){ emit runRequested(currentItem); });
     connect(aCloseProcess, &QAction::triggered, this, &GnuplotMenu::closeProcess);
+    connect(aReStart, &QAction::triggered, this, &GnuplotMenu::reStart);
     connect(aAutoRun, &QAction::triggered, this, &GnuplotMenu::setAutoRun);
     connect(aRunDetached, &QAction::triggered, this, &GnuplotMenu::runDetached);
     connect(aCommentOut, &QAction::triggered, this, &GnuplotMenu::commentOut);
@@ -486,6 +489,15 @@ void GnuplotMenu::closeProcess()
     if(TreeScriptItem *item = static_cast<TreeScriptItem*>(currentItem))
     {
         item->requestCloseProcess();
+    }
+}
+
+void GnuplotMenu::reStart()
+{
+    if(TreeScriptItem *item = static_cast<TreeScriptItem*>(currentItem))
+    {
+        item->requestCloseProcess();
+        emit runRequested(item);
     }
 }
 
