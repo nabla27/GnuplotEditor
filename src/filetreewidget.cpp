@@ -704,6 +704,8 @@ FileTreeWidget::FileTreeWidget(QWidget *parent)
     initializeContextMenu();
 
     connect(dirWatcher, &QFileSystemWatcher::directoryChanged, this, &FileTreeWidget::updateFileTree);
+    connect(dirWatcher, &QFileSystemWatcher::directoryChanged, this, &FileTreeWidget::detectRemovedFile);
+    connect(dirWatcher, &QFileSystemWatcher::fileChanged, this, &FileTreeWidget::detectRemovedFile);
 
     setAcceptDrops(true);
 }
@@ -1084,7 +1086,7 @@ void FileTreeWidget::updateGnuplotModelTree(const QString &path)
             item = new TreeNoCategorizedItem(otherFolderItem, info);
 
         //TreeFileItem::list.insert(absPath, item);
-        addTreeFileItem(absPath, item);
+        addTreeFileItem(item);
     }
 
 
@@ -1132,7 +1134,7 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
             item = new TreeNoCategorizedItem(parent, info);
 
         //TreeFileItem::list.insert(absPath, item);
-        addTreeFileItem(absPath, item);
+        addTreeFileItem(item);
     }
 
 
@@ -1148,7 +1150,7 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
         {
             TreeFolderItem *item = new TreeFolderItem(parent, info);
             //TreeFileItem::list.insert(absPath, item);
-            addTreeFileItem(absPath, item);
+            addTreeFileItem(item);
         }
 
         dirWatcher->addPath(absPath);
@@ -1158,11 +1160,22 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
     }
 }
 
-void FileTreeWidget::addTreeFileItem(const QString &path, TreeFileItem *item)
+void FileTreeWidget::addTreeFileItem(TreeFileItem *item)
 {
-    TreeFileItem::list.insert(path, item);
+    dirWatcher->addPath(item->fileInfo().absoluteFilePath());
+    TreeFileItem::list.insert(item->fileInfo().absoluteFilePath(), item);
     connect(item, &TreeFileItem::aboutToSave, this, &FileTreeWidget::countUpSaving);
     connect(item, &TreeFileItem::saved, this, &FileTreeWidget::countDownSaving);
+}
+
+void FileTreeWidget::detectRemovedFile(const QString &path)
+{
+    QFileInfo info(path);
+
+    if(info.exists()) return;
+
+    if(TreeFileItem *removedItem = TreeFileItem::list.value(path))
+        removeItemFromTree(removedItem);
 }
 
 void FileTreeWidget::updateFileTree()

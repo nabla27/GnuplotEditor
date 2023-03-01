@@ -314,7 +314,8 @@ private:
     void updateGnuplotModelTree(const QString& path);
     void updateFileSystemModelTree(const QString& path, QTreeWidgetItem *parent);
 
-    void addTreeFileItem(const QString& path, TreeFileItem *item);
+    void addTreeFileItem(TreeFileItem *item);
+    void detectRemovedFile(const QString& path);
 
     void copyDirectoryRecursively(const QString& fromPath, const QString& toPath);
     void addFilesFromUrls(const QList<QUrl>& urls, const QString& parentPath);
