@@ -61,6 +61,7 @@ private slots:
     void setCurrentItem(const int index);
     void requestExecute();
     void changeEditState(bool edited);
+    void changeFilePath(const QString& old, const QString& path);
 
 protected:
     class FileComboBox;

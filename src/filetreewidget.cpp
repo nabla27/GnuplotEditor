@@ -81,12 +81,14 @@ TreeFileItem::TreeFileItem(QTreeWidget *parent, int type, const QFileInfo &info)
 
 void TreeFileItem::setFilePath(const QString &path)
 {
+    const QString oldPath = info.absoluteFilePath();
+
     info.setFile(path);
 
     setText(0, info.fileName());
     setToolTip(0, info.absoluteFilePath());
 
-    emit pathChanged(path);
+    emit pathChanged(oldPath, path);
 }
 
 void TreeFileItem::setData(int column, int role, const QVariant &variant)
@@ -540,7 +542,7 @@ TreeImageItem::TreeImageItem(QTreeWidgetItem *parent, const QFileInfo &info)
 {
     setIcon(0, StandardPixmap::File::image());
 
-    connect(this, &TreeImageItem::pathChanged, imageDisplay, &ImageDisplay::setImagePath);
+    connect(this, &TreeImageItem::pathChanged, this, &TreeImageItem::setImagePath);
 }
 
 void TreeImageItem::save()
@@ -579,6 +581,12 @@ QWidget *TreeImageItem::widget() const
     return imageDisplay;
 }
 
+void TreeImageItem::setImagePath(const QString &, const QString &path)
+{
+    if(imageDisplay)
+        imageDisplay->setImagePath(path);
+}
+
 
 
 
@@ -594,7 +602,7 @@ TreePdfItem::TreePdfItem(QTreeWidgetItem *parent, const QFileInfo &info)
 {
     setIcon(0, StandardPixmap::File::pdf());
 
-    connect(this, &TreePdfItem::pathChanged, viewer, &PdfViewer::setFilePath);
+    connect(this, &TreePdfItem::pathChanged, this, &TreePdfItem::setPdfPath);
 }
 
 void TreePdfItem::save()
@@ -651,6 +659,12 @@ TreePdfItem::~TreePdfItem()
 QWidget *TreePdfItem::widget() const
 {
     return viewer;
+}
+
+void TreePdfItem::setPdfPath(const QString &, const QString &path)
+{
+    if(viewer)
+        viewer->setFilePath(path);
 }
 
 
