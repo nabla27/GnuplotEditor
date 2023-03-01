@@ -33,10 +33,13 @@ EditorStackedWidget::EditorStackedWidget(EditorArea *editorArea, QSplitter *pare
     , contents(new QWidget(this))
     , fileComboBox(new FileComboBox(this))
     , editorStack(new QStackedWidget(this))
+    , loadingLabel(new QLabel(this))
     , executeScript(new mlayout::IconLabel(this))
 {
     setWidgetResizable(true);
 
+    loadingLabel->hide();
+    loadingLabel->setMovie(loadingMovie);
     loadingMovie->setScaledSize(QSize(iconSize, iconSize));
 
     fileComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -72,6 +75,7 @@ void EditorStackedWidget::setupLayout()
     hLayout->addWidget(fileComboBox);
     hLayout->addWidget(removeEditor);
     hLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Preferred));
+    hLayout->addWidget(loadingLabel);
     hLayout->addWidget(executeScript);
     //hLayout->addWidget(new mlayout::SeparatorLineWidget(this, Qt::Orientation::Vertical));
     hLayout->addWidget(separateAreaHorizontal);
@@ -221,14 +225,27 @@ void EditorStackedWidget::connectFileItem(TreeFileItem *item)
 
 void EditorStackedWidget::setStateToLoading()
 {
-    executeScript->setMovie(loadingMovie);
-    loadingMovie->start();
+    if(loadingCount == 0)
+    {
+        loadingMovie->start();
+        loadingLabel->show();
+        executeScript->setEnabled(false);
+    }
+
+    loadingCount++;
 }
 
 void EditorStackedWidget::setStateToLoaded()
 {
-    loadingMovie->stop();
-    executeScript->setPixmap(StandardPixmap::Icon::execute().scaled(iconSize, iconSize));
+    loadingCount--;
+
+    if(loadingCount == 0)
+    {
+        //すべてのロードが終わったときに非表示にする
+        loadingMovie->stop();
+        loadingLabel->hide();
+        executeScript->setEnabled(true);
+    }
 }
 
 void EditorStackedWidget::removeCurrentWidget()

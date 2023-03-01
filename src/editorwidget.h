@@ -25,6 +25,7 @@ class QSplitter;
 class QVBoxLayout;
 class TreeFileItem;
 class EditorArea;
+class QLabel;
 namespace mlayout { class IconLabel; }
 
 
@@ -67,6 +68,7 @@ protected:
 private:
     inline static constexpr int iconSize = 20;
     QMovie *loadingMovie;
+    int loadingCount = 0;
 
     EditorArea *editorArea;
     QList<TreeFileItem*> items;
@@ -74,6 +76,7 @@ private:
     QWidget *contents;
     FileComboBox *fileComboBox;
     QStackedWidget *editorStack;
+    QLabel *loadingLabel;
     mlayout::IconLabel *executeScript;
 };
 
