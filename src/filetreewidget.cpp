@@ -1499,6 +1499,13 @@ void FileTreeWidget::newFileFromDialog()
                     break;
                 }
             }
+            else if(item->type() == (int)FileTreeWidget::TreeItemType::Dir)
+            {
+                if(TreeFolderItem *folderItem = static_cast<TreeFolderItem*>(item))
+                {
+                    folderPath = folderItem->fileInfo().absoluteFilePath();
+                }
+            }
         }
     }
 
