@@ -204,6 +204,7 @@ void EditorStackedWidget::addItem(TreeFileItem *item)
         {
             executeScript->setVisible(true);
         }
+        fileComboBox->setToolTip(items.last()->fileInfo().absoluteFilePath());
     }
 
     editorStack->setCurrentWidget(widget);
@@ -355,6 +356,7 @@ void EditorStackedWidget::setCurrentItem(const int index)
         executeScript->setVisible(false);
 
     changeEditState(items.at(index)->isSaved());
+    fileComboBox->setToolTip(items.at(index)->fileInfo().absoluteFilePath());
 }
 
 void EditorStackedWidget::requestExecute()
