@@ -222,6 +222,7 @@ void EditorStackedWidget::connectFileItem(TreeFileItem *item)
 
     connect(item, &TreeFileItem::aboutToSave, this, &EditorStackedWidget::setStateToLoading);
     connect(item, &TreeFileItem::saved, this, &EditorStackedWidget::setStateToLoaded);
+    connect(item, &TreeFileItem::pathChanged, this, &EditorStackedWidget::changeFilePath);
 }
 
 void EditorStackedWidget::setStateToLoading()
@@ -246,6 +247,14 @@ void EditorStackedWidget::setStateToLoaded()
         loadingMovie->stop();
         loadingLabel->hide();
         executeScript->setEnabled(true);
+    }
+}
+
+void EditorStackedWidget::changeFilePath(const QString& old, const QString&)
+{
+    if(fileComboBox->toolTip() == old)
+    {
+        setCurrentItem(editorStack->currentIndex());
     }
 }
 
@@ -357,6 +366,9 @@ void EditorStackedWidget::setCurrentItem(const int index)
 
     changeEditState(items.at(index)->isSaved());
     fileComboBox->setToolTip(items.at(index)->fileInfo().absoluteFilePath());
+
+    /* ファイル名が変更された場合に対応 */
+    fileComboBox->setItemText(index, items.at(index)->text(0));
 }
 
 void EditorStackedWidget::requestExecute()

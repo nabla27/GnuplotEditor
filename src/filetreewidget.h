@@ -66,7 +66,7 @@ private:
     inline static int updateTime = 1000;
 
 signals:
-    void pathChanged(const QString& path);
+    void pathChanged(const QString& oldPath, const QString& newPath);
     void editStateChanged(const bool isSaved);
     void updated();
     void removed(const bool ok);
@@ -222,6 +222,9 @@ public:
     void remove() override;
     QWidget* widget() const override;
 
+private slots:
+    void setImagePath(const QString&, const QString& path);
+
 private:
     ImageDisplay *imageDisplay;
 };
@@ -244,6 +247,9 @@ public:
     void load() override;
     void remove() override;
     QWidget *widget() const override;
+
+private:
+    void setPdfPath(const QString&, const QString& path);
 
 private:
     PdfViewer *viewer;
