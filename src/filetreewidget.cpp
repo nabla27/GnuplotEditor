@@ -58,6 +58,9 @@ QStringList FileTreeWidget::fileFilter = QStringList();
  * TreeFileItemのすべての派生クラスのコンストラクタでload()関数を呼ばないようにし，実際にそのアイテムが表示される時に
  * isLoaded()でフラグを確認し，load()を行う(遅延処理)．
  */
+/* TreeFileItemを継承するすべての派生クラスのsave()関数内でaboutToSave()をエミットした場合，
+ * 必ずsaved()もエミットするようにする．
+ */
 TreeFileItem::TreeFileItem(QTreeWidgetItem *parent, int type, const QFileInfo &info)
     : QTreeWidgetItem(parent, type)
     , info(info)
@@ -294,6 +297,8 @@ void TreeScriptItem::save()
 {
     if(!editor) return; //まだ一度も選択されていない場合など
 
+    emit aboutToSave();
+
     switch(suffix.value(info.suffix()))
     {
     case ReadType::Text:
@@ -309,6 +314,7 @@ void TreeScriptItem::save()
         /* htmlを読み込んで表示した後はただのtextになるため，htmlとしてセーブできない */
     default:
         __LOGOUT__("failed to save this file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Error);
+        emit saved();
         return;
     }
 
@@ -359,6 +365,8 @@ void TreeScriptItem::requestCloseProcess()
 void TreeScriptItem::receiveSavedResult(const bool& ok)
 {
     setSavedState(ok);
+    emit saved();
+
     if(!ok)
     {
         __LOGOUT__("Failed to save this file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Error);
@@ -420,6 +428,8 @@ void TreeSheetItem::save()
 {
     if(!table) return;  //まだ一度も表示されていない場合
 
+    emit aboutToSave();
+
     switch(suffix.value(info.suffix()))
     {
     case ReadType::Csv:
@@ -442,6 +452,7 @@ void TreeSheetItem::save()
     }
     default:
         __LOGOUT__("Failed to save this file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Error);
+        emit saved();
         return;
     }
 
@@ -495,6 +506,8 @@ QWidget *TreeSheetItem::widget() const
 void TreeSheetItem::receiveSavedResult(const bool& ok)
 {
     setSavedState(ok);
+    emit saved();
+
     if(!ok)
     {
         __LOGOUT__("Fialed to save this file \"" + info.absoluteFilePath() + "\".", Logger::LogLevel::Error);
@@ -1056,7 +1069,8 @@ void FileTreeWidget::updateGnuplotModelTree(const QString &path)
         else
             item = new TreeNoCategorizedItem(otherFolderItem, info);
 
-        TreeFileItem::list.insert(absPath, item);
+        //TreeFileItem::list.insert(absPath, item);
+        addTreeFileItem(absPath, item);
     }
 
 
@@ -1103,7 +1117,8 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
         else
             item = new TreeNoCategorizedItem(parent, info);
 
-        TreeFileItem::list.insert(absPath, item);
+        //TreeFileItem::list.insert(absPath, item);
+        addTreeFileItem(absPath, item);
     }
 
 
@@ -1118,7 +1133,8 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
         if(!TreeFileItem::list.contains(absPath))
         {
             TreeFolderItem *item = new TreeFolderItem(parent, info);
-            TreeFileItem::list.insert(absPath, item);
+            //TreeFileItem::list.insert(absPath, item);
+            addTreeFileItem(absPath, item);
         }
 
         dirWatcher->addPath(absPath);
@@ -1126,6 +1142,13 @@ void FileTreeWidget::updateFileSystemModelTree(const QString &path, QTreeWidgetI
         //再帰的にサブディレクトリについても設定する
         updateFileSystemModelTree(absPath, TreeFileItem::list.value(absPath));
     }
+}
+
+void FileTreeWidget::addTreeFileItem(const QString &path, TreeFileItem *item)
+{
+    TreeFileItem::list.insert(path, item);
+    connect(item, &TreeFileItem::aboutToSave, this, &FileTreeWidget::countUpSaving);
+    connect(item, &TreeFileItem::saved, this, &FileTreeWidget::countDownSaving);
 }
 
 void FileTreeWidget::updateFileTree()
@@ -1167,11 +1190,18 @@ void FileTreeWidget::setFolderPath(const QString& folderPath)
 
 void FileTreeWidget::saveAllFile()
 {
+    int count = 0;
+
     foreach(TreeFileItem *item, TreeFileItem::list)
     {
         if(!item->isSaved())
+        {
+            count++;
             item->save();
+        }
     }
+
+    if(count == 0) emit allSaved();
 }
 
 void FileTreeWidget::saveAndLoad()

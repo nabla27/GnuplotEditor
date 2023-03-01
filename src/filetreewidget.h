@@ -70,6 +70,8 @@ signals:
     void editStateChanged(const bool isSaved);
     void updated();
     void removed(const bool ok);
+    void aboutToSave();
+    void saved();
 };
 
 
@@ -297,11 +299,16 @@ private slots:
     void removeFile(); //File & Dir
     void exportFile(); //File
 
+    void countUpSaving() { savingCount++; }
+    void countDownSaving() { if(--savingCount == 0) emit allSaved(); }
+
 private:
     void initializeContextMenu();
 
     void updateGnuplotModelTree(const QString& path);
     void updateFileSystemModelTree(const QString& path, QTreeWidgetItem *parent);
+
+    void addTreeFileItem(const QString& path, TreeFileItem *item);
 
     void copyDirectoryRecursively(const QString& fromPath, const QString& toPath);
     void addFilesFromUrls(const QList<QUrl>& urls, const QString& parentPath);
@@ -325,8 +332,11 @@ private:
     QMenu *dirMenu;
     QMenu *categoryMenu;
 
+    int savingCount = 0;
+
 signals:
     void folderPathChanged(const QString& path);
+    void allSaved();
 };
 
 

@@ -14,6 +14,7 @@
 #include <QMimeData>
 #include <QDrag>
 #include <QVBoxLayout>
+#include <QMovie>
 
 #include "layoutparts.h"
 #include "standardpixmap.h"
@@ -26,6 +27,7 @@
 
 EditorStackedWidget::EditorStackedWidget(EditorArea *editorArea, QSplitter *parentSplitter)
     : QScrollArea(parentSplitter)
+    , loadingMovie(new QMovie("E:/loading.gif"))
     , editorArea(editorArea)
     , parentSplitter(parentSplitter)
     , contents(new QWidget(this))
@@ -34,6 +36,8 @@ EditorStackedWidget::EditorStackedWidget(EditorArea *editorArea, QSplitter *pare
     , executeScript(new mlayout::IconLabel(this))
 {
     setWidgetResizable(true);
+
+    loadingMovie->setScaledSize(QSize(iconSize, iconSize));
 
     fileComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
@@ -81,7 +85,6 @@ void EditorStackedWidget::setupLayout()
     vLayout->setContentsMargins(0, 0, 0, 0);
     hLayout->setContentsMargins(0, 0, 0, 0);
 
-    static int iconSize = 20;
     removeEditor->setPixmap(StandardPixmap::Icon::remove().scaled(iconSize, iconSize));
     executeScript->setPixmap(StandardPixmap::Icon::execute().scaled(iconSize, iconSize));
     separateAreaHorizontal->setPixmap(StandardPixmap::Icon::separateH().scaled(iconSize, iconSize));
@@ -200,12 +203,32 @@ void EditorStackedWidget::addItem(TreeFileItem *item)
     }
 
     editorStack->setCurrentWidget(widget);
+    connectFileItem(item);
 
+    __LOGOUT__("a new widget is added.", Logger::LogLevel::Info);
+}
+
+void EditorStackedWidget::connectFileItem(TreeFileItem *item)
+{
     connect(item, &TreeFileItem::editStateChanged, this, &EditorStackedWidget::changeEditState);
+
     //updateTimer()が発せられる間に，stackのeditorが変更された場合，異なるitemがrequestExecuteされる問題がある
     connect(item, &TreeFileItem::updated, this, &EditorStackedWidget::requestExecute);
 
-    __LOGOUT__("a new widget is added.", Logger::LogLevel::Info);
+    connect(item, &TreeFileItem::aboutToSave, this, &EditorStackedWidget::setStateToLoading);
+    connect(item, &TreeFileItem::saved, this, &EditorStackedWidget::setStateToLoaded);
+}
+
+void EditorStackedWidget::setStateToLoading()
+{
+    executeScript->setMovie(loadingMovie);
+    loadingMovie->start();
+}
+
+void EditorStackedWidget::setStateToLoaded()
+{
+    loadingMovie->stop();
+    executeScript->setPixmap(StandardPixmap::Icon::execute().scaled(iconSize, iconSize));
 }
 
 void EditorStackedWidget::removeCurrentWidget()
@@ -284,8 +307,7 @@ void EditorStackedWidget::removeItem(const int index)
 
     if(TreeFileItem *item = items.at(index))
     {
-        item->disconnect(item, &TreeFileItem::editStateChanged, this, &EditorStackedWidget::changeEditState);
-        item->disconnect(item, &TreeFileItem::updated, this, &EditorStackedWidget::requestExecute);
+        item->disconnect(this);
         items.removeAt(index);
     }
     else
@@ -314,10 +336,14 @@ void EditorStackedWidget::setCurrentItem(const int index)
     }
     else
         executeScript->setVisible(false);
+
+    changeEditState(items.at(index)->isSaved());
 }
 
 void EditorStackedWidget::requestExecute()
 {
+    if(loadingMovie->state() == QMovie::MovieState::Running) return;
+
     __LOGOUT__("execute requested from " + QString(EditorStackedWidget::staticMetaObject.className()), Logger::LogLevel::Info);
 
     emit editorArea->executeRequested(currentTreeFileItem());

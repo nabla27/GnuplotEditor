@@ -103,3 +103,5 @@ icon_gear:
 icon_broom:
 <a target="_blank" href="https://icons8.com/icon/48368/%E3%81%BB%E3%81%86%E3%81%8D">ほうき</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
 
+loading.gif:
+<a target="_blank" href="https://icons8.com/icon/nITS6PlJtteV/loading-circle">Loading Circle</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>

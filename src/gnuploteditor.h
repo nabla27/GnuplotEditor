@@ -82,6 +82,7 @@ private slots:
     /* execute */
     void executeItem(TreeFileItem *item);
     void executeGnuplot(TreeScriptItem *item);
+    void sendGnuplotCmd();
 
     /* menu bar */
     void findKeyword();
@@ -103,12 +104,10 @@ private:
 
     TreeModelCombo *treeModelCombo;
     FileTreeWidget *fileTree;
-    //TabWidget *displayTab;
     EditorArea *editorArea;
-
-    //ConsoleWidget *consoleWidget;
-    //LogBrowserWidget *outputWidget;
     TerminalTabWidget *terminalTab;
+
+    TreeScriptItem *requestedItem = nullptr;
 };
 
 
