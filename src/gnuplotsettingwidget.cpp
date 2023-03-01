@@ -71,9 +71,6 @@ void GnuplotSettingWidget::initializeLayout()
     QLabel *initCmdLabel = new QLabel("Initialize Cmd", this);
     QHBoxLayout *preCmdLayout = new QHBoxLayout;
     QLabel *preCmdLabel = new QLabel("Pre Cmd", this);
-    QHBoxLayout *autoCompileMsecLayout = new QHBoxLayout;
-    QLabel *autoCompileMsecLabel = new QLabel("Auto compile", this);
-    QSpinBox *autoCompileMsec = new QSpinBox(this);
 
     setLayout(vLayout);
     vLayout->addWidget(browser);
@@ -87,9 +84,6 @@ void GnuplotSettingWidget::initializeLayout()
     vLayout->addLayout(preCmdLayout);
     preCmdLayout->addWidget(preCmdLabel);
     preCmdLayout->addWidget(preCmd);
-    vLayout->addLayout(autoCompileMsecLayout);
-    autoCompileMsecLayout->addWidget(autoCompileMsecLabel);
-    autoCompileMsecLayout->addWidget(autoCompileMsec);
 
     constexpr int label_width = 80;
     constexpr int editor_height = 80;
@@ -99,20 +93,15 @@ void GnuplotSettingWidget::initializeLayout()
     initializeCmd->setFixedHeight(editor_height);
     preCmdLabel->setFixedWidth(label_width);
     preCmd->setFixedHeight(editor_height);
-    autoCompileMsecLabel->setFixedWidth(label_width);
 
     pathTool->setText("...");
-    autoCompileMsec->setMaximum(10000);
 
     pathLabel->setToolTip("Execution path of gnuplot.");
     initCmdLabel->setToolTip("Command to be executed in advance.\nThis will be kept event if you close the app.");
     preCmdLabel->setToolTip("Command to be executed in advance.\nThis will be removed if you close the app.");
-    autoCompileMsecLabel->setToolTip("Auto compile msec time for sheet changes.");
 
     setGeometry(mutility::getRectFromScreenRatio(screen()->size(), 0.3f, 0.3f));
     browser->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    connect(autoCompileMsec, &QSpinBox::valueChanged, this, &GnuplotSettingWidget::autoCompileMsecSet);
 }
 
 void GnuplotSettingWidget::selectGnuplotPath()
