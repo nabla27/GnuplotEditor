@@ -188,15 +188,16 @@ public:
     GnuplotTermimal *const gnuplotTerminal() const { return _gnuplotTerminal; }
     LogBrowserWidget *const logBrowser() const { return _logBrowser; }
 
-private slots:
-    void setPageToLogBrowser();
-
+public slots:
     /* from corner widget */
-    void setCornerWidgetOption(const int index);
     void addTerminal();
     void settingTerminal();
     void clearDisplay();
     void killTerminal();
+
+private slots:
+    void setPageToLogBrowser();
+    void setCornerWidgetOption(const int index);
 
 private:
     GnuplotTermimal *const _gnuplotTerminal;

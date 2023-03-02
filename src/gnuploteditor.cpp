@@ -189,8 +189,7 @@ void GnuplotEditor::initializeMenuBar()
     connect(viewMenu, &ViewMenu::splitHorizontallyRequested, editorArea, &EditorArea::splitFocusedWidgetHorizontally);
     connect(viewMenu, &ViewMenu::unsplitRequested, editorArea, &EditorArea::closeFocusedWidget);
     connect(viewMenu, &ViewMenu::removeAllStackedEditorRequested, editorArea, &EditorArea::removeAllStackedWidget);
-    //connect(viewMenu, &ViewMenu::clearOutputWidgetRequested, browserWidget, &BrowserWidget::clear);
-    //connect(viewMenu, &ViewMenu::clearConsoleWidgetRequested, consoleWidget, &ConsoleWidget::clear);
+    connect(viewMenu, &ViewMenu::clearTerminalRequested, terminalTab, &TerminalTabWidget::clearDisplay);
     connect(viewMenu, &ViewMenu::showEditorSettingRequested, editorSetting, &EditorSetting::show);
 
     connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
