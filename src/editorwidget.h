@@ -26,6 +26,7 @@ class QVBoxLayout;
 class TreeFileItem;
 class EditorArea;
 class QLabel;
+class QTimer;
 namespace mlayout { class IconLabel; }
 
 
@@ -42,8 +43,7 @@ public:
     void addItem(TreeFileItem *item);
     TreeFileItem* currentTreeFileItem() const;
 
-    void setStateToLoading();
-    void setStateToLoaded();
+    void singleShotLoading();
 
     void separateAreaH();
     void separateAreaV();
@@ -55,6 +55,9 @@ private:
     void connectFileItem(TreeFileItem*);
 
 private slots:
+    void setStateToLoading();
+    void setStateToLoaded();
+    void restoreLoadingSpeed();
     void separateArea(const Qt::Orientation& orient);
     void removeCurrentWidget();
     void removeItem(const int index);
@@ -68,6 +71,7 @@ protected:
 
 private:
     inline static constexpr int iconSize = 20;
+
     QMovie *loadingMovie;
     int loadingCount = 0;
 
@@ -126,6 +130,8 @@ public:
     void setItem(TreeFileItem *item);
 
     TreeFileItem *currentTreeFileItem() const;
+
+    void singleShotLoading();
 
 public slots:
     void splitFocusedWidgetVertically();

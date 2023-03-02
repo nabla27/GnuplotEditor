@@ -373,6 +373,8 @@ void GnuplotEditor::sendGnuplotCmd()
      * 確認できる． */
     if(requestedItem)
     {
+        editorArea->singleShotLoading();
+
         __LOGOUT__("execute gnuplot \"" + requestedItem->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Info);
 
         gnuplotExecutor->setWorkingFolderPath(requestedItem->fileInfo().absolutePath());

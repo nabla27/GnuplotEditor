@@ -57,5 +57,6 @@
         <file alias="icon_trashcan">bin/release/icon/icon_trashcan.png</file>
         <file alias="icon_gear">bin/release/icon/icon_gear.png</file>
         <file alias="icon_broom">bin/release/icon/icon_broom.png</file>
+        <file alias="gif_loading">bin/release/icon/loading.gif</file>
     </qresource>
 </RCC>

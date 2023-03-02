@@ -15,6 +15,7 @@
 #include <QDrag>
 #include <QVBoxLayout>
 #include <QMovie>
+#include <QTimer>
 
 #include "layoutparts.h"
 #include "standardpixmap.h"
@@ -25,9 +26,10 @@
 #include "filetreewidget.h"
 #include <QScrollArea>
 
+
 EditorStackedWidget::EditorStackedWidget(EditorArea *editorArea, QSplitter *parentSplitter)
     : QScrollArea(parentSplitter)
-    , loadingMovie(new QMovie("E:/loading.gif"))
+    , loadingMovie(new QMovie(":/icon/gif_loading"))
     , editorArea(editorArea)
     , parentSplitter(parentSplitter)
     , contents(new QWidget(this))
@@ -225,6 +227,21 @@ void EditorStackedWidget::connectFileItem(TreeFileItem *item)
     connect(item, &TreeFileItem::pathChanged, this, &EditorStackedWidget::changeFilePath);
 }
 
+void EditorStackedWidget::singleShotLoading()
+{
+    QTimer *timer = new QTimer(this);
+    timer->setSingleShot(true);
+    timer->setInterval(200);
+    loadingMovie->setSpeed(250);
+
+    connect(timer, &QTimer::timeout, this, &EditorStackedWidget::setStateToLoaded);
+    connect(timer, &QTimer::timeout, this, &EditorStackedWidget::restoreLoadingSpeed);
+    connect(timer, &QTimer::timeout, timer, &QTimer::deleteLater);
+
+    setStateToLoading();
+    timer->start();
+}
+
 void EditorStackedWidget::setStateToLoading()
 {
     if(loadingCount == 0)
@@ -248,6 +265,11 @@ void EditorStackedWidget::setStateToLoaded()
         loadingLabel->hide();
         executeScript->setEnabled(true);
     }
+}
+
+void EditorStackedWidget::restoreLoadingSpeed()
+{
+    loadingMovie->setSpeed(100);
 }
 
 void EditorStackedWidget::changeFilePath(const QString& old, const QString&)
@@ -366,9 +388,6 @@ void EditorStackedWidget::setCurrentItem(const int index)
 
     changeEditState(items.at(index)->isSaved());
     fileComboBox->setToolTip(items.at(index)->fileInfo().absoluteFilePath());
-
-    /* ファイル名が変更された場合に対応 */
-    fileComboBox->setItemText(index, items.at(index)->text(0));
 }
 
 void EditorStackedWidget::requestExecute()
@@ -385,25 +404,16 @@ void EditorStackedWidget::changeEditState(bool isSaved)
     const int index = editorStack->currentIndex();
     TreeFileItem *item = items.at(index);
 
-    const QString text = fileComboBox->itemText(index);
-    if(text.isEmpty()) return;
-
-    const bool isPrevSaved = text.back() !='*';  //前の状態は保存状態であったか
-
-
-    if(isSaved && !isPrevSaved)
+    if(isSaved)
     {
         //非保存状態 -> 保存状態
+        //保存状態   -> 保存状態
         fileComboBox->setItemText(index, item->text(0));
     }
-    else if(!isSaved && isPrevSaved)
+    else
     {
-        //保存状態 -> 非保存状態
         fileComboBox->setItemText(index, item->text(0) + "*");
     }
-
-    if(isSaved != isPrevSaved)
-        __LOGOUT__("the editor state of current widget is changed.", Logger::LogLevel::Info);
 }
 
 
@@ -569,6 +579,14 @@ TreeFileItem* EditorArea::currentTreeFileItem() const
     }
     else
         return nullptr;
+}
+
+void EditorArea::singleShotLoading()
+{
+    if(EditorStackedWidget *stack = currentFocusedWidget<EditorStackedWidget>())
+    {
+        stack->singleShotLoading();
+    }
 }
 
 void EditorArea::splitFocusedWidgetVertically()
