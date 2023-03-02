@@ -186,7 +186,6 @@ void TerminalWidget::keyPressEvent(QKeyEvent *e)
     const bool onLastBlock = textCursor().blockNumber() == blockCount() - 1;
     bool isInvalidInput = false;
 
-    const QTextCursor tc = textCursor();
     switch(e->key())
     {
     //Key_UpとKey_Downでコマンドの履歴を表示
@@ -214,6 +213,8 @@ void TerminalWidget::keyPressEvent(QKeyEvent *e)
         break;
     case Qt::Key_Backspace:
     {
+        const QTextCursor tc = textCursor();
+
         if(tc.hasSelection())
         {
             const int selectionStart = tc.selectionStart();
@@ -233,6 +234,10 @@ void TerminalWidget::keyPressEvent(QKeyEvent *e)
     {
         if(onLastBlock)
         {
+            QTextCursor tc = textCursor();
+            tc.movePosition(QTextCursor::EndOfBlock);
+            setTextCursor(tc);
+
             historyIndex = 0;
 
             if(_process)
