@@ -588,25 +588,22 @@ ViewMenu::ViewMenu(const QString &title, QWidget *parent)
 
 HelpMenu::HelpMenu(const QString &title, QWidget *parent)
     : QMenu(title, parent)
-    , aLogWindow(new QAction("Log", this))
+    , aLogWidget(new QAction("Log", this))
     , aPlugins(new QAction("Plugins", this))
     , aReboot(new QAction("Reboot", this))
 
-    , logWindow(new LogBrowserWidget(this))
+    , logWidget(new LogSettingWidget(this))
     , pluginSetting(new PluginListWidget(this))
 {
-    addAction(aLogWindow);
+    addAction(aLogWidget);
     addAction(aPlugins);
     addAction(aReboot);
 
-    connect(aLogWindow, &QAction::triggered, logWindow, &LogBrowserWidget::show);
+    connect(aLogWidget, &QAction::triggered, logWidget, &LogSettingWidget::show);
     connect(aPlugins, &QAction::triggered, pluginSetting, &PluginListWidget::show);
     connect(aReboot, &QAction::triggered, this, &HelpMenu::rebootRequested);
 
-    connect(logger, &Logger::logPushed, logWindow, &LogBrowserWidget::appendLog);
-    logWindow->addAllFilter();
-    logWindow->hide();
-    logWindow->setWindowFlag(Qt::Window);
+    logWidget->setWindowFlag(Qt::Window);
 }
 
 

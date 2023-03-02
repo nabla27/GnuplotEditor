@@ -13,7 +13,7 @@
 #include <QMenu>
 
 class TreeFileItem;
-class LogBrowserWidget;
+class LogSettingWidget;
 class PluginListWidget;
 class TextEdit;
 
@@ -215,11 +215,11 @@ public:
     explicit HelpMenu(const QString& title, QWidget *parent);
 
 private:
-    QAction *aLogWindow;
+    QAction *aLogWidget;
     QAction *aPlugins;
     QAction *aReboot;
 
-    LogBrowserWidget *logWindow;
+    LogSettingWidget *logWidget;
     PluginListWidget *pluginSetting;
 
 signals:

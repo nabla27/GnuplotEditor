@@ -469,6 +469,12 @@ void ColorButton::setButtonColor(const QColor &color)
     QPalette p(this->palette());
     p.setColor(role, color);
     setPalette(p);
+
+    if(_fillBackGround)
+    {
+        if(objectName().isEmpty()) setObjectName("ColorButton");
+        setStyleSheet("QPushButton#" + objectName() + "{background-color:" + color.name() + ";}");
+    }
 }
 
 void ColorButton::setColorRole(const QPalette::ColorRole &role)

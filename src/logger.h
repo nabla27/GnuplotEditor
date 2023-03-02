@@ -21,6 +21,7 @@
 
 class QTextBrowser;
 class QFileSystemWatcher;
+class QLineEdit;
 
 
 class Logger : public QObject
@@ -31,6 +32,8 @@ public:
 
     enum class LogLevel { Debug, Info, Warn, Error, Fatal, GnuplotInfo, GnuplotStdOut, GnuplotStdErr };
     Q_ENUM(LogLevel)
+
+    QString logFilePath() const;
 
 public slots:
     void output(const QString& message, const Logger::LogLevel& level);
@@ -48,7 +51,6 @@ private:
 signals:
     /* public signal */
     void logPushed(const QString& message, const Logger::LogLevel& level);
-    /* private signal */
     void logPathChanged(const QString& path);
     /* request output */
     void outputRequested(const QString& file, const int line, const QString& func, const QString& message, const Logger::LogLevel& level);
@@ -73,12 +75,14 @@ public:
     explicit LogWriter(QObject *parent);
     ~LogWriter();
 
+    QString logFilePath() const { return _logFilePath; }
+
 public slots:
     void write(const QString& message, const Logger::LogLevel& level);
     void setLogFilePath(const QString& path);
 
 private:
-    QString logFilePath;
+    QString _logFilePath;
 };
 
 
@@ -100,19 +104,62 @@ public:
     void addAllFilter();
     void removeFilter(const Logger::LogLevel& level);
     void clearFilter();
+    void setLogColor(const Logger::LogLevel& level, const QColor& color);
+
+    bool hasFilter(const Logger::LogLevel& level) const { return logFilter.contains(level); }
+    QColor logColor(const Logger::LogLevel& level) const { return logLevelColor.value(level); }
+    bool isAutoScroll() const { return _isAutoScroll; }
 
 public slots:
     void appendLog(const QString& message, const Logger::LogLevel& level);
     void setAutoScroll(bool enable);
     void grayOutAll();
+    void setDefaultLogColor();
 
 private:
     QSet<Logger::LogLevel> logFilter;
-    static QHash<Logger::LogLevel, QColor> logLevelColor;
+    QHash<Logger::LogLevel, QColor> logLevelColor;
+    bool _isAutoScroll = false;
 
-    bool isAutoScroll = false;
+signals:
+    void filterChanged(const Logger::LogLevel& level, bool enable);
+    void logColorChanged(const Logger::LogLevel& level, const QColor& color);
+    void autoScrollChanged(const bool enable);
 };
 
+
+class LogBrowserSettingWidget : public QWidget
+{
+    Q_OBJECT
+public:
+    LogBrowserSettingWidget(LogBrowserWidget *browser, QWidget *parent);
+
+private:
+    LogBrowserWidget *browser;
+};
+
+
+
+
+
+
+
+
+class LogSettingWidget : public QWidget
+{
+    Q_OBJECT
+public:
+    LogSettingWidget(QWidget *parent);
+
+private slots:
+    void openLogFileDialog();
+    void openLogFile();
+
+private:
+    LogBrowserWidget *logBrowser;
+    LogBrowserSettingWidget *browserSetting;
+    QLineEdit *logPathEdit;
+};
 
 
 
