@@ -306,7 +306,7 @@ private slots:
     void exportFile(); //File
     void copyFullPath(); //File & Dir
     void openInExplorer(); //File & Dir
-    void openInDefaultApp();
+    void openInDefaultApp(); //File & Dir
 
     void countUpSaving() { savingCount++; }
     void countDownSaving() { if(--savingCount == 0) emit allSaved(); }

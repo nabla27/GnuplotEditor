@@ -184,6 +184,8 @@ public:
 public:
     void setDialogColor(const QColor& color);
     void setColorRole(const QPalette::ColorRole& role);
+    void setFillBackGround(const bool fill) { _fillBackGround = fill; }
+    bool fillBackGround() const { return _fillBackGround; }
 
 private slots:
     void setButtonColor(const QColor& color);
@@ -194,6 +196,7 @@ private:
 private:
     QColorDialog *cDialog;
     QPalette::ColorRole role;
+    bool _fillBackGround = false;
 
 signals:
     void colorChanged(const QColor& color);
