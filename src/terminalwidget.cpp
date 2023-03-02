@@ -251,6 +251,9 @@ void TerminalWidget::keyPressEvent(QKeyEvent *e)
                 __LOGOUT__("terminal process is nullptr.", Logger::LogLevel::Warn);
             }
         }
+        else
+            isInvalidInput = true;
+
         break;
     }
     //アルファベットなどその他キー入力．最後のブロック以外では入力不可．
