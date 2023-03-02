@@ -145,6 +145,7 @@ GnuplotExecutor::GnuplotExecutor(QObject *parent)
     connect(this, &GnuplotExecutor::setInitializeCmdRequested, gnuplot, &GnuplotExecutor::Gnuplot::setInitializeCmd);
     connect(this, &GnuplotExecutor::setPreProcessingCmdRequested, gnuplot, &GnuplotExecutor::Gnuplot::setPreProcessingCmd);
     connect(this, &GnuplotExecutor::setWorkingFolderPathRequested, gnuplot, &GnuplotExecutor::Gnuplot::setWorkingFoderPath);
+    connect(this, &GnuplotExecutor::closeDefaultProcessRequested, _defaultProcess, &GnuplotProcess::close);
 }
 
 GnuplotExecutor::~GnuplotExecutor()
@@ -181,6 +182,11 @@ void GnuplotExecutor::setPreProcessingCmd(const QString &cmd)
 void GnuplotExecutor::setWorkingFolderPath(const QString &path)
 {
     emit setWorkingFolderPathRequested(path);
+}
+
+void GnuplotExecutor::requestCloseDefaultProcess()
+{
+    emit closeDefaultProcessRequested();
 }
 
 

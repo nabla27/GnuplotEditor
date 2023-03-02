@@ -84,6 +84,9 @@ public:
     QThread* gnuplotThread() const { return _gnuplotThread; }
     GnuplotProcess *const defaultProcess() const { return _defaultProcess; }
 
+public slots:
+    void requestCloseDefaultProcess();
+
 private:
     QThread *_gnuplotThread;
     GnuplotProcess *_defaultProcess;
@@ -97,6 +100,7 @@ signals:
     void setInitializeCmdRequested(const QString& cmd);
     void setPreProcessingCmdRequested(const QString& cmd);
     void setWorkingFolderPathRequested(const QString& path);
+    void closeDefaultProcessRequested();
 };
 
 extern GnuplotExecutor *gnuplotExecutor;
