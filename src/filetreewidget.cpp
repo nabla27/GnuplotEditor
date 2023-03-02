@@ -20,6 +20,7 @@
 #include <QTimer>
 #include <QMimeData>
 #include <QDrag>
+#include <QDesktopServices>
 
 #include "imagedisplay.h"
 #include "pdfviewer.h"
@@ -731,21 +732,35 @@ void FileTreeWidget::initializeContextMenu()
         QAction *actExport = new QAction("Export", fileMenu);
         QAction *actAdd = new QAction("Add", dirMenu);
         QAction *actNew = new QAction("New", dirMenu);
+        QAction *actCopyFullPath = new QAction("Copy Full Path", fileMenu);
+        QAction *actOpenInExplorer = new QAction("Open in Explorer", fileMenu);
+        QAction *actOpenInDefaultApp = new QAction("Open in Default App", fileMenu);
 
         connect(actRename, &QAction::triggered, this, &FileTreeWidget::renameFile);
         connect(actRemove, &QAction::triggered, this, &FileTreeWidget::removeFile);
         connect(actExport, &QAction::triggered, this, &FileTreeWidget::exportFile);
         connect(actAdd, &QAction::triggered, this, &FileTreeWidget::addFileFromDialog);
         connect(actNew, &QAction::triggered, this, &FileTreeWidget::newFileFromDialog);
+        connect(actCopyFullPath, &QAction::triggered, this, &FileTreeWidget::copyFullPath);
+        connect(actOpenInExplorer, &QAction::triggered, this, &FileTreeWidget::openInExplorer);
+        connect(actOpenInDefaultApp, &QAction::triggered, this, &FileTreeWidget::openInDefaultApp);
 
         fileMenu->addAction(actRename);
         fileMenu->addAction(actRemove);
         fileMenu->addAction(actExport);
+        fileMenu->addSeparator();
+        fileMenu->addAction(actCopyFullPath);
+        fileMenu->addAction(actOpenInExplorer);
+        fileMenu->addAction(actOpenInDefaultApp);
 
         dirMenu->addAction(actAdd);
         dirMenu->addAction(actNew);
         dirMenu->addAction(actRename);
         dirMenu->addAction(actRemove);
+        dirMenu->addSeparator();
+        dirMenu->addAction(actCopyFullPath);
+        dirMenu->addAction(actOpenInExplorer);
+        dirMenu->addAction(actOpenInDefaultApp);
 
         categoryMenu->addAction(actAdd);
         categoryMenu->addAction(actNew);
@@ -1423,6 +1438,59 @@ void FileTreeWidget::exportFile()
 
     /* 削除するか確認する */
     removeFile();
+}
+
+void FileTreeWidget::copyFullPath()
+{
+    if(selectedItems().count() < 1) return;
+
+    TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
+
+    if(!item) return;
+
+    QApplication::clipboard()->setText(item->fileInfo().absoluteFilePath());
+}
+
+void FileTreeWidget::openInExplorer()
+{
+    if(selectedItems().count() < 1) return;
+
+    TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
+
+    if(!item) return;
+
+    switch((TreeItemType)item->type())
+    {
+    case TreeItemType::Script:
+    case TreeItemType::Sheet:
+    case TreeItemType::Pdf:
+    case TreeItemType::Image:
+    case TreeItemType::NoCategorized:
+        /* ファイルが存在するフォルダーを開く
+         * QDesktopServicesにファイルをしていた場合は既定のアプリケーションで開かれてしまう.*/
+        if(!QDesktopServices::openUrl(QUrl::fromLocalFile(item->fileInfo().absolutePath())))
+            __LOGOUT__("failed to open url with desktop survice.", Logger::LogLevel::Warn);
+        break;
+    case TreeItemType::Category:
+    case TreeItemType::Dir:
+    default:
+        //フォルダーの中身(ファイル一覧)を開く
+        if(!QDesktopServices::openUrl(QUrl::fromLocalFile(item->fileInfo().absoluteFilePath())))
+            __LOGOUT__("failed to open url with desktop survice.", Logger::LogLevel::Warn);
+        break;
+    }
+}
+
+void FileTreeWidget::openInDefaultApp()
+{
+    if(selectedItems().count() < 1) return;
+
+    TreeFileItem *item = static_cast<TreeFileItem*>(selectedItems().at(0));
+
+    if(!item) return;
+
+    if(!QDesktopServices::openUrl(QUrl::fromLocalFile(item->fileInfo().absoluteFilePath())))
+        __LOGOUT__("failed to open url with desktop survice.", Logger::LogLevel::Warn);
 }
 
 void FileTreeWidget::addFileFromDialog()
