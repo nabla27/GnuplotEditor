@@ -52,16 +52,16 @@ PluginLoader::PluginLoader(QObject *parent)
     , _libState((int)PluginChecker::ExitCode::NotFound)
     , _id(count++)
 {
-    if(!lpDialog)
-    {
-        lpDialog = new mlayout::LoopProgressDialog(nullptr);
-        lpDialog->setAutoDisplay(true);
-        lpDialog->setMessage("now loading library ...");
-        lpDialog->setWindowFlags(lpDialog->windowFlags() | Qt::WindowStaysOnTopHint);
-    }
+    //if(!lpDialog)
+    //{
+    //    lpDialog = new mlayout::LoopProgressDialog(nullptr);
+    //    lpDialog->setAutoDisplay(true);
+    //    lpDialog->setMessage("now loading library ...");
+    //    lpDialog->setWindowFlags(lpDialog->windowFlags() | Qt::WindowStaysOnTopHint);
+    //}
 
-    connect(this, &PluginLoader::started, this, &PluginLoader::startLoopProgress);
-    connect(this, &PluginLoader::finished, this, &PluginLoader::stopLoopProgress);
+    //connect(this, &PluginLoader::started, this, &PluginLoader::startLoopProgress);
+    //connect(this, &PluginLoader::finished, this, &PluginLoader::stopLoopProgress);
 
     pluginLoaders.insert(this);
 }
@@ -122,7 +122,7 @@ void PluginLoader::setEnable(bool enable)
 
 QString PluginLoader::pluginCheckerPath()
 {
-    return "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/pluginchecker/bin/release/pluginchecker.exe";
+    return QApplication::applicationDirPath() + "/pluginchecker.exe";
 }
 
 void PluginLoader::run()
@@ -602,7 +602,7 @@ void PluginListWidget::loadPluginListFromXml()
     }
 
     if(count == 0)
-        loadDefaultPlugin();
+        //loadDefaultPlugin();
 
     __LOGOUT__("finished loading plugin list file \"" + filePath + "\".", Logger::LogLevel::Info);
 }
