@@ -304,6 +304,9 @@ private slots:
     void renameFile(); //File & Dir
     void removeFile(); //File & Dir
     void exportFile(); //File
+    void copyFullPath(); //File & Dir
+    void openInExplorer(); //File & Dir
+    void openInDefaultApp();
 
     void countUpSaving() { savingCount++; }
     void countDownSaving() { if(--savingCount == 0) emit allSaved(); }
