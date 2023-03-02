@@ -146,25 +146,37 @@ void TextEdit::reverseSelectedCommentState() const
 
     tc.setPosition(start, QTextCursor::MoveMode::MoveAnchor);
 
-    for(int i = 0; i < 500; ++i)
+    for(int i = 0; i < 500 /* 何らかのバグによる無限ループを防ぐ上限 */; ++i)
     {
-        if(!tc.movePosition(QTextCursor::MoveOperation::Right, QTextCursor::MoveMode::KeepAnchor, 1)) break;
+        tc.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
 
-        if(tc.selectedText() == "#")
+        const QString blockText = tc.selectedText();
+
+        if(!blockText.isEmpty())
         {
-            tc.removeSelectedText();
-            end -= 1;
+            const QChar c = blockText.front();
+
+            tc.movePosition(QTextCursor::StartOfBlock);
+
+            if(c == '#')
+            {
+                tc.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
+                tc.removeSelectedText();
+                end -= 1;
+            }
+            else
+            {
+                tc.insertText("#");
+                end += 1;
+            }
         }
-        else
+
+        tc.movePosition(QTextCursor::NextBlock);
+
+        if(tc.position() > end)
         {
-            if(!tc.movePosition(QTextCursor::MoveOperation::StartOfLine, QTextCursor::MoveMode::MoveAnchor)) break;
-            tc.insertText("#");
-            end += 1;
+            return;
         }
-
-        if(!tc.movePosition(QTextCursor::MoveOperation::NextBlock, QTextCursor::MoveMode::MoveAnchor)) break;
-
-        if(tc.position() > end) return;
     }
 
     __LOGOUT__("An infinite loop occurred or the upper limit of the selection range was exceeded.", Logger::LogLevel::Warn);
