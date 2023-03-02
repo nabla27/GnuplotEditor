@@ -551,8 +551,7 @@ ViewMenu::ViewMenu(const QString &title, QWidget *parent)
     , aSplitVertically(new QAction("Split Vertically", this))
     , aUnsplit(new QAction("Unsplit", this))
     , aRemoveAllStackedEditor(new QAction("Remove All Stacked Editor", this))
-    , aClearOutputWidget(new QAction("Clear Output Window", this))
-    , aClearConsoleWidget(new QAction("Clear Console Window", this))
+    , aClearTerminal(new QAction("Clear Current Terminal", this))
     , aEditorLayoutSetting(new QAction("Editor Layout", this))
 {
     addAction(aSplitHorizontally);
@@ -560,8 +559,7 @@ ViewMenu::ViewMenu(const QString &title, QWidget *parent)
     addAction(aUnsplit);
     addAction(aRemoveAllStackedEditor);
     addSeparator();
-    addAction(aClearOutputWidget);
-    addAction(aClearConsoleWidget);
+    addAction(aClearTerminal);
     addSeparator();
     addAction(aEditorLayoutSetting);
 
@@ -575,8 +573,7 @@ ViewMenu::ViewMenu(const QString &title, QWidget *parent)
     connect(aSplitVertically, &QAction::triggered, this, &ViewMenu::splitVerticallyRequested);
     connect(aUnsplit, &QAction::triggered, this, &ViewMenu::unsplitRequested);
     connect(aRemoveAllStackedEditor, &QAction::triggered, this, &ViewMenu::removeAllStackedEditorRequested);
-    connect(aClearOutputWidget, &QAction::triggered, this, &ViewMenu::clearOutputWidgetRequested);
-    connect(aClearConsoleWidget, &QAction::triggered, this, &ViewMenu::clearConsoleWidgetRequested);
+    connect(aClearTerminal, &QAction::triggered, this, &ViewMenu::clearTerminalRequested);
     connect(aEditorLayoutSetting, &QAction::triggered, this, &ViewMenu::showEditorSettingRequested);
 }
 

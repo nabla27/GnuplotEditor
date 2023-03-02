@@ -187,8 +187,7 @@ private:
     QAction *aSplitVertically;
     QAction *aUnsplit;
     QAction *aRemoveAllStackedEditor;
-    QAction *aClearOutputWidget;
-    QAction *aClearConsoleWidget;
+    QAction *aClearTerminal;
     QAction *aEditorLayoutSetting;
 
 signals:
@@ -196,8 +195,7 @@ signals:
     void splitVerticallyRequested();
     void unsplitRequested();
     void removeAllStackedEditorRequested();
-    void clearOutputWidgetRequested();
-    void clearConsoleWidgetRequested();
+    void clearTerminalRequested();
     void showEditorSettingRequested();
 };
 
