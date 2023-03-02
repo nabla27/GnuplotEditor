@@ -602,13 +602,16 @@ void PluginListWidget::loadPluginListFromXml()
     }
 
     if(count == 0)
-        //loadDefaultPlugin();
+        loadDefaultPlugin();
 
     __LOGOUT__("finished loading plugin list file \"" + filePath + "\".", Logger::LogLevel::Info);
 }
 
 void PluginListWidget::loadDefaultPlugin()
 {
+    /* 有効なプラグインを作成するまで無効に */
+    return;
+
     __LOGOUT__("load default plugins.", Logger::LogLevel::Info);
 
     static QString pluginsFolder = QApplication::applicationDirPath() + "/m_plugins/";
