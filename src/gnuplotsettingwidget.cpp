@@ -16,9 +16,13 @@
 #include <QLineEdit>
 #include <QToolButton>
 #include <QApplication>
+#include <QPushButton>
+#include <QSpacerItem>
+
 #include "utility.h"
 #include "textedit.h"
 #include "logger.h"
+#include "gnuplot.h"
 
 GnuplotSettingWidget::GnuplotSettingWidget(QWidget *parent)
     : QWidget(parent)
@@ -62,6 +66,11 @@ void GnuplotSettingWidget::setGnuplotPreCmd()
     emit preCmdSet(preCmd->toPlainText());
 }
 
+void GnuplotSettingWidget::closeDefaultProcess()
+{
+    gnuplotExecutor->requestCloseDefaultProcess();
+}
+
 void GnuplotSettingWidget::initializeLayout()
 {
     QVBoxLayout *vLayout = new QVBoxLayout(this);
@@ -71,6 +80,9 @@ void GnuplotSettingWidget::initializeLayout()
     QLabel *initCmdLabel = new QLabel("Initialize Cmd", this);
     QHBoxLayout *preCmdLayout = new QHBoxLayout;
     QLabel *preCmdLabel = new QLabel("Pre Cmd", this);
+    QHBoxLayout *closeDftProcessLayout = new QHBoxLayout;
+    QLabel *closeDftProcessLabel = new QLabel("", this);
+    QPushButton *closeDftProcessButton = new QPushButton("Close DefaultProcess", this);
 
     setLayout(vLayout);
     vLayout->addWidget(browser);
@@ -84,6 +96,10 @@ void GnuplotSettingWidget::initializeLayout()
     vLayout->addLayout(preCmdLayout);
     preCmdLayout->addWidget(preCmdLabel);
     preCmdLayout->addWidget(preCmd);
+    vLayout->addLayout(closeDftProcessLayout);
+    closeDftProcessLayout->addWidget(closeDftProcessLabel);
+    closeDftProcessLayout->addWidget(closeDftProcessButton);
+    closeDftProcessLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Preferred));
 
     constexpr int label_width = 80;
     constexpr int editor_height = 80;
@@ -93,6 +109,7 @@ void GnuplotSettingWidget::initializeLayout()
     initializeCmd->setFixedHeight(editor_height);
     preCmdLabel->setFixedWidth(label_width);
     preCmd->setFixedHeight(editor_height);
+    closeDftProcessLabel->setFixedWidth(label_width);
 
     pathTool->setText("...");
 
@@ -102,6 +119,8 @@ void GnuplotSettingWidget::initializeLayout()
 
     setGeometry(mutility::getRectFromScreenRatio(screen()->size(), 0.3f, 0.3f));
     browser->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    connect(closeDftProcessButton, &QPushButton::released, this, &GnuplotSettingWidget::closeDefaultProcess);
 }
 
 void GnuplotSettingWidget::selectGnuplotPath()

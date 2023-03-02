@@ -36,6 +36,7 @@ private slots:
     void setGnuplotPath();
     void setGnuplotInitCmd();
     void setGnuplotPreCmd();
+    void closeDefaultProcess();
 
 private:
     void initializeLayout();
