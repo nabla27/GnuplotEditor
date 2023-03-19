@@ -3,7 +3,7 @@
 # GnuplotEdior
 
 2次元または3次元のグラフを作成するためのアプリケーションソフトウェアであるgnuplotのためのエディター。<br>
-このソフトのみでスクリプトやデータの編集，生成した画像の表示が行える。また，補完機能やToolTip表示によりコーディングを助ける。
+スクリプトやデータの編集，生成した画像やPDFの表示が行える。また，補完機能やToolTip表示によりコーディングを助ける。
 
 # Main Features
 
@@ -21,11 +21,14 @@
   - データの表示
   - セルの変更に伴う、グラフ自動描画
   - Excelなどのセルのcopy&paste対応
-  - latexコードへの変換
+  - tableをlatexコードへの変換
 - gnuplot
   - 標準出力・標準エラーのコンソール出力
   - 前処理コマンドの登録
+  - 自動実行
 - スクリプトのテンプレート作成・挿入
+- ターミナル
+  - WSLやcmdなどのターミナルの起動(テスト)
 
 # DEMO
 
@@ -48,8 +51,7 @@
 # Usage
 
 1. gnuplotを持っていない場合、gnuplotをダウンロードする。
-1. このリポジトリをClone `git clone https://github.com/nabla27/GnuplotEditor.git`
-   またはzipファイルでダウンロード[(https://github.com/nabla27/GnuplotEditor/archive/refs/heads/master.zip)](https://github.com/nabla27/GnuplotEditor/archive/refs/heads/master.zip)する。
+2. このリポジトリをClone `git clone https://github.com/nabla27/GnuplotEditor.git`
 3. フォルダー内の bin/release/GnuplotEditor.exe を実行して起動する。
 4. 起動後、メニューバーの Widget->Gnuplot Setting のPathに gnuplot.exe 実行ファイルのパスを指定する。
 
