@@ -1,0 +1,8 @@
+[Info] Thu Mar 2 17:30:11 2023
+FILE(..\src\plugin.cpp) LINE(647) FUNC(PluginListWidget::savePluginListAsXml)
+start to save the plugin list as xml file.
+
+[Info] Thu Mar 2 17:30:11 2023
+FILE(..\src\plugin.cpp) LINE(687) FUNC(PluginListWidget::savePluginListAsXml)
+finished saving the plugin list info.
+

@@ -1,3 +1,12 @@
+/*!
+ * GnuplotEditor
+ *
+ * Copyright (c) 2022 yuya
+ *
+ * This software is released under the GPLv3.
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ */
+
 #ifndef CPL_GNUPLOT_H
 #define CPL_GNUPLOT_H
 
@@ -38,6 +47,8 @@ QAbstractItemModel* getEditCompleter_Cformat();
 QAbstractItemModel* getEditCompleter_Cdatafile();
 
 QAbstractItemModel* getEditCompleter_Foption();
+
+QAbstractItemModel* getEditCompleter_Ffit();
 
 
 #endif // CPL_GNUPLOT_H

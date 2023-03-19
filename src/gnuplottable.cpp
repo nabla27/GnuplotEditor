@@ -1,11 +1,26 @@
+/*!
+ * GnuplotEditor
+ *
+ * Copyright (c) 2022 yuya
+ *
+ * This software is released under the GPLv3.
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ */
+
+
 #include "gnuplottable.h"
+
+#include <QMouseEvent>
+#include <QMenu>
+#include <QAction>
+#include "gnuplot.h"
+#include "logger.h"
+
 
 
 GnuplotTable::GnuplotTable(QWidget *parent)
     : TableWidget(parent)
 {
-    process = new QProcess(this);
-
     /* contextMenu初期化 */
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &GnuplotTable::customContextMenuRequested, this, &GnuplotTable::onCustomContextMenu);
@@ -14,9 +29,8 @@ GnuplotTable::GnuplotTable(QWidget *parent)
 
 GnuplotTable::~GnuplotTable()
 {
-    process->close();
-}
 
+}
 
 
 
@@ -29,19 +43,21 @@ void GnuplotTable::mousePressEvent(QMouseEvent *event)
     const int cursorX = event->pos().x();
     const int cursorY = event->pos().y();
 
+    /* 一番右下のセルの右下隅の座標(tableWidgetのローカル座標) */
     const int rowLastIndex = rowCount() - 1;
     const int colLastIndex = columnCount() - 1;
+    const int tableWidth = (rowLastIndex < 0) ? 0 : columnViewportPosition(colLastIndex) + columnWidth(colLastIndex);
+    const int tableHeight = (colLastIndex < 0) ? 0 : rowViewportPosition(rowLastIndex) + rowHeight(rowLastIndex);
 
-    /* 一番右下のセルの右下隅の座標(tableWidgetのローカル座標) */
-    const int tableWidth = columnViewportPosition(colLastIndex) + columnWidth(colLastIndex);
-    const int tableHeight = rowViewportPosition(rowLastIndex) + rowHeight(rowLastIndex);
-
-    /* セル右下角とカーソル位置が4ピクセル以下 */
+    /* セル右下角とカーソル位置が4ピクセル以下でマウスが押された場合に有効 */
     if(std::abs(cursorX - tableWidth) < 4 && std::abs(cursorY - tableHeight) < 4)
     {
         startDragPoint = event->pos();
         startDragTableSize = QPoint(columnCount(), rowCount());
-        startDragCellSize = QPoint(columnWidth(colLastIndex), rowHeight(rowLastIndex));
+        if(rowLastIndex < 0 || colLastIndex < 0)
+            startDragCellSize = QPoint(100, 30);  //セルがない場合は、デフォルトの(100,30)でセルサイズを指定
+        else
+            startDragCellSize = QPoint(columnWidth(colLastIndex), rowHeight(rowLastIndex)); //右端のセルのサイズを追加するセルのサイズにする
     }
 }
 
@@ -79,6 +95,18 @@ void GnuplotTable::mouseReleaseEvent(QMouseEvent *event)
 
 
 
+void GnuplotTable::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key::Key_Backspace)
+    {
+        if(QTableWidgetItem *item = currentItem()) item->setText("");
+    }
+
+    QTableWidget::keyPressEvent(event);
+}
+
+
+
 
 
 
@@ -109,9 +137,14 @@ void GnuplotTable::initializeContextMenu()
     connect(actPaste, &QAction::triggered, this, &GnuplotTable::pasteCell);
 
     /* claer */
+    QAction *actClear = new QAction("clear", normalMenu);
+    normalMenu->addAction(actClear);
+    connect(actClear, &QAction::triggered, this, &GnuplotTable::clearCell);
+
+    /* delete */
     QAction *actDelete = new QAction("delete", normalMenu);
     normalMenu->addAction(actDelete);
-    connect(actDelete, &QAction::triggered, this, &GnuplotTable::clearCell);
+    connect(actDelete, &QAction::triggered, this, &GnuplotTable::deleteCell);
 
     /* insert */
     QMenu *insertMenu = new QMenu(normalMenu);
@@ -151,7 +184,7 @@ void GnuplotTable::initializeContextMenu()
     QAction *actPlotClip = new QAction("clipboard", gnuplotMenu);
     gnuplotMenu->addAction(actPlot);
     gnuplotMenu->addAction(actPlotClip);
-    connect(actPlot, &QAction::triggered, this, &GnuplotTable::plot);
+    connect(actPlot, &QAction::triggered, [this](){ plotSelectedData(PlotType::Custom); });
     connect(actPlotClip, &QAction::triggered, this, &GnuplotTable::gnuplotClip);
     normalMenu->addMenu(gnuplotMenu);
 
@@ -164,53 +197,89 @@ void GnuplotTable::initializeContextMenu()
     normalMenu->addMenu(exportMenu);
 }
 
-void GnuplotTable::plot()
+void GnuplotTable::plotSelectedData(const GnuplotTable::PlotType &plotType)
 {
-    /* gnuplotが初期化されていなかったら(=nullptr)無効 */
-    if(gnuplot == nullptr) return;
+    QList<std::array<int, 3>> ranges;
 
-    /* 選択された範囲を取得 */
-    const QList<QTableWidgetSelectionRange> selectedRangeList = selectedRanges();
-    if(selectedRangeList.size() < 1) { return; }
-
-    /* 次元数 */
-    const int dim = selectedRangeList.at(0).rightColumn() - selectedRangeList.at(0).leftColumn() + 1;
-
-    /* plotするコマンド */
-    QString cmd;
-    if(dim < 1) return;
-    else if(dim == 1 || dim == 2) cmd += "plot ";
-    else if(dim == 3) cmd += "splot ";
-    else return;
-    cmd += "\"-\" " + optionCmd + "\n";
-
-    /* セルの選択範囲の値を参照しながらコマンドを生成 */
-    for(const QTableWidgetSelectionRange& selected : selectedRangeList)
+    for(const QTableWidgetSelectionRange& range : selectedRanges())
     {
-        const int startRow = selected.topRow();
-        const int startCol = selected.leftColumn();
-        const int endRow = selected.bottomRow();
-        const int endCol = selected.rightColumn();
-
-        int index = 0;
-        for(int row = startRow; row <= endRow; ++row)
+        for(int c = range.leftColumn(); c <= range.rightColumn(); ++c)
         {
-            if(dim == 1) cmd += QString::number(index) + ", ";
-            for(int col = startCol; col <= endCol; ++col)
-            {
-                if(item(row, col) == nullptr)
-                    cmd += "0, ";
-                else
-                    cmd += item(row, col)->text() + ", ";
-            }
-            cmd += "\n";
+            ranges.append({ c, range.topRow(), range.bottomRow() });
         }
-        cmd += "\n";
     }
+
+    QString cmd;
+
+    switch(plotType)
+    {
+    case PlotType::Scatter2D:
+        cmd = "plot \"-\" with points"; break;
+    case PlotType::Lines2D:
+        cmd = "plot \"-\" with lines"; break;
+    case PlotType::LinesPoints2D:
+        cmd = "plot \"-\" with linespoints"; break;
+
+    case PlotType::Boxes2D:
+        cmd = "plot \"-\" with boxes"; break;
+    case PlotType::Steps2D:
+        cmd = "plot \"-\" with steps"; break;
+    case PlotType::FSteps2D:
+        cmd = "plot \"-\" with fsteps"; break;
+    case PlotType::FillSteps2D:
+        cmd = "plot \"-\" with fillsteps"; break;
+    case PlotType::HiSteps2D:
+        cmd = "plot \"-\" with histeps"; break;
+    case PlotType::Impulses2D:
+        cmd = "plot \"-\" with impulses"; break;
+
+    case PlotType::Custom:
+        cmd = optionCmd; break;
+    default:
+        return;
+    }
+
+    cmd += "\n";
+
+    plotCellPoints(ranges, cmd);
+}
+
+void GnuplotTable::plotCellPoints(const QList<std::array<int, 3> > &ranges, const QString& _cmd)
+{
+    QString cmd = _cmd;
+
+    const int colCount = ranges.size();
+
+    if(colCount < 1) return;
+
+    const int rowCount = ranges.at(0).at(2) - ranges.at(0).at(1) + 1;
+
+    for(int i = 0; i < rowCount; ++i)
+    {
+        for(int j = 0; j < colCount; ++j)
+        {
+            const int column = ranges.at(j).at(0);
+            const int topRow = ranges.at(j).at(1);
+
+            if(QTableWidgetItem *item = this->item(topRow + i, column))
+            {
+                cmd += item->text();
+            }
+            else
+                cmd += "0";
+
+            if(j == colCount - 1)
+                cmd += "\n";
+            else
+                cmd += ", "; //カンマの後に空白がないと正しくプロットされない
+        }
+    }
+
     cmd += "e\n";
 
-    /* plotする */
-    gnuplot->exc(process, QList<QString>() << "reset\n" << cmd);
+    __LOGOUT__("execute cell data requested.", Logger::LogLevel::Info);
+
+    gnuplotExecutor->execGnuplot(QStringList() << cmd, false);
 }
 
 void GnuplotTable::gnuplotClip()
@@ -241,6 +310,8 @@ void GnuplotTable::gnuplotClip()
 
     /* クリップボードに貼り付け */
     QApplication::clipboard()->setText(cmd);
+
+    __LOGOUT__("plot range pasted to the clipboard.", Logger::LogLevel::Info);
 }
 
 void GnuplotTable::toLatexCode()
@@ -261,6 +332,7 @@ void GnuplotTable::toLatexCode()
 
         clip += "\\begin{table}[h]\n";
         clip += "\t\\centering\n";
+        clip += "\t\\caption{}\n";
         clip += "\t\\begin{tabular}{|";
         for(int i = 0; i <= endCol - startCol; ++i)
             clip += "c|";
@@ -271,14 +343,23 @@ void GnuplotTable::toLatexCode()
             for(int col = startCol; col <= endCol; ++col)
             {
                 if(col != endCol)
-                    clip += this->item(row, col)->text() + " & ";
+                {
+                    if(QTableWidgetItem *item = this->item(row, col))
+                        clip += item->text() + " & ";
+                    else
+                        clip += " & ";
+                }
                 else
-                    clip += this->item(row, col)->text() + " \\\\\n";
+                {
+                    if(QTableWidgetItem *item = this->item(row, col))
+                        clip += item->text() + " \\\\\n";
+                    else
+                        clip += " \\\\\n";
+                }
             }
         }
         clip += "\t\t\\hline\n";
         clip += "\t\\end{tabular}\n";
-        clip += "\t\\caption{}\n";
         clip += "\t\\label{}\n";
         clip += "\\end{table}\n";
 
@@ -287,6 +368,8 @@ void GnuplotTable::toLatexCode()
 
     /* クリップボードに貼り付け */
     QApplication::clipboard()->setText(clip);
+
+    __LOGOUT__("latex table cmd pasted to the clipboard.", Logger::LogLevel::Info);
 }
 
 

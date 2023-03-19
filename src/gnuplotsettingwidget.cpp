@@ -1,23 +1,39 @@
+/*!
+ * GnuplotEditor
+ *
+ * Copyright (c) 2022 yuya
+ *
+ * This software is released under the GPLv3.
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ */
+
 #include "gnuplotsettingwidget.h"
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QSpinBox>
 #include <QFileDialog>
+#include <QScrollBar>
+#include <QLineEdit>
+#include <QToolButton>
+#include <QApplication>
+#include <QPushButton>
+#include <QSpacerItem>
+
 #include "utility.h"
-#include "boost/property_tree/xml_parser.hpp"
-#include "boost/lexical_cast.hpp"
+#include "textedit.h"
+#include "logger.h"
+#include "gnuplot.h"
 
-
-GnuplotSettingWidget::GnuplotSettingWidget(Gnuplot *gnuplot, QWidget *parent)
+GnuplotSettingWidget::GnuplotSettingWidget(QWidget *parent)
     : QWidget(parent)
-    , gnuplot(gnuplot)
-    , browser(new QTextBrowser(this))
+    , browser(new LogBrowserWidget(this))
     , pathEdit(new QLineEdit(this))
     , pathTool(new QToolButton(this))
     , initializeCmd(new TextEdit(this))
     , preCmd(new TextEdit(this))
+    , settingFolderPath(QApplication::applicationDirPath() + "/setting")
+    , settingFileName("gnuplot-setting.xml")
 {
-    connect(gnuplot, &Gnuplot::cmdPushed, this, &GnuplotSettingWidget::addLogToBrowser);
-
     initializeLayout();
 
     /* 設定の反映 */
@@ -26,13 +42,33 @@ GnuplotSettingWidget::GnuplotSettingWidget(Gnuplot *gnuplot, QWidget *parent)
     connect(initializeCmd, &TextEdit::textChanged, this, &GnuplotSettingWidget::setGnuplotInitCmd);
     connect(preCmd, &TextEdit::textChanged, this, &GnuplotSettingWidget::setGnuplotPreCmd);
 
-    /* ファイルから設定の読み込み */
-    loadXmlSetting();
+    browser->addFilter(Logger::LogLevel::GnuplotInfo);
+    connect(logger, &Logger::logPushed, browser, &LogBrowserWidget::appendLog);
 }
 
 GnuplotSettingWidget::~GnuplotSettingWidget()
 {
     saveXmlSetting();
+}
+
+void GnuplotSettingWidget::setGnuplotPath()
+{
+    emit exePathSet(pathEdit->text());
+}
+
+void GnuplotSettingWidget::setGnuplotInitCmd()
+{
+    emit initCmdSet(initializeCmd->toPlainText());
+}
+
+void GnuplotSettingWidget::setGnuplotPreCmd()
+{
+    emit preCmdSet(preCmd->toPlainText());
+}
+
+void GnuplotSettingWidget::closeDefaultProcess()
+{
+    gnuplotExecutor->requestCloseDefaultProcess();
 }
 
 void GnuplotSettingWidget::initializeLayout()
@@ -44,7 +80,9 @@ void GnuplotSettingWidget::initializeLayout()
     QLabel *initCmdLabel = new QLabel("Initialize Cmd", this);
     QHBoxLayout *preCmdLayout = new QHBoxLayout;
     QLabel *preCmdLabel = new QLabel("Pre Cmd", this);
-    QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    QHBoxLayout *closeDftProcessLayout = new QHBoxLayout;
+    QLabel *closeDftProcessLabel = new QLabel("", this);
+    QPushButton *closeDftProcessButton = new QPushButton("Close DefaultProcess", this);
 
     setLayout(vLayout);
     vLayout->addWidget(browser);
@@ -58,24 +96,31 @@ void GnuplotSettingWidget::initializeLayout()
     vLayout->addLayout(preCmdLayout);
     preCmdLayout->addWidget(preCmdLabel);
     preCmdLayout->addWidget(preCmd);
-    vLayout->addItem(spacer);
+    vLayout->addLayout(closeDftProcessLayout);
+    closeDftProcessLayout->addWidget(closeDftProcessLabel);
+    closeDftProcessLayout->addWidget(closeDftProcessButton);
+    closeDftProcessLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Preferred));
 
     constexpr int label_width = 80;
     constexpr int editor_height = 80;
-    browser->setFixedHeight(editor_height);
     pathLabel->setFixedWidth(label_width);
     pathTool->setText("...");
     initCmdLabel->setFixedWidth(label_width);
     initializeCmd->setFixedHeight(editor_height);
     preCmdLabel->setFixedWidth(label_width);
     preCmd->setFixedHeight(editor_height);
+    closeDftProcessLabel->setFixedWidth(label_width);
 
-    setGeometry(getRectFromScreenRatio(screen()->size(), 0.3f, 0.3f));
-    setFixedHeight(editor_height * 3 +
-                   vLayout->spacing() * 3 +
-                   vLayout->contentsMargins().bottom() +
-                   vLayout->contentsMargins().top() +
-                   pathEdit->height());
+    pathTool->setText("...");
+
+    pathLabel->setToolTip("Execution path of gnuplot.");
+    initCmdLabel->setToolTip("Command to be executed in advance.\nThis will be kept event if you close the app.");
+    preCmdLabel->setToolTip("Command to be executed in advance.\nThis will be removed if you close the app.");
+
+    setGeometry(mutility::getRectFromScreenRatio(screen()->size(), 0.3f, 0.3f));
+    browser->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    connect(closeDftProcessButton, &QPushButton::released, this, &GnuplotSettingWidget::closeDefaultProcess);
 }
 
 void GnuplotSettingWidget::selectGnuplotPath()
@@ -98,14 +143,38 @@ void GnuplotSettingWidget::addLogToBrowser(const QString& text)
     browser->verticalScrollBar()->setValue(browser->verticalScrollBar()->maximum());
 }
 
+
+
+
+
+
+
+
+
+
+
+/*          Copyright Joe Coder 2004 - 2006.
+ * Distributed under the Boost Software License, Version 1.0.
+ *    (See accompanying file LICENSE_1_0.txt or copy at
+ *          https://www.boost.org/LICENSE_1_0.txt)
+ */
+#include "boost/property_tree/xml_parser.hpp"
+#include "boost/lexical_cast.hpp"
+
+
+
 void GnuplotSettingWidget::loadXmlSetting()
 {
     using namespace boost::property_tree;
 
-    if(QFile::exists(settingFolderPath + "/" + settingFileName))
+    const QString settingFilePath = settingFolderPath + "/" + settingFileName;
+
+    if(QFile::exists(settingFilePath))
     {
         ptree pt;
-        read_xml((settingFolderPath + "/" + settingFileName).toUtf8().constData(), pt);
+        read_xml((settingFilePath).toUtf8().constData(), pt);
+
+        __LOGOUT__("load gnuplot setting xml file \"" + settingFilePath + "\".", Logger::LogLevel::Info);
 
         if(boost::optional<std::string> path = pt.get_optional<std::string>("root.path"))
             pathEdit->setText(QString::fromStdString(path.value()));
@@ -118,6 +187,8 @@ void GnuplotSettingWidget::loadXmlSetting()
     }
     else
     {
+        __LOGOUT__("gnuplot setting xml file was not found \"" + settingFilePath + "\".", Logger::LogLevel::Warn);
+
         pathEdit->setText("gnuplot.exe");
         initializeCmd->insertPlainText("set datafile separator ','");
     }
@@ -140,14 +211,17 @@ void GnuplotSettingWidget::saveXmlSetting()
         const bool success = dir.mkdir(settingFolderPath);
         if(!success)
         {
-            //エラー処理
+            __LOGOUT__("failed to make dir " + settingFolderPath + ". could not save the gnuplot setting.", Logger::LogLevel::Error);
             return;
         }
     }
 
     //存在しないフォルダーを含むパスを指定した場合はクラッシュする
     //存在しないファイルは指定しても大丈夫
+    const QString settingFilePath = settingFolderPath + "/" + settingFileName;
     constexpr int indent = 4;
-    write_xml((settingFolderPath + "/" + settingFileName).toUtf8().constData(),
+    write_xml((settingFilePath).toUtf8().constData(),
               pt, std::locale(), xml_writer_make_settings<std::string>(' ', indent, "utf-8"));
+
+    __LOGOUT__("save gnuplot setting as xml file \"" + settingFilePath + "\".", Logger::LogLevel::Info);
 }

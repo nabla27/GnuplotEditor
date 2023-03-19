@@ -1,74 +1,113 @@
+/*!
+ * GnuplotEditor
+ *
+ * Copyright (c) 2022 yuya
+ *
+ * This software is released under the GPLv3.
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ */
+
 #ifndef GNUPLOTEDITOR_H
 #define GNUPLOTEDITOR_H
-#include <QMainWindow>
-#include <QMenuBar>
-#include <QScreen>
-#include <QVBoxLayout>
-#include <QPalette>
-#include <QStackedWidget>
 
-#include "menubar.h"
-#include "utility.h"
-#include "filetree.h"
-#include "texteditor.h"
-#include "gnuplottable.h"
-#include "browserwidget.h"
-#include "windowmenubar.h"
-#include "layoutparts.h"
-#include "editorsettingwidget.h"
-#include "consolewidget.h"
-#include "gnuplotsettingwidget.h"
-#include "updatemanager.h"
+#include <QMainWindow>
+
+
+class EditorArea;
+
+class QTreeWidgetItem;
+class TreeFileItem;
+class TreeScriptItem;
+class TreeSheetItem;
+class TreeImageItem;
+
+class EditorSetting;
+class GnuplotSettingWidget;
+class TemplateCustomWidget;
+class FileTreeSettingWidget;
+
+class FileMenu;
+class EditorMenu;
+class GnuplotMenu;
+class ViewMenu;
+class HelpMenu;
+
+class TreeModelCombo;
+class FileTreeWidget;
+class TerminalTabWidget;
+
+
+
+
+
+
+class TabWidget : public QTabWidget
+{
+    Q_OBJECT
+public:
+    explicit TabWidget(QWidget *parent) : QTabWidget(parent) {}
+
+    QSize minimumSizeHint() const override { return QSize(0, 0); }
+};
+
+
 
 class GnuplotEditor : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit GnuplotEditor(const QString& oldAppPath = QString(), QWidget *parent = nullptr);
+    explicit GnuplotEditor(QWidget *parent = nullptr);
     ~GnuplotEditor();
+
+public slots:
+    /* QApplication::focusChanged(QWidget*,QWidget*)で呼ばれる */
+    void setCurrentItem();
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     void initializeMenuBar();
     void initializeLayout();
-    void connectEditorSetting(TextEdit *const editor);
-    void postProcess();
+
+    //void setupScriptItem(TreeScriptItem *item);
+    //void setupSheetItem(TreeSheetItem *item);
+    //void setEditorWidget(TreeScriptItem *item);
+    //void setSheetWidget(TreeSheetItem *item);
+    //void setImageWidget(TreeImageItem *item);
 
 private slots:
-    void setEditorWidget(const QString& fileName, const ScriptInfo* info);
-    void setSheetWidget(const QString& fileName, const SheetInfo* info);
-    void setOtherWidget(const QString& fileName, const OtherInfo* info);
-    void setMenuBarTitle(const QString& oldName, const QString& newName);
-    void executeGnuplot();
-    void receiveGnuplotStdOut(const QString& text);
-    void receiveGnuplotStdErr(const QString& text, const int line);
-    void setFileTreeWidth(const int dx);
-    void setDisplayTabHeight(const int dy);
+    void receiveTreeItem(QTreeWidgetItem *item, const int column);
 
-    void closeApplication();
+    /* execute */
+    void executeItem(TreeFileItem *item);
+    void executeGnuplot(TreeScriptItem *item);
+    void sendGnuplotCmd();
+
+    /* menu bar */
+    void findKeyword();
+    void showGnuplotCmdHelp();
+    void showGnuplotHelpWindow();
+    void reboot();
 
 private:
-    ScriptMenu *scriptMenu;
-    SheetMenu *sheetMenu;
+    FileMenu *fileMenu;
+    EditorMenu *editorMenu;
+    GnuplotMenu *gnuplotMenu;
+    ViewMenu *viewMenu;
+    HelpMenu *helpMenu;
 
-    Gnuplot *gnuplot;
-    QProcess *gnuplotProcess;
-
-    EditorSettingWidget *editorSetting;
+    EditorSetting *editorSetting;
     GnuplotSettingWidget *gnuplotSetting;
+    TemplateCustomWidget *templateCustom;
+    FileTreeSettingWidget *fileTreeSetting;
 
-    FileTree *fileTree;
-    QTabWidget *editorTab;
-    QTabWidget *displayTab;
-    QStackedWidget *gnuplotWidget;
-    QStackedWidget *sheetWidget;
-    ConsoleWidget *consoleWidget;
-    BrowserWidget *browserWidget;
-    UpdateManager *updateManager;
+    TreeModelCombo *treeModelCombo;
+    FileTreeWidget *fileTree;
+    EditorArea *editorArea;
+    TerminalTabWidget *terminalTab;
 
-    const QString oldAppFolderPath;
-
-signals:
-    void workingDirectoryChanged(const QString& path);
+    TreeScriptItem *requestedItem = nullptr;
 };
 
 

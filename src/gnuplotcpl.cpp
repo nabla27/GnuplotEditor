@@ -1,3 +1,12 @@
+/*!
+ * GnuplotEditor
+ *
+ * Copyright (c) 2022 yuya
+ *
+ * This software is released under the GPLv3.
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ */
+
 #include "gnuplotcpl.h"
 
 
@@ -6,15 +15,17 @@ void changeGnuplotCompleter(QCompleter* completer ,const QString& first, const Q
 {
     if(first == "plot" || first == "splot" || first == "replot" || first == "p")
     {
-        completer->setModel(getEditCompleter_Fplot());
+        if(current == "plot" || current == "splot" || current == "replot" || current == "p")
+            ;
+        else
+            completer->setModel(getEditCompleter_Fplot());
 
-        if(current == "plot" || current == "p"){ /* ファイル名や前方に定義された関数を参照 */ }
-        else if(current == "with" || current == "w"){ completer->setModel(getEditCompleter_Cwith()); }
+        if(current == "with" || current == "w"){ completer->setModel(getEditCompleter_Cwith()); }
         else if(current == "linecolor" || current == "lc"){ completer->setModel(getEditCompleter_Clinecolor()); }
         else if(current == "rgb"){ completer->setModel(getEditCompleter_Clinecolor()); }
         else if(current == "smooth"){ completer->setModel(getEditCompleter_Csmooth()); }
     }
-    else if(first == "set")
+    else if(first == "set" || first == "unset")
     {
         completer->setModel(getEditCompleter_Foption());
 
@@ -42,6 +53,13 @@ void changeGnuplotCompleter(QCompleter* completer ,const QString& first, const Q
     else if(first == "show")
     {
         completer->setModel(getEditCompleter_Foption());
+    }
+    else if(first == "fit")
+    {
+        if(current == "using" || current == "via" || current == "fit")
+            ;
+        else
+            completer->setModel(getEditCompleter_Ffit());
     }
 }
 
@@ -410,7 +428,7 @@ QAbstractItemModel* getEditCompleter_Cr()
 {
     QStringList list;
     list
-<<"[:]";
+<<"[]";
 
     QStringListModel *listModel = new QStringListModel();
     listModel->setStringList(list);
@@ -708,4 +726,11 @@ QAbstractItemModel* getEditCompleter_Foption()
     listModel->setStringList(list);
 
     return listModel;
+}
+
+QAbstractItemModel* getEditCompleter_Ffit()
+{
+    return new QStringListModel(QStringList()
+                                << "using"
+                                << "via");
 }

@@ -1,246 +1,271 @@
+/*!
+ * GnuplotEditor
+ *
+ * Copyright (c) 2022 yuya
+ *
+ * This software is released under the GPLv3.
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ */
+
 #include "texteditor.h"
+
+#include <QCompleter>
+#include <QStandardItemModel>
+#include <QAbstractItemView>
 #include <QScrollBar>
+#include <QToolTip>
+#include <QPainter>
+#include <QTextBlock>
+#include <QTimer>
 
-TextEdit::TextEdit(QWidget *parent)
+#include "editormanager.h"
+#include "logger.h"
+
+
+
+
+
+QHash<QChar, QChar> TextEditor::braketList =
+{
+    {'"', '"'},
+    {'\'', '\''},
+    {'(', ')'},
+    {'[', ']'},
+    {'<', '>'},
+    {'{', '}'}
+};
+
+QThread TextEditor::managerThread = QThread();
+
+TextEditor::TextEditor(QWidget *parent)
     : QPlainTextEdit(parent)
+
+    , toolTipTimer(new QTimer(this))
+
+    , completer(new QCompleter(this))
+    , editorManager(new EditorManager(nullptr))
+    , cursorLineColor(QColor(50, 50, 50))
+
+    , _lineNumberArea(new TextEditor::LineNumberArea(this))
 {
+    instanceCount++;
+
+    /* ランタイムエラーの回避
+     * qt.core.qobject.connect: QObject::connect: Cannot queue arguments of type 'QAbstractItemModel*'
+     * (Make sure 'QAbstractItemModel*' is registered using qRegisterMetaType().) */
+    qRegisterMetaType<QAbstractItemModel*>();
+
+    /* lineNumberArea */
+    connect(this, &TextEditor::blockCountChanged, this, &TextEditor::updateLineNumberAreaWidth);
+    connect(this, &TextEditor::updateRequest, this, &TextEditor::updateLineNumberArea);
+    /* highlight */
+    connect(this, &TextEditor::cursorPositionChanged, this, &TextEditor::highlight);
+    /* toolTip */
+    connect(toolTipTimer, &QTimer::timeout, this, &TextEditor::setCursorToolTip);
+    connect(completer, QOverload<const QString&>::of(&QCompleter::highlighted),  this, &TextEditor::toolTipRequested);
+    connect(this, &TextEditor::toolTipRequested, editorManager, &EditorManager::requestToolTip);
+    connect(editorManager, &EditorManager::toolTipSet, this, &TextEditor::setDocumentToolTip);
+    /* completion */
+    connect(completer, QOverload<const QString&>::of(&QCompleter::activated), this, &TextEditor::insertCompletion);
+    connect(this, &TextEditor::changeCompletionModelRequested, editorManager, &EditorManager::requestModel);
+    connect(editorManager, &EditorManager::modelSet, this, &TextEditor::setCompletionModel);
+
+    connect(this, &TextEditor::destroyed, editorManager, &EditorManager::deleteLater);
+
+    setBackgroundColor(Qt::black);
+    setTextColor(Qt::white);
+
+    if(!managerThread.isRunning()) managerThread.start();
+    editorManager->moveToThread(&managerThread);
+
+    toolTipTimer->setInterval(2000);
+    toolTipTimer->start();
+
+    updateLineNumberAreaWidth();
+}
+
+TextEditor::~TextEditor()
+{
+    instanceCount--;
+
+    if(instanceCount == 0)
     {
-        connect(this, &TextEdit::blockCountChanged,
-                this, &TextEdit::updateLineNumberAreaWidth);
-        connect(this, &TextEdit::updateRequest,
-                this, &TextEdit::updateLineNumberArea);
-        connect(this, &TextEdit::cursorPositionChanged,
-                this, &TextEdit::highlightLine);
-    }
-    {
-        lineNumberArea = new ReLineNumberArea(this);
-        updateLineNumberAreaWidth(0);
-        highlightLine();
-    }
-    {//レイアウト色の設定
-        QPalette palette = this->palette();
-        palette.setColor(QPalette::Base, Qt::GlobalColor::black);
-        palette.setColor(QPalette::Text, Qt::GlobalColor::white);
-        setPalette(palette);
-    }
-    {//completerの初期設定
-        setCompleter(new QCompleter());
-    }
-    {//ハイライトの初期設定
-        textHighlight = new EditorSyntaxHighlighter(document());
+        managerThread.quit();
+        managerThread.wait();
     }
 }
 
-TextEdit::~TextEdit()
+void TextEditor::setBackgroundColor(const QColor &color)
 {
+    QPalette p = this->palette();
+    p.setColor(QPalette::Base, color);
+    setPalette(p);
 }
 
-/* 右クリックしながらホイールで文字サイズ変更 */
-void TextEdit::wheelEvent(QWheelEvent *event)
+void TextEditor::setTextColor(const QColor &color)
 {
-    if(event->buttons() == Qt::RightButton)
-    {
-        const int delta = event->angleDelta().y();
-        QFont font = this->font();
-        const int ps = (delta > 0) ? font.pointSize() + 1 : font.pointSize() - 1;
-
-        font.setPointSize(ps);
-        setFont(font);
-        emit fontSizeChanged(ps);  //settingWidgetに変更を知らせる
-    }
-
-    QPlainTextEdit::wheelEvent(event);
+    QPalette p = this->palette();
+    p.setColor(QPalette::Text, color);
+    setPalette(p);
 }
 
-
-void TextEdit::changeCompleterModel()
+void TextEditor::setWrap(const bool wrap)
 {
-    firstCmd.clear(); beforeCmd.clear(); currentCmd.clear();
-
-    const QString script = toPlainText().remove('\t');                                          //エディタの文字列をタブ文字を削除して取得
-    const QList<QString> blockTextList = script.split('\n');                                    //各行ごとに文字列を取得(改行文字で分割)
-    const qsizetype blockCount = blockTextList.size();                                          //行数
-    const int currentBlockNumber = textCursor().blockNumber();                                  //カーソル行の行数
-    const QString currentBlockText = blockTextList.at(currentBlockNumber);                      //カーソル行の文字列
-    const int positionInBlock = qMin(textCursor().positionInBlock(), currentBlockText.size());  //行頭からの位置(タブを消去しているので調整する)
-    const QList<QString> textForwardCursor = (currentBlockText.isEmpty())
-            ? QList<QString>()
-            : currentBlockText.first(positionInBlock).split(' ');                               //カーソル行のカーソル以前の文字列(空白で区切ってコマンドごとに分割される)
-    QList<QString> firstCmdBlock;                                                               //firstCmdを参照する行の文字列(コマンドごとに分割される)
-
-    /* firstCmdを決定するために参照する行の文字列firstCmdBlockを決定する */
-    if(blockCount == 1)                                                                         //エディタの行数が1のとき
-        firstCmdBlock = blockTextList.at(0).split(' ');                                         //firstCmdを参照する行数は一列目
+    if(wrap)
+        setLineWrapMode(LineWrapMode::WidgetWidth);
     else
-        for(int block = currentBlockNumber - 1; block >= 0; --block)                            //カーソル行の手前の行から先頭まで順にさかのぼる
-        {
-            if(block == 0){                                                                     //先頭行にたどり着いたとき
-                if(blockTextList.at(0).size() != 0 && blockTextList.at(0).back() == '\\'){      //その行に改行コマンドがあれば
-                    firstCmdBlock = blockTextList.at(0).split(' '); break;                      //先頭行をfirstCmdBlockに
-                }
-                else{
-                    firstCmdBlock = blockTextList.at(1).split(' '); break;
-                }
-            }
-            if(blockTextList.at(block).size() == 0 || blockTextList.at(block).back() != '\\'){  //block行目の最後に改行コマンドがなければ、block+1行目をfirstCmdBlockにする
-                firstCmdBlock = blockTextList.at(block + 1).split(' '); break;
-            }
-        }
-
-    /* それぞれfirstCmd,beforeCmd,currentCmdを決定する */
-    firstCmd = (firstCmdBlock.size() >= 2) ? firstCmdBlock.at(0) : "";
-    const qsizetype currentCmdCount = textForwardCursor.size();
-    beforeCmd = (currentCmdCount >= 2) ? textForwardCursor.at(currentCmdCount - 2) : "";
-    currentCmd = (currentCmdCount > 0) ? textForwardCursor.at(currentCmdCount - 1) : "";
-
-    /* コメント中では予測変換を無効にする */
-    const qsizetype commentsStartPoint = currentBlockText.indexOf('#');                     //コメントのスタート位置
-    if(commentsStartPoint != qsizetype(-1)){                                                //カーソル行にシャープ記号があれば
-        if(positionInBlock >= commentsStartPoint){                                          //カーソル位置がコメントスタート位置より後であれば
-            completer()->setModel(getEditCompleter_non()); return;                          //予測変換を無効に
-        }
-    }
-
-    /* ファイル名の予測変換 */
-    if((firstCmd == "plot" ||
-        firstCmd == "splot" ||
-        firstCmd == "load" ||
-        firstCmd == "cd") && currentCmd.size() >= 1 && currentCmd.front() == '\"')          //currenCmdがダブルクォーテーションから始まるとき
-    {
-        QDir dir(workingDirectory);
-        dir.setNameFilters(QStringList() << "[a-zA-Z0-9]*");
-        QFileInfoList fileList = dir.entryInfoList();                                       //workingDirectoryディレクトリのファイル情報を取得
-        QStringList fileNameList;
-        for(const QFileInfo& fileInfo : fileList){
-            fileNameList << fileInfo.fileName();                                            //workingDirectoryPath内のファイル名をリストに格納
-        }
-        c->setModel(getCompleter(fileNameList));                                            //ファイル名一覧を予測変換候補に設定
-
-        cursorMoveCount = 1;                                                                //予測変換決定後のカーソル移動数を1にする(ダブルクォーテーションをまたぐ)
-        return;
-    }
-
-    /* カーソルが行頭にあるとき、予測変換を無効にする */
-    if(positionInBlock == 0){
-        completer()->setModel(getEditCompleter_non()); return;
-    }
-    else
-        completer()->setModel(getEditCompleter_first());
-
-    /* カーソル行に空白を含むとき、一旦予測変換を無効にする */
-    if(currentBlockText.contains(' '))
-        completer()->setModel(getEditCompleter_non());
-
-    /* 先頭コマンドfirstCmdと直前のコマンドbeforeCmdをもとに予測変換を変更する */
-    changeGnuplotCompleter(completer(), firstCmd, beforeCmd);
+        setLineWrapMode(LineWrapMode::NoWrap);
 }
 
-
-void TextEdit::setCompleter(QCompleter *completer)
+void TextEditor::setCursorLineColor(const QColor &color)
 {
-    if(c) c->disconnect(this);
-
-    c = completer;
-
-    if(!c) return;
-
-    c->setWidget(this);
-    c->setCompletionMode(QCompleter::PopupCompletion);   //変換候補をポップアップウィンドウで表示させる
-    c->setCaseSensitivity(Qt::CaseInsensitive);          //マッチングのケース感度の設定
-
-    QObject::connect(c, QOverload<const QString&>::of(&QCompleter::activated),
-                     this, &TextEdit::insertCompletion);
+    cursorLineColor = color;
 }
 
-QCompleter* TextEdit::completer() const
-{
-    return c;
-}
+///* 選択範囲の行の先頭にテキストを挿入or削除する．
+// * 既に行頭に指定のテキストがそれを削除し，なければ挿入する．*/
+//void TextEditor::reverseTextLineHead(const QString &text)
+//{
+//    QTextCursor tc = textCursor();
+//    const int start = tc.selectionStart();    //挿入位置の開始
+//    int end = tc.selectionEnd();              //挿入されるごとにずれる．
+//    const int textSize = text.size();
+//
+//    tc.setPosition(start, QTextCursor::MoveMode::MoveAnchor);
+//
+//    for(int i = 0; i < 500; ++i)
+//    {
+//        if(!tc.movePosition(QTextCursor::MoveOperation::Right, QTextCursor::KeepAnchor, 1))
+//            break;
+//
+//        if(tc.selectedText() == text)
+//        {   //一致するば削除
+//            tc.removeSelectedText();
+//            end -= textSize;
+//        }
+//        else
+//        {   //一致しなければ挿入
+//            if(!tc.movePosition(QTextCursor::MoveOperation::StartOfLine, QTextCursor::MoveAnchor))
+//                break;
+//            tc.insertText(text);
+//            end += textSize;
+//        }
+//
+//        if(!tc.movePosition(QTextCursor::MoveOperation::NextBlock, QTextCursor::MoveMode::MoveAnchor))
+//            break;
+//
+//        if(tc.position() > end)
+//            return;
+//    }
+//
+//    __LOGOUT__("An infinite loop occurred or the upper limit of the selection range was exceeded.", Logger::LogLevel::Warn);
+//}
 
-void TextEdit::insertCompletion(const QString &completion)
+QString TextEditor::textUnderCursor()
 {
-    if(c->widget() != this) return;
-
     QTextCursor tc = textCursor();
 
-    const int extra = completion.length() - c->completionPrefix().length();
+    tc.movePosition(QTextCursor::MoveOperation::StartOfWord, QTextCursor::MoveAnchor);
+    tc.movePosition(QTextCursor::MoveOperation::EndOfWord, QTextCursor::KeepAnchor);
 
-    /* クォーテーションで囲まれる文字が入力される際には、カーソルを右に一つ移動させる */
-    if(currentCmd.size() > 1 && (currentCmd.front() == '\'' || currentCmd.front() == '\"')){
-        cursorMoveCount = 1;
-    }
-
-    /* 予測変換入力後のカーソルの移動と挿入 */
-    tc.movePosition(QTextCursor::Left);
-    tc.setPosition(textCursor().position());
-    tc.insertText(completion.right(extra));
-    tc.movePosition(QTextCursor::Right,
-                    QTextCursor::MoveMode::MoveAnchor,
-                    cursorMoveCount);
-    setTextCursor(tc);
+    return tc.selectedText();
 }
 
-/* 予測玄関の候補を出すために参照するテキスト */
-QString TextEdit::textUnderCursor() const
+void TextEditor::setCompletionModel(QAbstractItemModel *model)
 {
-    QString text = currentCmd;
-    return text.remove('\'').remove('\"');
+    model->setParent(completer);
+    completer->setModel(model);
+    completer->setCompletionPrefix(textUnderCursor());
+
+    /* 予測変換windowのサイズ設定．ピッタリだと見えないので+10する */
+    const int width
+            = completer->popup()->sizeHintForColumn(0)
+            + completer->popup()->verticalScrollBar()->sizeHint().width()
+            + 10;
+
+    QRect cr = cursorRect();
+    cr.setWidth(width);
+
+    completer->popup()->setCurrentIndex(completer->completionModel()->index(0, 0));
+    completer->setWidget(this); //widgetをセットしないとランタイムエラー
+    completer->complete(cr);
 }
 
-void TextEdit::focusInEvent(QFocusEvent *e)
+void TextEditor::setCursorToolTip()
 {
-    if(c) c->setWidget(this);
+    if(!isActiveWindow() || !underMouse()) return;
 
-    QPlainTextEdit::focusInEvent(e);
+    QTextCursor tc = cursorForPosition(viewport()->mapFromGlobal(viewport()->cursor().pos()));
+
+    tc.movePosition(QTextCursor::EndOfWord, QTextCursor::MoveAnchor);
+    tc.movePosition(QTextCursor::StartOfWord, QTextCursor::KeepAnchor);
+
+    const QString text = tc.selectedText();
+
+    if(text.isEmpty())
+        return;
+    else
+    {
+        static QString previousToolTip;
+
+        if(previousToolTip != text)
+        {
+            emit toolTipRequested(text);
+            previousToolTip = text;
+        }
+    }
 }
 
-/* 括弧の補完 */
-void TextEdit::bracketCompletion(QKeyEvent *e, const QChar nextChar)
+void TextEditor::setDocumentToolTip(const QString &tooltip)
 {
-    const QString keyText = e->text();
+    //前回表示されたtoolTipと同じであった場合，表示位置は移動しないので，一度空文字で非表示にする
+    QToolTip::showText(QPoint(), "");
 
-    if(keyText == "("){
-            insertPlainText("()");
-            moveCursor(QTextCursor::Left);
-    }
-    else if(keyText == "["){
-            insertPlainText("[]");
-            moveCursor(QTextCursor::Left);
-    }
-    else if(keyText == "\""){
-            if(nextChar == '\"') { moveCursor(QTextCursor::Right); }
-            else {
-                insertPlainText("\"\"");
-                moveCursor(QTextCursor::Left);
-            }
-    }
-    else if(keyText == "'"){
-            if(nextChar == '\''){ moveCursor(QTextCursor::Right); }
-            else{
-                insertPlainText("''");
-                moveCursor(QTextCursor::Left);
-            }
-    }
-    else if((keyText == ")" && nextChar == ')') ||
-            (keyText == "]" && nextChar == ']') ||
-            (keyText == "\"" && nextChar == '\\') ||
-            (keyText == "'" && nextChar == '\'')){
-        moveCursor(QTextCursor::Right);
+    if(tooltip.isEmpty()) return;
+
+    if(completer->popup()->isVisible())
+    {   //popupのhighlightによるtoolTip
+        const int rightSpace                                         //画面に対するpopupWindowの右側の空き幅
+                = screen()->geometry().width()
+                - completer->popup()->rect().right();
+
+        if(rightSpace > 100)
+        {   //popupWindowの右側に十分にスペースがある場合，右側に表示
+            const int rowIndex                                           //表示上のインデックス
+                    = completer->popup()->currentIndex().row()           //モデルインデックス
+                    - completer->popup()->verticalScrollBar()->value();
+            const int rowPos
+                    = rowIndex * completer->popup()->sizeHintForRow(0)   //表示上のインデックス * 一行の高さ
+                    - 15;                                                //補正因子
+
+            const QPoint pos
+                    = completer->popup()->pos()
+                    + QPoint(completer->popup()->width(), rowPos);
+
+            QToolTip::showText(pos, tooltip, this);
+        }
+        else
+        {   //下に表示
+            const QPoint pos
+                    = completer->popup()->pos()
+                    + QPoint(0, completer->popup()->height());
+
+            QToolTip::showText(pos, tooltip, this);
+        }
     }
     else
-        QPlainTextEdit::keyPressEvent(e);
+    {   //textUnderCursorによるtoolTip
+        QToolTip::showText(cursor().pos(), tooltip);
+    }
 }
 
-/* キーが入力された再の予測変換ボックスの設定 */
-void TextEdit::keyPressEvent(QKeyEvent *e)
+void TextEditor::keyPressEvent(QKeyEvent *e)
 {
-    /* completer挿入時のカーソル移動数をリセット */
-    if(!c->popup()->isVisible()) cursorMoveCount = 0;
-
-    if(c && c->popup()->isVisible() && c->popup()->currentIndex().row() >= 0)
+    /* 予測変換中ではキー入力でエディタは変化させない */
+    if(completer->popup()->isVisible())
     {
-        /* 予測変換中で以下のキー入力ではeditorを変化させない */
-        switch (e->key()) {
+        switch(e->key())
+        {
         case Qt::Key_Enter:
         case Qt::Key_Return:
         case Qt::Key_Escape:
@@ -253,142 +278,262 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
         }
     }
 
-    const bool isShortcut = (e->modifiers().testFlag(Qt::ControlModifier) &&
-                             e->key() == Qt::Key_E);
-
-    /* 括弧類 [ ( ' " の補完 */
-    if(!c || !isShortcut)
+    /* Ctrl+Tabのよる移動 */
+    if(e->keyCombination().keyboardModifiers() == Qt::KeyboardModifier::ShiftModifier &&
+       e->keyCombination().key() == Qt::Key::Key_Backtab)
     {
-        const QString text = toPlainText();
-        const int cursorPos = textCursor().position();
-        const QChar nextChar = (text.size() > cursorPos) ? text.at(cursorPos) : ' ';
-        bracketCompletion(e, nextChar);
+        backTabOperation();
+        return;
+    }
+    /* 括弧類の入力補完 */
+    if(!e->text().isEmpty())
+    {
+        const QChar c = e->text().front();
+        if(braketList.contains(c) || braketList.values().contains(c))
+        {
+            insertBraketOperation(c);
+            return;
+        }
+    }
+    /* 括弧類の削除補完 */
+    if(e->key() == Qt::Key_Backspace)
+    {
+        removeBraketOperation(e);
+        return;
+    }
+    /* 予測変換を無効にする場合 */
+    {
+        static QString eow("~!#$%{}|:<>?,;\\");
+        if(!e->text().isEmpty() && eow.contains(e->text().front()))
+        {
+            completer->popup()->hide();
+        }
+    }
+    /* 補完候補を変更する場合 */
+    {
+        static QString separator("|!%{}|:<>?,:\\ ()\"'");
+        //if(!e->text().isEmpty() && separator.contains(e->text().front()))
+        //{
+            const QTextCursor tc = textCursor();
+            //completer->popup()->hide();
+            emit changeCompletionModelRequested(document()->findBlockByLineNumber(tc.blockNumber()).text());
+        //}
     }
 
-    const bool ctr10rShift = (e->modifiers().testFlag(Qt::ControlModifier) ||
-                              e->modifiers().testFlag(Qt::ShiftModifier));
-    if(!c || (ctr10rShift && e->text().isEmpty())) return;
+    QPlainTextEdit::keyPressEvent(e);
 
-    /* 予測変換候補を変更 */
-    changeCompleterModel();
+    completer->setCompletionPrefix(textUnderCursor());
+}
 
-    static QString eow("~!@#$%{}|:<>?,./;\\"); //入力された時に予測変換を非表示にする文字
-    const bool hasModifier = (e->modifiers() != Qt::NoModifier) && !ctr10rShift;
-    const QString completionPrefix = textUnderCursor();
+void TextEditor::backTabOperation()
+{
+    QTextCursor tc = textCursor();
 
-    /* 予測変換を非表示にする場合 */
-    if(!isShortcut && (hasModifier ||
-                       e->text().isEmpty() ||
-                       eow.contains(e->text().right(1)))){
+    if(tc.positionInBlock() == 0) return; //カーソルが行頭であるば無視
+
+    constexpr int indent = 4;
+
+    for(int i = 0; i < indent; ++i)
+    {
+        tc.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, 1);
+        const QString selectedText(tc.selectedText());
+
+        if(selectedText == "\t")
+        {
+            if(i == 0)
+            {   //すぐ左横がタブだった場合，そのタブ文字を削除して完了
+                tc.removeSelectedText();
+            }
+            break;
+        }
+        else if(selectedText == " ")
+        {   //左横が空白文字であった場合，空白を削除して横に移動する．最大，indent数だけ空白を削除する
+            tc.removeSelectedText();
+            continue;
+        }
+        else
+        {   //文字であれば中断
+            break;
+        }
+
+        tc.clearSelection();
+        setTextCursor(tc);
+    }
+}
+
+void TextEditor::insertBraketOperation(const QChar& c)
+{
+    QTextCursor tc = textCursor();
+
+    if(braketList.values().contains(c))
+    {
+        if(tc.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor))
+        {
+            if(tc.selectedText() != QString(c))
+            {
+                tc.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor);
+                tc.insertText(QString(c));
+            }
+        }
+        else
+        {
+            if(braketList.contains(c))
+            {
+                tc.insertText(QString(c) + QString(braketList.value(c)));
+                tc.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor);
+            }
+            else
+                tc.insertText(QString(c));
+        }
+    }
+    else if(braketList.contains(c))
+    {
+        tc.insertText(QString(c) + QString(braketList.value(c)));
+        tc.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor);
+    }
+
+    tc.clearSelection();
+    setTextCursor(tc);
+}
+
+void TextEditor::removeBraketOperation(QKeyEvent *e)
+{
+    QTextCursor tc = textCursor();
+
+    if(!tc.selectedText().isEmpty() ||                                    //選択されている
+       !tc.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor) ||    //左側に文字が存在しない
+       !braketList.contains(tc.selectedText().front()))                   //左側の文字が対象の括弧でない
+    {   //通常通り削除
+        QPlainTextEdit::keyPressEvent(e);
         return;
     }
 
-    if(completionPrefix != c->completionPrefix()){
-        c->setCompletionPrefix(completionPrefix);
-        c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
+    const QChar leftChar = tc.selectedText().front();
+
+    if(tc.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 2))   //右側に文字が存在しない
+    {
+        if(braketList.value(leftChar) == tc.selectedText().front())       //左側と右側が括弧のペアである．
+        {
+            const QString blockText(document()->findBlockByLineNumber(tc.blockNumber()).text());
+            const int posInBlock = tc.positionInBlock();
+            const QString leftText(blockText.first(posInBlock - 1));
+            const QString rightText(blockText.last(blockText.size() - posInBlock + 1));
+
+            int left, right;
+
+            if(braketList.value(leftChar) == leftChar)
+            {
+                left = leftText.count(leftChar);
+                right = rightText.count(leftChar);
+            }
+            else
+            {
+                left = leftText.count(leftChar) - leftText.count(braketList.value(leftChar));
+                right = rightText.count(braketList.value(leftChar)) - rightText.count(leftChar);
+            }
+
+            if(left <= right)
+            {
+                tc.clearSelection();
+                tc.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, 2);
+                tc.removeSelectedText();
+            }
+            else
+            {
+                QPlainTextEdit::keyPressEvent(e);
+                return;
+            }
+        }
+        else
+        {
+            QPlainTextEdit::keyPressEvent(e);
+            return;
+        }
     }
-
-    /* 予測変換ボックスのサイズ設定
-     * popup()->sizeHintForColumn(0)でpopupの0列目、つまり変換候補の
-     * 横幅(最大)を取得できる。+10しているのは、ぴったりであると、見えない場合があるため。*/
-    QRect cr = cursorRect();
-    cr.setWidth(c->popup()->sizeHintForColumn(0) + 10 + c->popup()->verticalScrollBar()->sizeHint().width());
-    c->complete(cr);
-}
-
-/* 行番号の表示幅を決定 */
-int TextEdit::lineNumberAreaWidth()
-{
-    /* 桁数digitsを求める */
-    int digits = 1;
-    int max = qMax(1, blockCount());
-    while(max >= 10){
-        max /= 10;                     //10で割れる回数 = 桁数
-        ++digits;
-    }
-
-    int space = 3 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
-
-    return space;
-}
-
-/* 行番号の表示幅を設定 */
-void TextEdit::updateLineNumberAreaWidth(int)
-{
-    setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
-}
-
-/* スクロールなどに応じて行番号表示エリアを設定 */
-void TextEdit::updateLineNumberArea(const QRect& rect, int dy)
-{
-    if(dy)
-        lineNumberArea->scroll(0, dy);
     else
-        lineNumberArea->update(0, rect.y(), lineNumberArea->width(), rect.height());
+    {   //移動できない == 一番右
+        QPlainTextEdit::keyPressEvent(e);
+        return;
+    }
 
-    if(rect.contains(viewport()->rect()))
-        updateLineNumberAreaWidth(0);
+    tc.clearSelection();
+    setTextCursor(tc);
 }
 
-/* TextEditのリサイズイベントに対応して行番号表示エリアを変更 */
-void TextEdit::resizeEvent(QResizeEvent *e)
+void TextEditor::resizeEvent(QResizeEvent *e)
 {
     QPlainTextEdit::resizeEvent(e);
 
-    QRect cr = contentsRect();
-    lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
+    QRect cr(contentsRect());
+    _lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), _lineNumberArea->lineNumberAreaWidth(), cr.height()));
 }
 
-/* ハイライトする */
-void TextEdit::highlightLine()
+void TextEditor::insertCompletion(const QString &completion)
 {
-    QList<QTextEdit::ExtraSelection> extraSelections;        //ハイライトするblockリスト
+    if(completer->widget() != this) return;
 
-    if(!isReadOnly())
-    {
-        QTextEdit::ExtraSelection currentSelection;          //カーソル行のハイライト
+    const QString prefix = completer->completionPrefix();
+    const int extra = completion.length() - prefix.length();
 
-        currentSelection.format.setBackground(cursorLineColor);
-        currentSelection.format.setProperty(QTextFormat::FullWidthSelection, true);
-        currentSelection.cursor = textCursor();
-        currentSelection.cursor.clearSelection();
-        extraSelections.append(currentSelection);
+    QTextCursor tc = textCursor();
+    tc.insertText(completion.right(extra));
+    tc.movePosition(QTextCursor::EndOfWord, QTextCursor::MoveMode::MoveAnchor);
+    setTextCursor(tc);
+}
 
-        if(errorLineNumber >= 0)
-        {
-            QTextEdit::ExtraSelection errorSelection;        //エラー行のハイライト
+void TextEditor::highlight()
+{
+    if(isReadOnly()) return;
 
-            const QTextBlock errBlock = document()->findBlockByNumber(errorLineNumber);
-            errorSelection.format.setUnderlineColor(Qt::red);
-            errorSelection.format.setFontUnderline(true);
-            errorSelection.format.setProperty(QTextFormat::FullWidthSelection, true);
-            errorSelection.cursor = QTextCursor(errBlock);
-            errorSelection.cursor.clearSelection();
-            extraSelections.append(errorSelection);
-        }
-    }
+    QList<QTextEdit::ExtraSelection> extraSelections;
+
+    highlightExtraSelections(extraSelections);
 
     setExtraSelections(extraSelections);
 }
 
-/* 行表示エリアの番号表示 */
-void TextEdit::lineNumberAreaPaintEvent(QPaintEvent *event)
+void TextEditor::highlightExtraSelections(QList<QTextEdit::ExtraSelection> &selections)
 {
-    QPainter painter(lineNumberArea);
-    painter.fillRect(event->rect(), QColor(50, 50, 50));                               //行表示番号エリアの背景色
+    QTextEdit::ExtraSelection cursorBlockSelection;
 
-    QTextBlock block = firstVisibleBlock();                                            //TextEditに表示されている最初の行で初期化(スクロールなどによって変更される)
+    cursorBlockSelection.format.setBackground(cursorLineColor);
+    cursorBlockSelection.format.setProperty(QTextFormat::FullWidthSelection, true);
+    cursorBlockSelection.cursor = textCursor();
+    cursorBlockSelection.cursor.clearSelection();
+    selections.append(cursorBlockSelection);
+}
+
+void TextEditor::updateLineNumberAreaWidth()
+{
+    setViewportMargins(_lineNumberArea->lineNumberAreaWidth(), 0, 0, 0);
+}
+
+void TextEditor::updateLineNumberArea(const QRect &rect, int dy)
+{
+    if(dy)
+        _lineNumberArea->scroll(0, dy);
+    else
+        _lineNumberArea->update(0, rect.y(), _lineNumberArea->width(), rect.height());
+
+    if(rect.contains(viewport()->rect()))
+        updateLineNumberAreaWidth();
+}
+
+void TextEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
+{
+    QPainter painter(_lineNumberArea);
+    painter.fillRect(event->rect(), QColor(50, 50, 50));                               //LineNumberArea::QPaintEvent()の背景を塗りつぶす
+
+    QTextBlock block(firstVisibleBlock());                                             //TextEditに表示されている最初の行で初期化(スクロールなどによって変更される)
     int blockNumber = block.blockNumber();                                             //TextEditに表示されている最初の行番号で初期化
     int top = qRound(blockBoundingRect(block).translated(contentOffset()).top());      //最初のTextBlockのtop位置で初期化
     int bottom = top + qRound(blockBoundingRect(block).height());                      //最初のTextBlockのbottom位置で初期化
 
     while(block.isValid() && top <= event->rect().bottom())                            //行番号表示エリアのbottomに到達するまでループ
     {
-        if(block.isVisible() && top >= event->rect().top()){
-            const QString number = QString::number(blockNumber + 1);                   //表示される行番号
-            painter.setPen(QColor(180, 180, 180));                                     //行番号の色指定
-            painter.drawText(0, top, lineNumberArea->width(), fontMetrics().height(),  //行番号を表示させる
-                             Qt::AlignLeft, number);
+        if(block.isVisible() && top >= event->rect().top())
+        {
+            paintLineNumberArea(painter, QRect(0, top, _lineNumberArea->width(), fontMetrics().height()), blockNumber);
         }
 
         block = block.next();                                                          //次の行に移動
@@ -397,3 +542,73 @@ void TextEdit::lineNumberAreaPaintEvent(QPaintEvent *event)
         ++blockNumber;                                                                 //行番号インクリメント
     }
 }
+
+void TextEditor::paintLineNumberArea(QPainter &painter, const QRect& rect, const int number)
+{
+    painter.setPen(QColor(180, 180, 180));
+    painter.drawText(QRect(rect.left() + _lineNumberArea->leftMargin(), rect.top(),
+                           rect.width(), rect.height()), Qt::AlignLeft, QString::number(number + 1));
+}
+
+
+
+
+
+
+
+
+
+
+TextEditor::LineNumberArea::LineNumberArea(TextEditor *editor)
+    : QWidget(editor)
+    , editor(editor)
+{
+
+}
+
+QSize TextEditor::LineNumberArea::sizeHint() const
+{
+    return QSize(lineNumberAreaWidth() + _leftMargin, 0);
+}
+
+int TextEditor::LineNumberArea::lineNumberAreaWidth() const
+{
+    /* 桁数digitsを求める */
+    int digits = 1;
+    int max = qMax(1, editor->blockCount());
+    while(max >= 10)
+    {   //10で割れる回数 = 桁数
+        max /= 10;
+        ++digits;
+    }
+
+    int space = 3 + editor->fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
+
+    return space + _leftMargin;
+}
+
+void TextEditor::LineNumberArea::paintEvent(QPaintEvent *event)
+{
+    editor->lineNumberAreaPaintEvent(event);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

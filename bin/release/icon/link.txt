@@ -1,0 +1,107 @@
+edit_copy:
+<a target="_blank" href="https://icons8.com/icon/hJEMt1x2t7S6/clone-figure">Clone Figure</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_paste:
+<a target="_blank" href="https://icons8.com/icon/15065/%E3%83%9A%E3%83%BC%E3%82%B9%E3%83%88">ペースト</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_cut:
+<a target="_blank" href="https://icons8.com/icon/19126/%E3%81%AF%E3%81%95%E3%81%BF">はさみ</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_backgroundcolor:
+<a target="_blank" href="https://icons8.com/icon/15022/%E5%A1%97%E3%82%8A%E3%81%A4%E3%81%B6%E3%81%97%E3%81%AE%E8%89%B2">塗りつぶしの色</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_textcolor:
+<a target="_blank" href="https://icons8.com/icon/15073/%E6%96%87%E5%AD%97%E8%89%B2">文字色</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_triangle:
+<a target="_blank" href="https://icons8.com/icon/93961/%E9%81%93%E3%82%92%E8%AD%B2%E3%82%8B">道を譲る</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_bold:
+<a target="_blank" href="https://icons8.com/icon/8167/%E5%A4%AA%E5%AD%97">太字</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_italic:
+<a target="_blank" href="https://icons8.com/icon/99801/%E6%96%9C%E4%BD%93">斜体</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_underline:
+<a target="_blank" href="https://icons8.com/icon/99845/%E4%B8%8B%E7%B7%9A">下線</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_alignleft:
+<a target="_blank" href="https://icons8.com/icon/22228/%E5%B7%A6%E6%8F%83%E3%81%88">左揃え</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_alignright:
+<a target="_blank" href="https://icons8.com/icon/22229/%E5%8F%B3%E6%8F%83%E3%81%88">右揃え</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_aligncenter:
+<a target="_blank" href="https://icons8.com/icon/22226/%E4%B8%AD%E5%A4%AE%E6%8F%83%E3%81%88">中央揃え</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_alignjust:
+<a target="_blank" href="https://icons8.com/icon/22227/%E4%B8%A1%E7%AB%AF%E6%8F%83%E3%81%88%E6%8F%83%E3%81%88">両端揃え揃え</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_aligntop:
+<a target="_blank" href="https://icons8.com/icon/58292/%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E3%82%92%E4%B8%8A%E6%8F%83%E3%81%88">テキストを上揃え</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_alignvcenter:
+<a target="_blank" href="https://icons8.com/icon/JuRADcmrD6r1/%E4%B8%AD%E5%A4%AE%E6%8F%83%E3%81%88">中央揃え</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_alignbottom:
+<a target="_blank" href="https://icons8.com/icon/58319/%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E3%82%92%E4%B8%8B%E6%8F%83%E3%81%88">テキストを下揃え</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_alignbaseline:
+edit_reverserow:
+edit_reversecol:
+<a target="_blank" href="https://icons8.com/icon/izBicqrRIBpp/%E4%B8%A6%E3%81%B9%E6%9B%BF%E3%81%88%E7%9F%A2%E5%8D%B0">並べ替え矢印</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_clear:
+<a target="_blank" href="https://icons8.com/icon/Rne44Nms3ypb/%E6%B6%88%E5%8E%BB">消去</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_mergecells:
+<a target="_blank" href="https://icons8.com/icon/yg8vTQZZoW91/%E3%82%BB%E3%83%AB%E3%82%92%E7%B5%90%E5%90%88">セルを結合</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_splitcells:
+<a target="_blank" href="https://icons8.com/icon/57620/%E3%82%BB%E3%83%AB%E3%81%AE%E5%88%86%E5%89%B2">セルの分割</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_insertrowup:
+<a target="_blank" href="https://icons8.com/icon/55914/%E4%B8%8A%E3%81%AB%E8%A1%8C%E3%82%92%E6%8C%BF%E5%85%A5">上に行を挿入</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_insertrowdown:
+<a target="_blank" href="https://icons8.com/icon/56065/%E4%B8%8B%E3%81%AB%E8%A1%8C%E3%82%92%E6%8C%BF%E5%85%A5">下に行を挿入</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_insertcolleft:
+<a target="_blank" href="https://icons8.com/icon/57050/%E5%B7%A6%E3%81%AB%E5%88%97%E3%82%92%E6%8C%BF%E5%85%A5">左に列を挿入</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+edit_insertcolright:
+<a target="_blank" href="https://icons8.com/icon/57051/%E5%8F%B3%E3%81%AB%E5%88%97%E3%82%92%E6%8C%BF%E5%85%A5">右に列を挿入</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+graph_scatter:
+<a target="_blank" href="https://icons8.com/icon/QhnX_igyVFJ-/%E3%82%B0%E3%83%A9%E3%83%95">グラフ</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+graph_bar:
+<a target="_blank" href="https://icons8.com/icon/12818/%E6%A3%92%E3%82%B0%E3%83%A9%E3%83%95">棒グラフ</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+graph_script:
+<a target="_blank" href="https://icons8.com/icon/57714/%E3%82%B0%E3%83%A9%E3%83%95%E3%83%AC%E3%83%9D%E3%83%BC%E3%83%88">グラフレポート</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_separatev:
+<a target="_blank" href="https://icons8.com/icon/7797/%E7%B8%A6%E5%88%86%E5%89%B2">縦分割</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_separeteh:
+<a target="_blank" href="https://icons8.com/icon/7793/%E3%82%B9%E3%83%97%E3%83%AA%E3%83%83%E3%83%88%E6%B0%B4%E5%B9%B3">スプリット水平</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_closewidget:
+<a target="_blank" href="https://icons8.com/icon/37955/%E3%82%A6%E3%82%A3%E3%83%B3%E3%83%89%E3%82%A6%E3%82%92%E9%96%89%E3%81%98%E3%82%8B">ウィンドウを閉じる</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_remove:
+<a target="_blank" href="https://icons8.com/icon/46/%E5%89%8A%E9%99%A4">削除</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_execute:
+<a target="_blank" href="https://icons8.com/icon/59862/%E5%86%8D%E7%94%9F">再生</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_folderopen:
+<a target="_blank" href="https://icons8.com/icon/21094/%E3%83%95%E3%82%A9%E3%83%AB%E3%83%80%E3%83%BC%E3%82%92%E9%96%8B%E3%81%8F">フォルダーを開く</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_folderadd:
+<a target="_blank" href="https://icons8.com/icon/dPHtV3gzXZxM/%E3%83%95%E3%82%A9%E3%83%AB%E3%83%80%E3%83%BC%E3%82%92%E8%BF%BD%E5%8A%A0">フォルダーを追加</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_reload:
+<a target="_blank" href="https://icons8.com/icon/59872/%E6%9B%B4%E6%96%B0">更新</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_fileadd:
+<a target="_blank" href="https://icons8.com/icon/12587/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%82%92%E9%80%81%E4%BF%A1">ファイルを送信</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_filereload:
+<a target="_blank" href="https://icons8.com/icon/105885/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%81%AE%E6%9B%B4%E6%96%B0">ファイルの更新</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_filesave:
+<a target="_blank" href="https://icons8.com/icon/18765/%E3%82%BB%E3%83%BC%E3%83%96">セーブ</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_find:
+<a target="_blank" href="https://icons8.com/icon/59878/%E6%A4%9C%E7%B4%A2">検索</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_filesaveas:
+<a target="_blank" href="https://icons8.com/icon/3701/%E5%90%8D%E5%89%8D%E3%82%92%E4%BB%98%E3%81%91%E3%81%A6%E4%BF%9D%E5%AD%98">名前を付けて保存</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_openinwindow:
+<a target="_blank" href="https://icons8.com/icon/102270/%E3%82%A6%E3%82%A3%E3%83%B3%E3%83%89%E3%82%A6%E3%81%A7%E9%96%8B%E3%81%8D%E3%81%BE%E3%81%99">ウィンドウで開きます</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_page:
+<a target="_blank" href="https://icons8.com/icon/1767/%E6%96%87%E5%AD%A6">文学</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_pdf:
+<a target="_blank" href="https://icons8.com/icon/39195/pdf">PDF</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+file_category:
+<a target="_blank" href="https://icons8.com/icon/14083/%E3%83%95%E3%82%A9%E3%83%AB%E3%83%80%E3%83%BC%E3%82%92%E9%96%8B%E3%81%8F">フォルダーを開く</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_caution:
+<a target="_blank" href="https://icons8.com/icon/12403/%E6%B3%A8%E6%84%8F">注意</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_adjustsize:
+<a target="_blank" href="https://icons8.com/icon/hd3Z_NVXlS8M/%E3%83%9A%E3%83%BC%E3%82%B8%E3%82%B5%E3%82%A4%E3%82%BA">ページサイズ</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_plus:
+<a target="_blank" href="https://icons8.com/icon/62888/%E3%83%97%E3%83%A9%E3%82%B9%E8%A8%98%E5%8F%B7">プラス記号</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_editimage:
+<a target="_blank" href="https://icons8.com/icon/68819/%E7%94%BB%E5%83%8F%E3%82%92%E7%B7%A8%E9%9B%86%E3%81%97%E3%81%BE%E3%81%99">画像を編集します</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_trashcan:
+<a target="_blank" href="https://icons8.com/icon/11705/%E5%89%8A%E9%99%A4">削除</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_gear:
+<a target="_blank" href="https://icons8.com/icon/364/%E8%A8%AD%E5%AE%9A">設定</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+icon_broom:
+<a target="_blank" href="https://icons8.com/icon/48368/%E3%81%BB%E3%81%86%E3%81%8D">ほうき</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+
+loading.gif:
+<a target="_blank" href="https://icons8.com/icon/nITS6PlJtteV/loading-circle">Loading Circle</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>

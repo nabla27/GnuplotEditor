@@ -61,12 +61,18 @@ Thumbs.db
 *.vcxproj
 *vcxproj.*
 
+.vs/
+*.tlog/
+
 # MinGW generated files
 *.Debug
 *.Release
 
 # Python byte code
 *.pyc
+
+#project file
+setting
 
 # Binaries
 # --------

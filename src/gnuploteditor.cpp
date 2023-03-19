@@ -1,16 +1,73 @@
-#include "gnuploteditor.h"
-#include "imagedisplay.h"
+/*!
+ * GnuplotEditor
+ *
+ * Copyright (c) 2022 yuya
+ *
+ * This software is released under the GPLv3.
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ */
 
-GnuplotEditor::GnuplotEditor(const QString& oldApp, QWidget *parent)
+#include "gnuploteditor.h"
+
+#include <QMessageBox>
+#include <QSplitter>
+#include <QMenuBar>
+#include <QProcess>
+
+#include "imagedisplay.h"
+#include "editorwidget.h"
+
+#include "editorsettingwidget.h"
+#include "gnuplotsettingwidget.h"
+#include "templatecustomwidget.h"
+#include "tablesettingwidget.h"
+#include "filetreesettingwidget.h"
+
+#include "menubar.h"
+#include "terminalwidget.h"
+#include "logger.h"
+#include "gnuplot.h"
+#include "utility.h"
+
+//DEBUG
+#include "../plugin/editor_plugin.h"
+#include "plugin.h"
+#include <QPluginLoader>
+#include <QThreadPool>
+#include "texteditor.h"
+#include <QTimer>
+#include "imageviewer.h"
+#include "layoutparts.h"
+#include "gnuplottexteditor.h"
+
+
+GnuplotEditor::GnuplotEditor(QWidget *parent)
     : QMainWindow(parent)
-    , gnuplot(new Gnuplot(this))
-    , editorSetting(new EditorSettingWidget(nullptr))
-    , gnuplotSetting(new GnuplotSettingWidget(gnuplot, nullptr))
-    , updateManager(new UpdateManager(this))
-    , oldAppFolderPath(oldApp)
+
+    , fileMenu(new FileMenu("&File", this))
+    , editorMenu(new EditorMenu("&Editor", this))
+    , gnuplotMenu(new GnuplotMenu("&Gnuplot", this))
+    , viewMenu(new ViewMenu("&View", this))
+    , helpMenu(new HelpMenu("&Help", this))
+
+    , editorSetting(new EditorSetting(nullptr))
+    , gnuplotSetting(new GnuplotSettingWidget(nullptr))
+    , templateCustom(new TemplateCustomWidget(this))
+    , fileTreeSetting(new FileTreeSettingWidget(nullptr))
 {
     /* ウィンドウをスクリーン画面に対して(0.4,0.5)の比率サイズに設定 */
-    setGeometry(getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
+    setGeometry(mutility::getRectFromScreenRatio(screen()->size(), 0.4f, 0.5f));
+
+    //{
+    //    const QString dllPath = "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/gnuplot-completion/x64/Release/gnuplot-completion.dll";
+    //    const QString checkerPath = "E:/repos/qt_project/LabQ/GnuplotEditor/plugin/pluginchecker/bin/release/pluginchecker.exe";
+    //    const QString symbolName = "createPluginInstance";
+
+    //    GnuplotTextEditor *editor = new GnuplotTextEditor(nullptr);
+    //    editor->show();
+    //    connect(this, &GnuplotEditor::destroyed, editor, &GnuplotTextEditor::deleteLater);
+    //}
+
 
     /* レイアウト生成 */
     initializeLayout();
@@ -19,90 +76,123 @@ GnuplotEditor::GnuplotEditor(const QString& oldApp, QWidget *parent)
     initializeMenuBar();
 
     /* workingDirectoryの設定 */
-    const QString path = QDir::currentPath() + "/gnuplot-project";
-    //フォルダーが存在していなければ作成
-    QDir workingDir(path);
-    if(!workingDir.exists()) workingDir.mkpath(path);
-    //初期化
-    fileTree->setFolderPath(path);
-    gnuplot->setWorkingDirectory(path);
+    QString workingDirectory = fileTreeSetting->previousFolderPath();
+    QDir dir(workingDirectory);
+    if(workingDirectory.isEmpty() || !dir.exists())
+    {
+        workingDirectory = QApplication::applicationDirPath() + "/setting/gnuplot-project";
+        dir.mkdir(workingDirectory);
+    }
+    fileTree->setFolderPath(workingDirectory);
+    fileTreeSetting->setPreviousFolderPath(workingDirectory);
 
-    connect(this, &GnuplotEditor::workingDirectoryChanged, fileTree, &FileTree::setFolderPath);
-    connect(this, &GnuplotEditor::workingDirectoryChanged, gnuplot, &Gnuplot::setWorkingDirectory);
-    connect(fileTree, &FileTree::scriptSelected, this, &GnuplotEditor::setEditorWidget);
-    connect(fileTree, &FileTree::sheetSelected, this, &GnuplotEditor::setSheetWidget);
-    connect(fileTree, &FileTree::otherSelected, this, &GnuplotEditor::setOtherWidget);
-    connect(fileTree, &FileTree::scriptRemoved, this, &GnuplotEditor::setEditorWidget);
-    connect(fileTree, &FileTree::sheetRemoved, this, &GnuplotEditor::setSheetWidget);
-    connect(fileTree, &FileTree::otherRemoved, this, &GnuplotEditor::setOtherWidget);
-    connect(fileTree, &FileTree::fileNameChanged, this, &GnuplotEditor::setMenuBarTitle);
-    connect(fileTree, &FileTree::errorCaused, browserWidget, &BrowserWidget::outputText);
-    connect(gnuplot, &Gnuplot::standardOutputPassed, this, &GnuplotEditor::receiveGnuplotStdOut);
-    connect(gnuplot, &Gnuplot::standardErrorPassed, this, &GnuplotEditor::receiveGnuplotStdErr);
-    connect(gnuplot, &Gnuplot::errorCaused, browserWidget, &BrowserWidget::outputText);
-    connect(browserWidget, &BrowserWidget::textChanged, [this](){ displayTab->setCurrentIndex(1); });
-    connect(updateManager, &UpdateManager::closeApplicationRequested, this, &GnuplotEditor::closeApplication);
+    connect(fileTree, &FileTreeWidget::itemDoubleClicked, this, &GnuplotEditor::receiveTreeItem);
+    connect(fileTree, &FileTreeWidget::folderPathChanged, fileTreeSetting, &FileTreeSettingWidget::setPreviousFolderPath);
+    connect(fileTreeSetting, &FileTreeSettingWidget::reloadRequested, fileTree, &FileTreeWidget::saveAndLoad);
+
+    /* gnuplotとそのプロセスは別スレッドで非同期処理 */
+    //gnuplotの設定GnuplotSettingWidget
+    connect(gnuplotSetting, &GnuplotSettingWidget::exePathSet, gnuplotExecutor, &GnuplotExecutor::setExePath);
+    connect(gnuplotSetting, &GnuplotSettingWidget::initCmdSet, gnuplotExecutor, &GnuplotExecutor::setInitializeCmd);
+    connect(gnuplotSetting, &GnuplotSettingWidget::preCmdSet, gnuplotExecutor, &GnuplotExecutor::setPreProcessingCmd);
+    gnuplotSetting->loadXmlSetting(); //connectしてから読み込む
+
+    connect(fileTree, &FileTreeWidget::allSaved, this, &GnuplotEditor::sendGnuplotCmd);
 }
 
 GnuplotEditor::~GnuplotEditor()
 {
-    postProcess();
+
 }
 
-void GnuplotEditor::postProcess()
+void GnuplotEditor::closeEvent(QCloseEvent *event)
 {
+    /* セーブしていないファイルがあれば，確認して保存する */
+    QHashIterator<QString, TreeFileItem*> fileIter(TreeFileItem::list);
+    while (fileIter.hasNext())
+    {
+        fileIter.next();
+        if(!fileIter.value()->isSaved())
+        {
+            QMessageBox question(this);
+            question.setIcon(QMessageBox::Icon::Question);
+            question.setText("Some files are not saved. Do you want to save the files??");
+            question.setStandardButtons(QMessageBox::StandardButton::Save | QMessageBox::StandardButton::No | QMessageBox::Cancel);
+            question.setEscapeButton(QMessageBox::StandardButton::Cancel);
+
+            switch(QMessageBox::StandardButton(question.exec()))
+            {
+            case QMessageBox::StandardButton::Save:
+                fileTree->saveAllFile();
+                break;
+            case QMessageBox::StandardButton::No:
+                break;
+            case QMessageBox::StandardButton::Cancel:
+                event->ignore(); //アプリ閉じるのをキャンセル
+                return;
+            default:
+                break;
+            }
+
+            /* 一度確認したら抜け出す */
+            break;
+        }
+    }
+
     editorSetting->hide();
     gnuplotSetting->hide();
+    fileTreeSetting->hide();
     delete editorSetting;
     delete gnuplotSetting;
+    delete fileTreeSetting;
 
-    if(!oldAppFolderPath.isEmpty())
-    {
-        QDir oldApp(oldAppFolderPath);
-        oldApp.removeRecursively();
-        oldApp.rmdir(oldAppFolderPath);
-        oldApp.removeRecursively();
-        oldApp.rmdir(oldAppFolderPath);
-    }
+    QApplication::exit(0);
 }
 
 void GnuplotEditor::initializeMenuBar()
 {
     if(menuBar()) delete menuBar();
 
-    WindowMenuBar *menuBar = new WindowMenuBar(this);
-
-    FileMenu *const fileMenu = new FileMenu("File", menuBar);
-    WidgetMenu *const widgetMenu = new WidgetMenu("Widget", menuBar);
-    HelpMenu *const helpMenu = new HelpMenu("Help", menuBar);
-    QAction *const blank1 = new QAction("         ", menuBar);
-    scriptMenu = new ScriptMenu("      ", menuBar);
-    sheetMenu = new SheetMenu("     ", menuBar);
-    QAction *const blank2 = new QAction("         ", menuBar);
-    QAction *const runAction = new QAction("&Run", menuBar);
-
-    menuBar->addMenu(fileMenu);
-    menuBar->addMenu(widgetMenu);
-    menuBar->addMenu(helpMenu);
-    menuBar->addAction(blank1);
-    menuBar->addMenu(scriptMenu);
-    menuBar->addMenu(sheetMenu);
-    menuBar->addAction(blank2);
-    menuBar->addAction(runAction);
-
+    //WindowMenuBar *menuBar = new WindowMenuBar(this);
+    QMenuBar *menuBar = new QMenuBar(this);
     setMenuBar(menuBar);
 
-    connect(fileMenu, &FileMenu::reloadFolderPushed, fileTree, &FileTree::saveAndLoad);
-    connect(fileMenu, &FileMenu::updateFolderPushed, fileTree, &FileTree::updateFileTree);
-    connect(fileMenu, &FileMenu::openFolderPushed, this, &GnuplotEditor::workingDirectoryChanged);
-    connect(fileMenu, &FileMenu::addFolderPushed, fileTree, &FileTree::addFolder);
-    connect(fileMenu, &FileMenu::saveFolderPushed, fileTree, &FileTree::saveFolder);
-    connect(widgetMenu, &WidgetMenu::clearOutputWindowPushed, browserWidget, &BrowserWidget::clear);
-    //connect(widgetMenu, &WidgetMenu::clearConsoleWindowPushed, consoleWidget, &);
-    connect(widgetMenu, &WidgetMenu::editorSettingOpened, editorSetting, &EditorSettingWidget::show);
-    connect(widgetMenu, &WidgetMenu::gnuplotSettingOpened, gnuplotSetting, &GnuplotSettingWidget::show);
-    connect(helpMenu, &HelpMenu::updateManagerRequested, updateManager, &UpdateManager::show);
-    connect(runAction, &QAction::triggered, this, &GnuplotEditor::executeGnuplot);
+    menuBar->addMenu(fileMenu);
+    menuBar->addMenu(editorMenu);
+    menuBar->addMenu(gnuplotMenu);
+    menuBar->addMenu(viewMenu);
+    menuBar->addMenu(helpMenu);
+
+    connect(fileMenu, &FileMenu::aboutToShow, [this](){ fileMenu->setCurrentItem(editorArea->currentTreeFileItem()); });
+    connect(fileMenu, &FileMenu::openFolderRequested, fileTree, &FileTreeWidget::openFolder);
+    connect(fileMenu, &FileMenu::addFolderRequested, fileTree, &FileTreeWidget::addFolder);
+    connect(fileMenu, &FileMenu::saveFolderRequested, fileTree, &FileTreeWidget::saveFolder);
+    connect(fileMenu, &FileMenu::updateFolderRequested, fileTree, &FileTreeWidget::updateFileTree);
+    connect(fileMenu, &FileMenu::reloadFolderRequested, fileTree, &FileTreeWidget::saveAndLoad);
+    connect(fileMenu, &FileMenu::openFileRequested, fileTree, &FileTreeWidget::addFileFromDialog);
+    connect(fileMenu, &FileMenu::newFileRequested, fileTree, &FileTreeWidget::newFileFromDialog);
+    connect(fileMenu, &FileMenu::saveAllFilesRequested, fileTree, &FileTreeWidget::saveAllFile);
+    connect(fileMenu, &FileMenu::openTreeSettingRequested, fileTreeSetting, &FileTreeSettingWidget::show);
+
+    connect(editorMenu, &EditorMenu::aboutToShow, [this](){ editorMenu->setCurrentItem(editorArea->currentTreeFileItem()); });
+    connect(editorMenu, &EditorMenu::findRequested, this, &GnuplotEditor::findKeyword);
+
+    connect(gnuplotMenu, &GnuplotMenu::aboutToShow, [this](){ gnuplotMenu->setCurrentItem(editorArea->currentTreeFileItem()); });
+    connect(gnuplotMenu, &GnuplotMenu::runRequested, this, &GnuplotEditor::executeItem);
+    connect(gnuplotMenu, &GnuplotMenu::showCmdHelpRequested, this, &GnuplotEditor::showGnuplotCmdHelp);
+    connect(gnuplotMenu, &GnuplotMenu::showGnuplotHelpRequested, this, &GnuplotEditor::showGnuplotHelpWindow);
+    connect(gnuplotMenu, &GnuplotMenu::saveAsTemplateRequested, templateCustom, &TemplateCustomWidget::addTemplate);
+    connect(gnuplotMenu, &GnuplotMenu::showScriptTemplateRequested, templateCustom, &TemplateCustomWidget::show);
+    connect(gnuplotMenu, &GnuplotMenu::showGnuplotSettingRequested, gnuplotSetting, &GnuplotSettingWidget::show);
+
+    connect(viewMenu, &ViewMenu::splitVerticallyRequested, editorArea, &EditorArea::splitFocusedWidgetVertically);
+    connect(viewMenu, &ViewMenu::splitHorizontallyRequested, editorArea, &EditorArea::splitFocusedWidgetHorizontally);
+    connect(viewMenu, &ViewMenu::unsplitRequested, editorArea, &EditorArea::closeFocusedWidget);
+    connect(viewMenu, &ViewMenu::removeAllStackedEditorRequested, editorArea, &EditorArea::removeAllStackedWidget);
+    connect(viewMenu, &ViewMenu::clearTerminalRequested, terminalTab, &TerminalTabWidget::clearDisplay);
+    connect(viewMenu, &ViewMenu::showEditorSettingRequested, editorSetting, &EditorSetting::show);
+
+    connect(helpMenu, &HelpMenu::rebootRequested, this, &GnuplotEditor::reboot);
 }
 
 void GnuplotEditor::initializeLayout()
@@ -113,241 +203,216 @@ void GnuplotEditor::initializeLayout()
 
     /* ウィンドウ内の大枠となるレイアウトとウィジェットの初期化 */
     QHBoxLayout *hLayout = new QHBoxLayout;
-    fileTree = new FileTree(centralWidget());
-    VerticalDragBar *fileTreeDragBar = new VerticalDragBar(centralWidget());
+    QSplitter *mainSplitter = new QSplitter(Qt::Horizontal, centralWidget());
+    QSplitter *editorSplitter = new QSplitter(Qt::Vertical, mainSplitter);
+
+    //左側のファイルツリー
+    QWidget *fileTreeContents = new QWidget(mainSplitter);
+    QVBoxLayout *treeLayout = new QVBoxLayout;
+    treeModelCombo = new TreeModelCombo(fileTreeContents);
+    fileTree = new FileTreeWidget(fileTreeContents);
+
+    //右側のエディター
     QVBoxLayout *vLayout = new QVBoxLayout;
-    editorTab = new QTabWidget(this);
-    HorizontalDragBar *displayTabDragBar = new HorizontalDragBar(centralWidget());
-    displayTab = new QTabWidget(centralWidget());
+    editorArea = new EditorArea(editorSplitter);
+    terminalTab = new TerminalTabWidget(editorSplitter);
+
     /* 配置 */
     centralWidget()->setLayout(hLayout);
-    hLayout->addWidget(fileTree);
-    hLayout->addWidget(fileTreeDragBar);
-    hLayout->addLayout(vLayout);
-    vLayout->addWidget(editorTab);
-    vLayout->addWidget(displayTabDragBar);
-    vLayout->addWidget(displayTab);
-    /* 設定 */
+    hLayout->addWidget(mainSplitter);
+    mainSplitter->addWidget(fileTreeContents);
+    mainSplitter->addWidget(editorSplitter);
+
+    //左側のファイルツリー
+    fileTreeContents->setLayout(treeLayout);
+    treeLayout->addWidget(treeModelCombo);
+    treeLayout->addWidget(fileTree);
+
+    //右側のエディタ
+    editorSplitter->addWidget(editorArea);
+    editorSplitter->addWidget(terminalTab);
+
     hLayout->setSpacing(0);
-    fileTree->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Expanding);
-    fileTree->setMaximumWidth(150);
     vLayout->setSpacing(0);
+    treeLayout->setSpacing(0);
+    hLayout->setContentsMargins(0, 0, 0, 0);
+    mainSplitter->setContentsMargins(0, 0, 0, 0);
+    editorSplitter->setContentsMargins(0, 0, 0, 0);
+    fileTreeContents->setContentsMargins(0, 0, 0, 0);
+    treeLayout->setContentsMargins(0, 0, 0, 0);
+    vLayout->setContentsMargins(0, 0, 0, 0);
 
-    /* 各ウィジェット内のアイテムの初期化 */
-    gnuplotWidget = new QStackedWidget(editorTab);
-    sheetWidget = new QStackedWidget(editorTab);
-    consoleWidget = new ConsoleWidget(displayTab);
-    browserWidget = new BrowserWidget(displayTab);
-    /* 配置 */
-    editorTab->addTab(gnuplotWidget, "&Gnuplot");
-    editorTab->addTab(sheetWidget, "&Sheet");
-    displayTab->addTab(consoleWidget, "&Console");
-    displayTab->addTab(browserWidget, "&Output");
-    /* 設定 */
-    displayTab->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
-    displayTab->setMaximumHeight(150);
-    editorTab->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    /* widgetサイズの初期化 */
+    const int windowWidth = geometry().width();
+    const int windowHeight = geometry().height();
+    mainSplitter->setSizes(QList<int>() << windowWidth * 0.2 << windowWidth * 0.7);
+    editorSplitter->setSizes(QList<int>() << windowHeight * 0.75 << windowHeight * 0.25);
 
-    centralWidget()->layout()->setContentsMargins(0, 0, 0, 0);
-    displayTab->setTabPosition(QTabWidget::TabPosition::South);
-
-    /* 配色設定 */
-    //setPalette(QPalette(QPalette::Window, Qt::black));
-    //fileTree->setPalette(QPalette(QPalette::Window, Qt::white));
-    //for(int i = 0; i < editorTab->count(); ++i) editorTab->tabBar()->setTabTextColor(i, Qt::black);
-    //for(int i = 0; i < displayTab->count(); ++i) displayTab->tabBar()->setTabTextColor(i, Qt::black);
-    //sheetWidget->setPalette(QPalette(QPalette::Window, Qt::white));
-    //browserWidget->setPalette(QPalette(QPalette::Window, Qt::white));
-
-    connect(fileTreeDragBar, &VerticalDragBar::barDraged, this, &GnuplotEditor::setFileTreeWidth);
-    connect(displayTabDragBar, &HorizontalDragBar::barDraged, this, &GnuplotEditor::setDisplayTabHeight);
+    connect(treeModelCombo, &QComboBox::currentIndexChanged, fileTree, &FileTreeWidget::setTreeModel);
+    connect(editorArea, &EditorArea::executeRequested, this, &GnuplotEditor::executeItem);
 }
 
-void GnuplotEditor::connectEditorSetting(TextEdit *const editor)
+void GnuplotEditor::setCurrentItem()
 {
-    editor->setWorkingDirectory(fileTree->currentFolderPath());
-    connect(editorSetting, &EditorSettingWidget::backgroundColorSet, editor, &TextEdit::setBackgroundColor);
-    connect(editorSetting, &EditorSettingWidget::textColorSet, editor, &TextEdit::setTextColor);
-    connect(editorSetting, &EditorSettingWidget::textSizeSet, editor, &TextEdit::setTextSize);
-    connect(editorSetting, &EditorSettingWidget::tabSpaceSet, editor, &TextEdit::setTabSpace);
-    connect(editorSetting, &EditorSettingWidget::checkWrapSet, editor, &TextEdit::setWrap);
-    connect(editorSetting, &EditorSettingWidget::checkItaricSet, editor, &TextEdit::setItaric);
-    connect(editorSetting, &EditorSettingWidget::checkBoldSet, editor, &TextEdit::setBold);
-    connect(editorSetting, &EditorSettingWidget::mainCmdColorSet, editor, &TextEdit::setMainCmdColor);
-    connect(editorSetting, &EditorSettingWidget::commentColorSet, editor, &TextEdit::setCommentColor);
-    connect(editorSetting, &EditorSettingWidget::cursorLineColorSet, editor, &TextEdit::setCursorLineColor);
-    connect(editorSetting, &EditorSettingWidget::stringColorSet, editor, &TextEdit::setStringColor);
-    connect(editor, &TextEdit::fontSizeChanged, editorSetting, &EditorSettingWidget::setTextSize);
-    connect(this, &GnuplotEditor::workingDirectoryChanged, editor, &TextEdit::setWorkingDirectory);
-    editorSetting->set(editor);
+    TreeFileItem *item = editorArea->currentTreeFileItem();
+    fileMenu->setCurrentItem(item);
+    editorMenu->setCurrentItem(item);
+    gnuplotMenu->setCurrentItem(item);
 }
 
-void GnuplotEditor::setEditorWidget(const QString& fileName, const ScriptInfo* info)
+void GnuplotEditor::receiveTreeItem(QTreeWidgetItem *_item, const int column)
 {
-    if(!info){  //infoがnullptr(ツリーから消された場合など)なら
-        if(scriptMenu->title() == fileName) scriptMenu->setTitle("      ");
+    TreeFileItem *item = static_cast<TreeFileItem*>(_item);
+
+    if(column != 0)
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "received a item that column is not zero.", Logger::LogLevel::Warn);
         return;
     }
 
-    /* 前にセットされてたものは削除 */
-    if(gnuplotWidget->widget(gnuplotWidget->currentIndex()))
-        gnuplotWidget->removeWidget(gnuplotWidget->currentWidget());
-
-    /* 新しくセット */
-    gnuplotWidget->addWidget(info->editor);       //editorのparentは自動的にgnuplotWidgetとなる
-    connectEditorSetting(info->editor);
-
-    /* プロセスをセット */
-    gnuplotProcess = info->process;
-
-    /* タブをGnuplotに設定 */
-    editorTab->setCurrentIndex(0);
-
-    /* メニューバーの名前変更 */
-    scriptMenu->setTitle(fileName);
-}
-
-void GnuplotEditor::setSheetWidget(const QString& fileName, const SheetInfo* info)
-{
-    if(!info){ //infoがnullptr(ツリーから消された場合など)
-        if(sheetMenu->title() == fileName) sheetMenu->setTitle("     ");
+    if(!item)
+    {
+        logger->output(__FILE__, __LINE__, __FUNCTION__,
+                       "received a nullptr item.", Logger::LogLevel::Warn);
         return;
     }
 
-    /* 前にセットされてたものは削除 */
-    if(sheetWidget->widget(sheetWidget->currentIndex()))
-        sheetWidget->removeWidget(sheetWidget->currentWidget());
+    logger->output(__FILE__, __LINE__, __FUNCTION__,
+                   "received a item " + item->text(0), Logger::LogLevel::Info);
 
-    /* 新しくセット */
-    sheetWidget->addWidget(info->table);
-    info->table->setGnuplot(gnuplot);
+    if(!item->isLoaded())
+        item->load();
 
-    /* タブをSheetに設定 */
-    editorTab->setCurrentIndex(1);
+    switch((FileTreeWidget::TreeItemType)item->type())
+    {
+    case FileTreeWidget::TreeItemType::Script:
+    {
+        editorSetting->addEditor(static_cast<TreeScriptItem*>(item)->editor);
+        break;
+    }
+    case FileTreeWidget::TreeItemType::Sheet:
+    case FileTreeWidget::TreeItemType::Image:
+    case FileTreeWidget::TreeItemType::Pdf:
+    default:
+        break;
+    }
 
-    /* メニューバーの名前変更 */
-    sheetMenu->setTitle(fileName);
+    editorArea->setItem(item);
+
+    fileMenu->setCurrentItem(item);
+    editorMenu->setCurrentItem(item);
+    gnuplotMenu->setCurrentItem(item);
 }
 
-void GnuplotEditor::setOtherWidget(const QString& fileName, const OtherInfo* info)
+//void GnuplotEditor::setEditorWidget(TreeScriptItem *item)
+//{
+//    if(!item) return;
+//
+//    editorSetting->addEditor(item->editor);
+//    editorArea->setItem(item);
+//    editorMenu->setCurrentItem(item);
+//}
+//
+//void GnuplotEditor::setSheetWidget(TreeSheetItem *item)
+//{
+//    if(!item) return;
+//
+//    //DEBUG
+//    editorArea->setItem(item);
+//    editorMenu->setCurrentItem(item);
+//
+//    //connect(gnuplotSetting, &GnuplotSettingWidget::autoCompileMsecSet, item->table, &GnuplotTable::setUpdateMsec);
+//}
+//
+//void GnuplotEditor::setImageWidget(TreeImageItem *item)
+//{
+//    if(!item) return;
+//
+//    editorArea->setItem(item);
+//    editorMenu->setCurrentItem(item);
+//}
+
+void GnuplotEditor::executeItem(TreeFileItem *item)
 {
-    const qsizetype extStartIndex = fileName.lastIndexOf('.');
+    if(!item) return;
 
-    if(extStartIndex == qsizetype(-1) &&    //ドットを含まない
-       fileName.size() <= extStartIndex + 1) //ドット以降に文字がない
-    { return; }
+    terminalTab->logBrowser()->grayOutAll();
 
-    //拡張子
-    const QString extension = fileName.sliced(extStartIndex + 1);
-
-    if(ImageDisplay::isValidExtension(extension))
-    {   //画像の表示
-        ImageDisplay *imageDisplay = new ImageDisplay(nullptr);  //ウィンドウ閉じたら自動でdeleteされるよ!
-        imageDisplay->setImageFile(fileTree->currentFolderPath() + "/" + fileName);
-        imageDisplay->show();
+    switch(FileTreeWidget::TreeItemType(item->type()))
+    {
+    case FileTreeWidget::TreeItemType::Script:
+        executeGnuplot(static_cast<TreeScriptItem*>(item));
+        break;
+    default:
+        break;
     }
 }
 
-void GnuplotEditor::setMenuBarTitle(const QString& oldName, const QString& newName)
+void GnuplotEditor::executeGnuplot(TreeScriptItem *item)
 {
-    if(scriptMenu->title() == oldName) scriptMenu->setTitle(newName);
-    else if(sheetMenu->title() == oldName) sheetMenu->setTitle(newName);
-}
+    if(!item) return;
 
-void GnuplotEditor::executeGnuplot()
-{
-    qDebug() << __FILE__ << __LINE__;
-    /* DEBUG */
-    receiveGnuplotStdOut(oldAppFolderPath);
-    QDir dir(oldAppFolderPath);
-    if(!dir.removeRecursively())
-        receiveGnuplotStdOut("removeRecursively false");
-    if(!dir.rmdir(oldAppFolderPath))
-        receiveGnuplotStdOut("rmdir false");
-
-    /* browserの過去の出力をグレイアウト */
-    browserWidget->grayOutAll();
-
-    /* ファイルが選ばれていない場合は無効 */
-    if(gnuplotWidget->count() < 1) {
-        browserWidget->outputText("scripts are not selected.", BrowserWidget::MessageType::SystemErr);
-        return;
+    if(TextEdit *textEdit = item->editor)
+    {
+        textEdit->setErrorLineNumber(-1);
+        textEdit->highlightLine();
     }
 
-    /* エラー行のリセット */
-    qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->setErrorLineNumber(-1);
-    qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->highlightLine();
-
-    /* ファイルの保存 */
-    fileTree->saveScript(scriptMenu->title());
-    fileTree->saveSheet(sheetMenu->title());
-
-    /* gnuplotにコマンドを渡す */
-    gnuplot->exc(gnuplotProcess, QList<QString>() << "load '" + scriptMenu->title() + "'");
+    /* FileTreeWidget::allSaved()が発せられたら，GnuplotEditor::sendGnuplotCmd()を実行
+     * すべてセーブしてからでないと，gnuplot実行時にセーブされていないファイルを読み込んで実行してしまう */
+    requestedItem = item;
+    fileTree->saveAllFile();
 }
 
-void GnuplotEditor::receiveGnuplotStdOut(const QString& text)
+void GnuplotEditor::sendGnuplotCmd()
 {
-    /* 出力の表示 */
-    browserWidget->outputText(text, BrowserWidget::MessageType::GnuplotStdOut);
+    /* FileTreeWidget::allSaved() が発せられたら呼ばれるが，これが他のクラスから発せられたものである可能性があるため，
+     * requestedItemを確認することで，これが実行時にFileTreeWidget::saveAllFile()を呼ぶことによって発せられたことが
+     * 確認できる． */
+    if(requestedItem)
+    {
+        editorArea->singleShotLoading();
+
+        __LOGOUT__("execute gnuplot \"" + requestedItem->fileInfo().absoluteFilePath() + "\".", Logger::LogLevel::Info);
+
+        gnuplotExecutor->setWorkingFolderPath(requestedItem->fileInfo().absolutePath());
+        gnuplotExecutor->execGnuplot(requestedItem->process, QList<QString>() << "load '" + requestedItem->fileInfo().absoluteFilePath() + "'", true);
+
+        requestedItem = nullptr;
+    }
 }
 
-void GnuplotEditor::receiveGnuplotStdErr(const QString& text, const int line)
+void GnuplotEditor::findKeyword()
 {
-    /* 出力の表示 */
-    browserWidget->outputText(text, BrowserWidget::MessageType::GnuplotStdErr);
-
-    /* エラー行の設定とハイライト */
-    qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->setErrorLineNumber(line - 1);
-    qobject_cast<TextEdit*>(gnuplotWidget->widget(0))->highlightLine();
+    __LOGOUT__("not surpported.", Logger::LogLevel::Debug);
 }
 
-void GnuplotEditor::setFileTreeWidth(const int dx)
+void GnuplotEditor::showGnuplotCmdHelp()
 {
-    const int nextWidth = fileTree->maximumWidth() - dx;
-    if(nextWidth < 0 || nextWidth > 260) return;
-    fileTree->setMaximumWidth(nextWidth);
+    if(TreeScriptItem *item = qobject_cast<TreeScriptItem*>(editorArea->currentTreeFileItem()))
+    {
+        if(!item->editor) return;
+
+        const QString cmd = (item->editor->textCursor().hasSelection()) ? item->editor->textCursor().selectedText()
+                                                                        : item->editor->textUnderCursor();
+
+        gnuplotExecutor->execGnuplot(item->process, QStringList() << "help " + cmd, false);
+    }
 }
 
-void GnuplotEditor::setDisplayTabHeight(const int dy)
+void GnuplotEditor::showGnuplotHelpWindow()
 {
-    const int nextHeight = displayTab->maximumHeight() + dy;
-    if(nextHeight < 0 || nextHeight > 600) return;
-    displayTab->setMaximumHeight(nextHeight);
+    gnuplotExecutor->execGnuplot(QStringList() << "help", false);
 }
 
-void GnuplotEditor::closeApplication()
+void GnuplotEditor::reboot()
 {
-    postProcess();
-    exit(0);
+    __LOGOUT__("reboot requested.", Logger::LogLevel::Info);
+
+    /* アプリを終了させる。アプリが終了する前にQMainWindow::closeEvent()が呼び出される */
+    QCoreApplication::quit();
+
+    /* 実行ファイルを指定して新しく立ち上げる */
+    QProcess::startDetached(QApplication::applicationFilePath());
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

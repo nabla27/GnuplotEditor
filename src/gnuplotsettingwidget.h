@@ -1,45 +1,62 @@
+/*!
+ * GnuplotEditor
+ *
+ * Copyright (c) 2022 yuya
+ *
+ * This software is released under the GPLv3.
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ */
+
 #ifndef GNUPLOTSETTINGWIDGET_H
 #define GNUPLOTSETTINGWIDGET_H
 
 #include <QWidget>
-#include <QTextBrowser>
-#include <QLineEdit>
-#include <QToolButton>
-#include "gnuplot.h"
-#include "texteditor.h"
+
+
+class LogBrowserWidget;
+class QLineEdit;
+class QToolButton;
+class TextEdit;
+
+
 
 class GnuplotSettingWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit GnuplotSettingWidget(Gnuplot *gnuplot, QWidget *parent);
+    explicit GnuplotSettingWidget(QWidget *parent);
     ~GnuplotSettingWidget();
+    void loadXmlSetting();
+
+public slots:
+    void addLogToBrowser(const QString& text);
 
 private slots:
-    void addLogToBrowser(const QString& text);
     void selectGnuplotPath();
-    void setGnuplotPath() { gnuplot->setExePath(pathEdit->text()); }
-    void setGnuplotInitCmd() { gnuplot->setInitCmd(initializeCmd->toPlainText()); }
-    void setGnuplotPreCmd() { gnuplot->setPreCmd(preCmd->toPlainText()); };
+    void setGnuplotPath();
+    void setGnuplotInitCmd();
+    void setGnuplotPreCmd();
+    void closeDefaultProcess();
 
 private:
     void initializeLayout();
-    void loadXmlSetting();
     void saveXmlSetting();
 
 private:
-    Gnuplot *gnuplot;
-    QTextBrowser *browser;
+    LogBrowserWidget *browser;
     QLineEdit *pathEdit;
     QToolButton *pathTool;
     TextEdit *initializeCmd;
     TextEdit *preCmd;
 
-    const QString settingFolderPath = "./setting/";
-    const QString settingFileName = "gnuplot-setting.xml";
+    const QString settingFolderPath;
+    const QString settingFileName;
 
 signals:
-
+    //void autoCompileMsecSet(const int msec);
+    void exePathSet(const QString& path);
+    void initCmdSet(const QString& initCmd);
+    void preCmdSet(const QString& preCmd);
 };
 
 #endif // GNUPLOTSETTINGWIDGET_H

@@ -1,76 +1,228 @@
+/*!
+ * GnuplotEditor
+ *
+ * Copyright (c) 2022 yuya
+ *
+ * This software is released under the GPLv3.
+ * see https://www.gnu.org/licenses/gpl-3.0.en.html
+ */
+
 #ifndef MENUBAR_H
 #define MENUBAR_H
+
 #include <QMenu>
-#include <QAction>
-#include <QFileDialog>
+
+class TreeFileItem;
+class LogSettingWidget;
+class PluginListWidget;
+class TextEdit;
+
 
 class FileMenu : public QMenu
 {
     Q_OBJECT
-
 public:
-    FileMenu(const QString& title, QWidget *parent);
+    explicit FileMenu(const QString& title, QWidget *parent);
+
+public slots:
+    void setCurrentItem(TreeFileItem *item);
 
 private slots:
-    void openFolder();
+    void reloadFile();
+    void saveFile();
+    void saveFileAs();
+
+private:
+    void setActionEnable(bool enable);
+    void resetCurrentItem();
+
+private:
+    QAction *aOpenFolder;
+    QAction *aAddFolder;
+    QAction *aSaveFolder;
+    QAction *aUpdateFolder;
+    QAction *aReloadFolder;
+
+    QAction *aOpenFile;
+    QAction *aNewFile;
+
+    QAction *aReloadFile;
+    QAction *aSaveFile;
+    QAction *aSaveAllFiles;
+    QAction *aSaveFileAs;
+
+    QAction *aOpenTreeSetting;
+
+    TreeFileItem *currentItem = nullptr;
 
 signals:
-    void openFolderPushed(const QString& folderPath);
-    void addFolderPushed();
-    void saveFolderPushed();
-    void updateFolderPushed();
-    void reloadFolderPushed();
+    void openFolderRequested();
+    void addFolderRequested();
+    void saveFolderRequested();
+    void updateFolderRequested();
+    void reloadFolderRequested();
+    void openFileRequested();
+    void newFileRequested();
+    void saveAllFilesRequested();
+    void openTreeSettingRequested();
 };
 
 
-class WidgetMenu : public QMenu
+
+
+
+
+
+class EditorMenu : public QMenu
 {
     Q_OBJECT
+public:
+    explicit EditorMenu(const QString& title, QWidget *parent);
 
 public:
-    WidgetMenu(const QString& title, QWidget *parent);
+    void setCurrentItem(TreeFileItem *item);
+
+private slots:
+    void undo();
+    void redo();
+    void cut();
+    void copy();
+    void paste();
+    void deleteText();
+    void selectAll();
+    void openInNewWindow();
+
+private:
+    void setActionDisable();
+    void resetCurrentItem();
+
+private:
+
+    QAction *aUndo;
+    QAction *aRedo;
+    QAction *aCut;
+    QAction *aCopy;
+    QAction *aPaste;
+    QAction *aDelete;
+    QAction *aSelectAll;
+
+    QAction *aFind;
+    QAction *aOpenInNewWindow;
+
+    TreeFileItem *currentItem = nullptr;
 
 signals:
-    void clearOutputWindowPushed();
-    void clearConsoleWindowPushed();
-    void editorSettingOpened();
-    void gnuplotSettingOpened();
+    void findRequested();
 };
+
+
+
+
+
+
+
+
+class GnuplotMenu : public QMenu
+{
+    Q_OBJECT
+public:
+    explicit GnuplotMenu(const QString& title, QWidget *parent);
+
+public:
+    void setCurrentItem(TreeFileItem *item);
+
+private slots:
+    void setAutoRun();
+    void closeProcess();
+    void reStart();
+    void runDetached();
+    void commentOut();
+    void emitSaveAsTemplate();
+
+private:
+    void resetCurrentItem();
+    void setupActionEnable(bool enable);
+
+private:
+    QAction *aRun;
+    QAction *aCloseProcess;
+    QAction *aReStart;
+    QAction *aAutoRun;
+    QAction *aRunDetached;
+
+    QAction *aCommentOut;
+    QAction *aShowCmdHelp;
+    QAction *aHelpDocument;
+    QAction *aSaveAsTemplate;
+    QAction *aScriptTemplate;
+    QAction *aGnuplotSetting;
+
+    TreeFileItem *currentItem = nullptr;
+
+signals:
+    void runRequested(TreeFileItem *item);
+    void showCmdHelpRequested();
+    void showGnuplotHelpRequested();
+    void saveAsTemplateRequested(const QString&);
+    void showScriptTemplateRequested();
+    void showGnuplotSettingRequested();
+};
+
+
+
+
+
+
+
+
+
+class ViewMenu : public QMenu
+{
+    Q_OBJECT
+public:
+    explicit ViewMenu(const QString& title, QWidget *parent);
+
+private:
+    QAction *aSplitHorizontally;
+    QAction *aSplitVertically;
+    QAction *aUnsplit;
+    QAction *aRemoveAllStackedEditor;
+    QAction *aClearTerminal;
+    QAction *aEditorLayoutSetting;
+
+signals:
+    void splitHorizontallyRequested();
+    void splitVerticallyRequested();
+    void unsplitRequested();
+    void removeAllStackedEditorRequested();
+    void clearTerminalRequested();
+    void showEditorSettingRequested();
+};
+
+
+
+
+
+
 
 
 class HelpMenu : public QMenu
 {
     Q_OBJECT
-
 public:
-    HelpMenu(const QString& title, QWidget *parent);
+    explicit HelpMenu(const QString& title, QWidget *parent);
+
+private:
+    QAction *aLogWidget;
+    QAction *aPlugins;
+    QAction *aReboot;
+
+    LogSettingWidget *logWidget;
+    PluginListWidget *pluginSetting;
 
 signals:
-    void updateManagerRequested();
+    void rebootRequested();
 };
-
-
-class ScriptMenu : public QMenu
-{
-    Q_OBJECT
-
-public:
-    ScriptMenu(const QString& title, QWidget *parent);
-};
-
-
-class SheetMenu : public QMenu
-{
-    Q_OBJECT
-
-public:
-    SheetMenu(const QString& title, QWidget *parent);
-};
-
-
-
-
-
 
 
 
