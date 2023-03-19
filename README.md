@@ -58,7 +58,7 @@
 1. gnuplotを持っていない場合、gnuplotをダウンロードする。
 2. このリポジトリをClone `git clone https://github.com/nabla27/GnuplotEditor.git`
 3. フォルダー内の bin/release/GnuplotEditor.exe を実行して起動する。
-4. 起動後、メニューバーの Widget->Gnuplot Setting のPathに gnuplot.exe 実行ファイルのパスを指定する。
+4. 起動後、上のメニューバーの Gnuplot->Gnuplot Setting のPathに gnuplot.exe 実行ファイルのパスを指定する。
 
 詳細は[ダウンロードからプロットまでの流れ](./docs/ja/setup.md)を参照。
 
