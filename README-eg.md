@@ -51,7 +51,7 @@ Only this software can edit scripts and data, and display generated images. In a
 1. If you don't have gnuplot, download gnuplot.
 1. Clone this repository `git clone https://github.com/nabla27/GnuplotEditor.git`.
 3. Execute bin / release / GnuplotEditor.exe in the folder to start it.
-4. After launching, specify the path of the gnuplot.exe executable file in the Path of her Widget-> Gnuplot Setting on the menu bar.
+4. After launching, specify the path of the gnuplot.exe executable file in the Path of Gnuplot -> Gnuplot Setting on the top menu bar.
 
 See [Flow from download to plot](./docs/eg/setup.md) for details.
 
