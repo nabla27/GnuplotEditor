@@ -26,6 +26,7 @@ HEADERS += \
     $$PWD/settings.h \
     $$PWD/standardpixmap.h \
     $$PWD/tablesettingwidget.h \
+    $$PWD/tablewidget.h \
     $$PWD/templatecustomwidget.h \
 #<<<<<<< HEAD
 #    $$PWD/updatemanager.h \
@@ -68,6 +69,7 @@ SOURCES += \
     $$PWD/settings.cpp \
     $$PWD/standardpixmap.cpp \
     $$PWD/tablesettingwidget.cpp \
+    $$PWD/tablewidget.cpp \
     $$PWD/templatecustomwidget.cpp \
 #<<<<<<< HEAD
 #    $$PWD/updatemanager.cpp \

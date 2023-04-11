@@ -169,12 +169,15 @@ void GnuplotTable::initializeContextMenu()
     QAction *actReverseRow = new QAction("reverse row", placementMenu);
     QAction *actReverseCol = new QAction("reverse col", placementMenu);
     QAction *actTranspose = new QAction("transpose", placementMenu);
+    QAction *actSort = new QAction("sort column", placementMenu);
     placementMenu->addAction(actReverseRow);
     placementMenu->addAction(actReverseCol);
     placementMenu->addAction(actTranspose);
+    placementMenu->addAction(actSort);
     connect(actReverseRow, &QAction::triggered, this, &GnuplotTable::reverseRow);
     connect(actReverseCol, &QAction::triggered, this, &GnuplotTable::reverseCol);
     connect(actTranspose, &QAction::triggered, this, &GnuplotTable::transposeCell);
+    connect(actSort, &QAction::triggered, this, &GnuplotTable::sortCol);
     normalMenu->addMenu(placementMenu);
 
     /* gnuplot */

@@ -19553,3 +19553,23 @@ start to save the plugin list as xml file.
 FILE(..\src\plugin.cpp) LINE(690) FUNC(PluginListWidget::savePluginListAsXml)
 finished saving the plugin list info.
 
+[Info] Sun Mar 19 21:47:53 2023
+FILE(..\src\editorsettingwidget.cpp) LINE(433) FUNC(EditorSetting::saveXmlSetting)
+save editor setting to E:/repos/qt_project/LabQ/GnuplotEditor/bin/release/setting/editor-setting.xml
+
+[Info] Sun Mar 19 21:47:53 2023
+FILE(..\src\gnuplotsettingwidget.cpp) LINE(226) FUNC(GnuplotSettingWidget::saveXmlSetting)
+save gnuplot setting as xml file "E:/repos/qt_project/LabQ/GnuplotEditor/bin/release/setting/gnuplot-setting.xml".
+
+[Info] Sun Mar 19 21:47:53 2023
+FILE(..\src\filetreesettingwidget.cpp) LINE(375) FUNC(FileTreeSettingWidget::saveXmlSetting)
+save filetree setting as xml file "E:/repos/qt_project/LabQ/GnuplotEditor/bin/release/setting/filetree-setting.xml".
+
+[Info] Sun Mar 19 21:47:54 2023
+FILE(..\src\plugin.cpp) LINE(650) FUNC(PluginListWidget::savePluginListAsXml)
+start to save the plugin list as xml file.
+
+[Info] Sun Mar 19 21:47:54 2023
+FILE(..\src\plugin.cpp) LINE(690) FUNC(PluginListWidget::savePluginListAsXml)
+finished saving the plugin list info.
+

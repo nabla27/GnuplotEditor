@@ -16,18 +16,18 @@ CONFIG += c++11
 
 SOURCES += \
     #../LabQHome/layoutparts.cpp \
-    ../LabQHome/tablewidget.cpp \
+    #../LabQHome/tablewidget.cpp \
     #../LabQHome/utility.cpp \
 
 HEADERS += \
     ../LabQHome/iofile.h \
     #../LabQHome/layoutparts.h \
-    ../LabQHome/tablewidget.h \
+    #../LabQHome/tablewidget.h \
     #../LabQHome/utility.h \
     plugin/pluginchecker/checker.h
 
 INCLUDEPATH += E:/boost_1_76_0/boost_1_76_0 \        #boostLib for xml parser
-               E:/repos/qt_project/LabQ/LabQHome \   #utility tool for Qt project
+               #E:/repos/qt_project/LabQ/LabQHome \   #utility tool for Qt project
 
 
 LIBS += "C:\\Program Files (x86)\\Windows Kits\\10\\Lib\\10.0.19041.0\\um\\x64\\kernel32.lib" \  #WinAPI
