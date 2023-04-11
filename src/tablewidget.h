@@ -37,7 +37,8 @@ public slots:
     void reverseRow();
     void reverseCol();
     void transposeCell();
-    void sortCol();
+    void sortAscending();
+    void sortDescending();
     void setSelectedCellColor(const QColor& color);
     void setSelectedTextColor(const QColor& color);
     void setSelectedTextFamily(const QString& family);

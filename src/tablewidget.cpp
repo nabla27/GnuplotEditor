@@ -326,11 +326,21 @@ void TableWidget::transposeCell()
     }
 }
 
-void TableWidget::sortCol()
+void TableWidget::sortAscending()
 {
     for(auto&& range : selectedRanges())
     {
         sortByColumn(range.leftColumn(), Qt::AscendingOrder);
+        emit cellChanged(range.leftColumn(), range.topRow());
+        break;
+    }
+}
+
+void TableWidget::sortDescending()
+{
+    for(auto&& range : selectedRanges())
+    {
+        sortByColumn(range.leftColumn(), Qt::DescendingOrder);
         emit cellChanged(range.leftColumn(), range.topRow());
         break;
     }
